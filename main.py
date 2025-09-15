@@ -74,6 +74,8 @@ for sheet_name in sheet_names:
         # loop แต่ละคาบ
         for idx, col in enumerate(periods, start=1):
             subject = ws.cell(row=row, column=col).value
+            if subject and isinstance(subject, str):
+                subject = ''.join(char for char in subject.strip() if not char.isdigit())
             teacher = ws.cell(row=row + 1, column=col).value
 
             # print(f"-------->{subject_map.get(subject.strip(), "UNKNOWN")}")
