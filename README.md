@@ -125,13 +125,29 @@ The algorithm uses a scoring system to find the best substitute:
 
 ## Testing
 
-Run the test suite to verify functionality:
+### Running All Tests
 
+Run the complete test suite (24 tests across both modules):
+
+```bash
+python run_all_tests.py
+```
+
+### Running Individual Test Suites
+
+Run substitute finding tests (10 tests):
 ```bash
 python test_find_substitute.py
 ```
 
-**Test Coverage:**
+Run Excel conversion tests (14 tests):
+```bash
+python test_excel_converting.py
+```
+
+### Test Coverage
+
+**Substitute Finding (test_find_substitute.py):**
 - Basic substitute finding
 - Absent teacher exclusion
 - Availability checking
@@ -141,6 +157,20 @@ python test_find_substitute.py
 - Input validation
 - Double-booking prevention
 - Multiple absent teachers
+
+**Excel Conversion (test_excel_converting.py):**
+- Excel file parsing and JSON structure
+- Thai-English mappings (days, subjects, teachers)
+- Merged cell handling
+- UTF-8 encoding validation
+- Error handling (missing files, missing sheets)
+- Edge cases (numeric character stripping)
+
+**Test Results:** All 24 tests passing
+
+For detailed testing documentation, see:
+- **TESTING.md** - Quick reference guide for developers
+- **TEST_REPORT.md** - Comprehensive test analysis and recommendations
 
 ## Data Structures
 
@@ -176,13 +206,19 @@ python test_find_substitute.py
 
 ```
 TimeTableConverting/
-├── excel_converting.py       # Excel to JSON converter
-├── find_substitute.py         # Substitute teacher algorithm
-├── test_find_substitute.py    # Unit tests
-├── requirements.txt           # Python dependencies
-├── README.md                  # This file
-├── CLAUDE.md                  # Developer documentation
-└── venv/                      # Virtual environment (created by you)
+├── excel_converting.py        # Excel to JSON converter
+├── find_substitute.py          # Substitute teacher algorithm
+├── test_excel_converting.py    # Excel conversion tests (14 tests)
+├── test_find_substitute.py     # Substitute finding tests (10 tests)
+├── run_all_tests.py            # Unified test runner
+├── requirements.txt            # Python dependencies
+├── README.md                   # This file
+├── CLAUDE.md                   # Claude Code instructions
+├── GEMINI.md                   # Google Gemini instructions
+├── TESTING.md                  # Quick testing guide
+├── TEST_REPORT.md              # Comprehensive test documentation
+├── SESSION_SUMMARY.md          # Work session history
+└── venv/                       # Virtual environment (created by you)
 ```
 
 ## Improvements Made
@@ -195,6 +231,8 @@ TimeTableConverting/
 - ✅ Added type hints
 - ✅ Added docstrings
 - ✅ Improved user feedback with progress messages
+- ✅ Fixed Windows console compatibility (replaced Unicode with ASCII)
+- ✅ Added proper Excel file handle cleanup (prevents file locking)
 
 ### find_substitute.py
 - ✅ Added type hints for all functions
@@ -203,9 +241,12 @@ TimeTableConverting/
 - ✅ Better documentation of scoring algorithm
 
 ### Testing
-- ✅ Created comprehensive test suite
-- ✅ 10 test cases covering all major scenarios
+- ✅ Created comprehensive test suite for both modules
+- ✅ 24 test cases covering all major scenarios (10 + 14)
 - ✅ All tests passing
+- ✅ Unified test runner (run_all_tests.py)
+- ✅ Comprehensive testing documentation (TESTING.md, TEST_REPORT.md)
+- ✅ Programmatic mock creation for test isolation
 
 ## Excel File Format
 

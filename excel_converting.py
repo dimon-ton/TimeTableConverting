@@ -77,7 +77,7 @@ def convert_timetable(file_path: str, output_file: str = "timetable_output.json"
 
     for sheet_name in sheet_names:
         if sheet_name not in wb.sheetnames:
-            print(f"⚠️  Warning: Sheet '{sheet_name}' not found, skipping...")
+            print(f"Warning: Sheet '{sheet_name}' not found, skipping...")
             continue
 
         print(f"Processing sheet: {sheet_name}")
@@ -130,21 +130,24 @@ def convert_timetable(file_path: str, output_file: str = "timetable_output.json"
 
     # Report unknown mappings
     if unknown_subjects:
-        print(f"\n⚠️  Warning: {len(unknown_subjects)} unknown subject(s) found:")
+        print(f"\nWarning: {len(unknown_subjects)} unknown subject(s) found:")
         for subj in sorted(unknown_subjects):
             print(f"   - {subj}")
 
     if unknown_teachers:
-        print(f"\n⚠️  Warning: {len(unknown_teachers)} unknown teacher(s) found:")
+        print(f"\nWarning: {len(unknown_teachers)} unknown teacher(s) found:")
         for teacher in sorted(unknown_teachers):
             print(f"   - {teacher}")
+
+    # Close the workbook to release file handles
+    wb.close()
 
     # Export JSON
     print(f"\nSaving to {output_file}...")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_timetables, f, ensure_ascii=False, indent=2)
 
-    print(f"✓ Successfully saved {len(all_timetables)} timetable entries to {output_file}")
+    print(f"Successfully saved {len(all_timetables)} timetable entries to {output_file}")
     return all_timetables
 
 

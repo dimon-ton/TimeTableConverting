@@ -53,8 +53,13 @@ Parses Excel worksheets with hardcoded Thai-to-English mappings for days, subjec
 - Input validation (file existence, worksheet presence)
 - Unknown entity tracking (warns about unmapped teachers/subjects)
 - Command-line interface with usage help
+- Windows compatibility: ASCII output, proper file handle cleanup
 
 **Key mappings:** `day_map`, `subject_map`, `teacher_map` (lines 8-44)
+
+**Recent Fixes:**
+- Replaced Unicode characters (✓, ⚠️) with ASCII ("OK", "WARNING") for Windows console compatibility
+- Added `wb.close()` to prevent file handle leaks and Windows file locking issues
 
 ### find_substitute.py
 Scoring-based algorithm that balances subject qualification, level matching, and workload distribution.
@@ -93,12 +98,22 @@ All data structures use this timetable entry format:
 
 ## Testing
 
-Run the comprehensive test suite:
+### Running Tests
+
+Run all tests (recommended):
 ```bash
-python test_find_substitute.py
+python run_all_tests.py
+```
+
+Run individual test suites:
+```bash
+python test_find_substitute.py   # 10 tests for substitute finding
+python test_excel_converting.py  # 14 tests for Excel conversion
 ```
 
 **Test Coverage:**
+
+**Substitute Finding (10 tests):**
 - Basic substitute finding functionality
 - Absent teacher exclusion
 - Availability checking (prevents double-booking)
@@ -107,6 +122,22 @@ python test_find_substitute.py
 - Workload balancing
 - Input validation
 - Multiple absent teachers handling
+
+**Excel Conversion (14 tests):**
+- File parsing and JSON structure validation
+- Thai-English mappings (days, subjects, teachers)
+- Merged cell handling
+- UTF-8 encoding for Thai characters
+- Error cases (missing files, missing worksheets)
+- Edge cases (numeric character stripping)
+
+**Test Strategy:**
+- Uses programmatic mock creation (no external fixture files)
+- unittest framework (Python standard library)
+- Proper cleanup of temporary files
+- All 24 tests passing
+
+See TESTING.md for quick reference or TEST_REPORT.md for comprehensive analysis.
 
 ## Important Notes
 - Thai encoding: All mappings and output use UTF-8
