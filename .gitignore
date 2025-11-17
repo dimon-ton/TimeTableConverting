@@ -1,4 +1,22 @@
-env
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+env/
+venv/
+ENV/
+
+# Excel and JSON outputs
 *.xlsx
 *.xlsm
-*.json
+timetable_output.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
