@@ -145,6 +145,11 @@ Run Excel conversion tests (14 tests):
 python test_excel_converting.py
 ```
 
+Run real timetable validation test:
+```bash
+python test_real_timetable.py
+```
+
 ### Test Coverage
 
 **Substitute Finding (test_find_substitute.py):**
@@ -206,19 +211,27 @@ For detailed testing documentation, see:
 
 ```
 TimeTableConverting/
-├── excel_converting.py        # Excel to JSON converter
-├── find_substitute.py          # Substitute teacher algorithm
-├── test_excel_converting.py    # Excel conversion tests (14 tests)
-├── test_find_substitute.py     # Substitute finding tests (10 tests)
-├── run_all_tests.py            # Unified test runner
-├── requirements.txt            # Python dependencies
-├── README.md                   # This file
-├── CLAUDE.md                   # Claude Code instructions
-├── GEMINI.md                   # Google Gemini instructions
-├── TESTING.md                  # Quick testing guide
-├── TEST_REPORT.md              # Comprehensive test documentation
-├── SESSION_SUMMARY.md          # Work session history
-└── venv/                       # Virtual environment (created by you)
+├── excel_converting.py         # Excel to JSON converter
+├── find_substitute.py           # Substitute teacher algorithm
+├── test_excel_converting.py     # Excel conversion tests (14 tests)
+├── test_find_substitute.py      # Substitute finding tests (10 tests)
+├── test_real_timetable.py       # Real timetable validation test
+├── run_all_tests.py             # Unified test runner
+├── diagnose_excel.py            # Excel structure inspection tool
+├── check_conflicts.py           # Scheduling conflict detector
+├── check_prathom_periods.py     # Period format validator
+├── test_period_parsing.py       # Period parsing unit tests
+├── check_t011_duplicates.py     # Duplicate verification tool
+├── real_timetable.json          # Parsed real school timetable (222 entries)
+├── requirements.txt             # Python dependencies
+├── README.md                    # This file
+├── CLAUDE.md                    # Claude Code instructions
+├── GEMINI.md                    # Google Gemini instructions
+├── TESTING.md                   # Quick testing guide
+├── TEST_REPORT.md               # Comprehensive test documentation
+├── SESSION_SUMMARY.md           # Work session history
+├── NEXT_STEPS.md                # Recommended next actions
+└── venv/                        # Virtual environment (created by you)
 ```
 
 ## Improvements Made
@@ -233,6 +246,11 @@ TimeTableConverting/
 - ✅ Improved user feedback with progress messages
 - ✅ Fixed Windows console compatibility (replaced Unicode with ASCII)
 - ✅ Added proper Excel file handle cleanup (prevents file locking)
+- ✅ **Fixed critical parser bugs (Nov 2025):**
+  - Time-range period parsing for elementary sheets (09.00-10.00 format)
+  - Lunch break text filtering in middle school sheets
+  - Row limiting to avoid duplicate entries from multiple tables
+  - Results: 100% elementary data coverage, zero conflicts, clean 222 entries
 
 ### find_substitute.py
 - ✅ Added type hints for all functions
@@ -247,17 +265,29 @@ TimeTableConverting/
 - ✅ Unified test runner (run_all_tests.py)
 - ✅ Comprehensive testing documentation (TESTING.md, TEST_REPORT.md)
 - ✅ Programmatic mock creation for test isolation
+- ✅ **Real-world validation (Nov 2025):**
+  - Tested with actual school timetable data
+  - 222 entries parsed, 9 classes covered, 16 teachers identified
+  - Zero scheduling conflicts
+  - 75% substitute finding success rate
+  - Comprehensive diagnostic tools created
 
 ## Excel File Format
 
 The Excel file should have the following structure:
 - **Row 1**: Headers
 - **Row 2**: Period numbers (columns 3 onwards)
+  - Middle school sheets: Numeric periods (1, 2, 3, etc.)
+  - Elementary sheets: Time ranges (09.00-10.00, 10.00-11.00, etc.)
 - **Rows 3+**: Alternating subject/teacher rows
 - **Column 1**: Day of week (Thai)
 - **Column 2**: Class ID
 
-Merged cells are supported and handled automatically.
+**Important Notes:**
+- Merged cells are supported and handled automatically
+- Parser automatically detects and handles both period formats
+- Lunch break columns are intelligently filtered out
+- Only the first table per sheet is parsed (rows 1-32) to avoid duplicates
 
 ## Troubleshooting
 

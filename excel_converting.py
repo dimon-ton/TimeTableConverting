@@ -84,16 +84,34 @@ def convert_timetable(file_path: str, output_file: str = "timetable_output.json"
         ws = wb[sheet_name]
 
         # อ่าน period_id จาก row 2
+        # Store tuples of (column_index, period_number) - skip non-numeric entries like lunch break
+        # Handle both numeric periods (ม.1-3: "1", "2", "3") and time-based (ป.1-6: "09.00-10.00")
         periods = []
+        period_counter = 1  # For mapping time-based periods to sequential numbers
+
         for col in range(3, ws.max_column + 1):
-            if ws.cell(row=2, column=col).value:
-                periods.append(col)
+            period_value = ws.cell(row=2, column=col).value
+            if period_value:
+                period_str = str(period_value).strip()
+
+                # Try to parse as integer first (for middle school: "1", "2", "3")
+                try:
+                    period_num = int(period_value)
+                    periods.append((col, period_num))
+                except (ValueError, TypeError):
+                    # Check if it's a time range format (for elementary: "09.00-10.00")
+                    if '-' in period_str and any(char.isdigit() for char in period_str):
+                        # Valid time range - map to sequential period number
+                        periods.append((col, period_counter))
+                        period_counter += 1
+                    # Otherwise skip (lunch break text, etc.)
 
         row = 3
         day = None
         class_id = None
 
-        while row <= ws.max_row:
+        # Only process first table (up to row 32) to avoid duplicate data
+        while row <= min(32, ws.max_row):
             day_val = ws.cell(row=row, column=1).value
             class_val = ws.cell(row=row, column=2).value
 
@@ -102,7 +120,7 @@ def convert_timetable(file_path: str, output_file: str = "timetable_output.json"
             class_id = class_val if class_val else class_id
 
             # loop แต่ละคาบ
-            for idx, col in enumerate(periods, start=1):
+            for col, period_num in periods:
                 subject = ws.cell(row=row, column=col).value
                 if subject and isinstance(subject, str):
                     subject = ''.join(char for char in subject.strip() if not char.isdigit())
@@ -122,7 +140,7 @@ def convert_timetable(file_path: str, output_file: str = "timetable_output.json"
                         "teacher_id": teacher_map.get(teacher_stripped, "UNKNOWN"),
                         "subject_id": subject_map.get(subject_stripped, "UNKNOWN"),
                         "day_id": day,
-                        "period_id": idx,
+                        "period_id": period_num,  # Use actual period number from Excel
                         "class_id": str(class_id)
                     })
 

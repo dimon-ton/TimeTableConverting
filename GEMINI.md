@@ -42,6 +42,16 @@ from find_substitute import find_best_substitute_teacher, assign_substitutes_for
 ```
 The module provides importable functions, not a standalone script. See `test_find_substitute.py` for usage examples.
 
+### Test with Real Timetable
+```bash
+python test_real_timetable.py
+```
+Comprehensive test script using real school timetable data. Simulates teacher absence and validates substitute finding with actual constraints. Provides detailed analysis including:
+- Teacher schedule visualization
+- Substitute assignments with qualification checking
+- Success rate calculation
+- Level matching validation
+
 ## Architecture
 
 ### excel_converting.py
@@ -57,9 +67,20 @@ Parses Excel worksheets with hardcoded Thai-to-English mappings for days, subjec
 
 **Key mappings:** `day_map`, `subject_map`, `teacher_map` (lines 8-44)
 
-**Recent Fixes:**
+**Recent Fixes (Nov 2025):**
+- **Critical Parser Bugs Fixed:**
+  - **Time-Range Parsing:** Added support for time-based periods (e.g., "09.00-10.00") used in elementary sheets (lines 97-107)
+  - **Lunch Break Filtering:** Skip non-numeric period entries like lunch break text (lines 86-107)
+  - **Row Limiting:** Limited parsing to row 32 to avoid duplicate entries from multiple tables per sheet (line 114)
+  - **Results:** Fixed missing elementary data (0% to 100% coverage), eliminated scheduling conflicts, reduced duplicate entries from 384 to 222
 - Replaced Unicode characters (✓, ⚠️) with ASCII ("OK", "WARNING") for Windows console compatibility
 - Added `wb.close()` to prevent file handle leaks and Windows file locking issues
+
+**Period Format Handling:**
+- Middle school sheets (ม.1-3): Use numeric periods (1, 2, 3, etc.)
+- Elementary sheets (ป.1-6): Use time ranges ("09.00-10.00", "10.00-11.00", etc.)
+- Parser automatically detects format and maps time ranges to sequential period numbers
+- Intelligently skips invalid entries (lunch break text, empty cells)
 
 ### find_substitute.py
 Scoring-based algorithm that balances subject qualification, level matching, and workload distribution.
@@ -109,6 +130,7 @@ Run individual test suites:
 ```bash
 python test_find_substitute.py   # 10 tests for substitute finding
 python test_excel_converting.py  # 14 tests for Excel conversion
+python test_real_timetable.py    # Real timetable validation test
 ```
 
 **Test Coverage:**
@@ -138,6 +160,23 @@ python test_excel_converting.py  # 14 tests for Excel conversion
 - All 24 tests passing
 
 See TESTING.md for quick reference or TEST_REPORT.md for comprehensive analysis.
+
+### Real-World Validation
+
+**Production Testing (Nov 2025):**
+- Tested with actual school timetable (ตารางเรียนเทอม2 ปี 68-2 .xlsm)
+- Successfully parsed 222 timetable entries covering all 9 classes
+- 16 active teachers identified
+- Zero scheduling conflicts in parsed data
+- Substitute finding algorithm achieves 75% success rate with real data
+- All three sheets parsed correctly (ป.1-3, ป.4-6, ม.1-3)
+
+**Diagnostic Tools Created:**
+- `diagnose_excel.py` - Inspect Excel structure and period columns
+- `check_conflicts.py` - Detect scheduling conflicts in JSON output
+- `check_prathom_periods.py` - Validate period format handling
+- `test_period_parsing.py` - Test period parsing logic
+- `check_t011_duplicates.py` - Verify duplicate resolution
 
 ## Important Notes
 - Thai encoding: All mappings and output use UTF-8

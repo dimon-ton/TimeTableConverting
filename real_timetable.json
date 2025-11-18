@@ -1,0 +1,1556 @@
+[
+  {
+    "teacher_id": "T002",
+    "subject_id": "Thai",
+    "day_id": "Mon",
+    "period_id": 1,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "English",
+    "day_id": "Mon",
+    "period_id": 2,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T002",
+    "subject_id": "Math",
+    "day_id": "Mon",
+    "period_id": 3,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T006",
+    "subject_id": "Science",
+    "day_id": "Mon",
+    "period_id": 4,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T002",
+    "subject_id": "Social",
+    "day_id": "Mon",
+    "period_id": 5,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "Thai",
+    "day_id": "Mon",
+    "period_id": 1,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "Math",
+    "day_id": "Mon",
+    "period_id": 2,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "English",
+    "day_id": "Mon",
+    "period_id": 3,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "UNKNOWN",
+    "day_id": "Mon",
+    "period_id": 4,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T006",
+    "subject_id": "Occupation",
+    "day_id": "Mon",
+    "period_id": 5,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "Math",
+    "day_id": "Mon",
+    "period_id": 1,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T006",
+    "subject_id": "Science",
+    "day_id": "Mon",
+    "period_id": 2,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "Thai",
+    "day_id": "Mon",
+    "period_id": 3,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "English",
+    "day_id": "Mon",
+    "period_id": 4,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "Math",
+    "day_id": "Mon",
+    "period_id": 5,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T002",
+    "subject_id": "History",
+    "day_id": "Tue",
+    "period_id": 1,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T002",
+    "subject_id": "Health Ed",
+    "day_id": "Tue",
+    "period_id": 2,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T002",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 3,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T006",
+    "subject_id": "Art",
+    "day_id": "Tue",
+    "period_id": 4,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T002",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 5,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "History",
+    "day_id": "Tue",
+    "period_id": 1,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "Math",
+    "day_id": "Tue",
+    "period_id": 2,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "Health Ed",
+    "day_id": "Tue",
+    "period_id": 3,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "English",
+    "day_id": "Tue",
+    "period_id": 4,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "Thai",
+    "day_id": "Tue",
+    "period_id": 5,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "History",
+    "day_id": "Tue",
+    "period_id": 1,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "Thai",
+    "day_id": "Tue",
+    "period_id": 2,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "English",
+    "day_id": "Tue",
+    "period_id": 3,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "Health Ed",
+    "day_id": "Tue",
+    "period_id": 4,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 5,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T002",
+    "subject_id": "Thai",
+    "day_id": "Wed",
+    "period_id": 1,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T002",
+    "subject_id": "Math",
+    "day_id": "Wed",
+    "period_id": 2,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "English",
+    "day_id": "Wed",
+    "period_id": 3,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T006",
+    "subject_id": "Science",
+    "day_id": "Wed",
+    "period_id": 4,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "Thai",
+    "day_id": "Wed",
+    "period_id": 1,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "English",
+    "day_id": "Wed",
+    "period_id": 2,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T006",
+    "subject_id": "Science",
+    "day_id": "Wed",
+    "period_id": 3,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "Math",
+    "day_id": "Wed",
+    "period_id": 4,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "Math",
+    "day_id": "Wed",
+    "period_id": 1,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T006",
+    "subject_id": "Science",
+    "day_id": "Wed",
+    "period_id": 2,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "Thai",
+    "day_id": "Wed",
+    "period_id": 3,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "Thai",
+    "day_id": "Wed",
+    "period_id": 4,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T002",
+    "subject_id": "Thai",
+    "day_id": "Thu",
+    "period_id": 1,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T002",
+    "subject_id": "Math",
+    "day_id": "Thu",
+    "period_id": 2,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T002",
+    "subject_id": "Thai",
+    "day_id": "Thu",
+    "period_id": 3,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T006",
+    "subject_id": "Occupation",
+    "day_id": "Thu",
+    "period_id": 4,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "English",
+    "day_id": "Thu",
+    "period_id": 5,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "Thai",
+    "day_id": "Thu",
+    "period_id": 1,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T006",
+    "subject_id": "Science",
+    "day_id": "Thu",
+    "period_id": 2,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T006",
+    "subject_id": "Art",
+    "day_id": "Thu",
+    "period_id": 3,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "Math",
+    "day_id": "Thu",
+    "period_id": 4,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "Social",
+    "day_id": "Thu",
+    "period_id": 5,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "Math",
+    "day_id": "Thu",
+    "period_id": 1,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "Thai",
+    "day_id": "Thu",
+    "period_id": 2,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "English",
+    "day_id": "Thu",
+    "period_id": 3,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "English",
+    "day_id": "Thu",
+    "period_id": 4,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 5,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T002",
+    "subject_id": "Math",
+    "day_id": "Fri",
+    "period_id": 1,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T002",
+    "subject_id": "Thai",
+    "day_id": "Fri",
+    "period_id": 2,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "English",
+    "day_id": "Fri",
+    "period_id": 3,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T002",
+    "subject_id": "Math",
+    "day_id": "Fri",
+    "period_id": 4,
+    "class_id": "ป.1"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "Thai",
+    "day_id": "Fri",
+    "period_id": 1,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "English",
+    "day_id": "Fri",
+    "period_id": 2,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "Math",
+    "day_id": "Fri",
+    "period_id": 3,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T007",
+    "subject_id": "UNKNOWN",
+    "day_id": "Fri",
+    "period_id": 4,
+    "class_id": "ป.2"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "Math",
+    "day_id": "Fri",
+    "period_id": 1,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T005",
+    "subject_id": "Social",
+    "day_id": "Fri",
+    "period_id": 2,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T006",
+    "subject_id": "Art",
+    "day_id": "Fri",
+    "period_id": 3,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T006",
+    "subject_id": "Occupation",
+    "day_id": "Fri",
+    "period_id": 4,
+    "class_id": "ป.3"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "Thai",
+    "day_id": "Mon",
+    "period_id": 1,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "Occupation",
+    "day_id": "Mon",
+    "period_id": 2,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "History",
+    "day_id": "Mon",
+    "period_id": 3,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "Math",
+    "day_id": "Mon",
+    "period_id": 4,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "Science",
+    "day_id": "Mon",
+    "period_id": 5,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "Math",
+    "day_id": "Mon",
+    "period_id": 1,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "Thai",
+    "day_id": "Mon",
+    "period_id": 2,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "Science",
+    "day_id": "Mon",
+    "period_id": 3,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "UNKNOWN",
+    "day_id": "Mon",
+    "period_id": 4,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "History",
+    "day_id": "Mon",
+    "period_id": 5,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "Thai",
+    "day_id": "Mon",
+    "period_id": 1,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "Math",
+    "day_id": "Mon",
+    "period_id": 2,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "Math",
+    "day_id": "Mon",
+    "period_id": 3,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "Occupation",
+    "day_id": "Mon",
+    "period_id": 4,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "History",
+    "day_id": "Mon",
+    "period_id": 5,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "Thai",
+    "day_id": "Tue",
+    "period_id": 1,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T010",
+    "subject_id": "Physical Ed",
+    "day_id": "Tue",
+    "period_id": 2,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "Science",
+    "day_id": "Tue",
+    "period_id": 3,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T010",
+    "subject_id": "Health Ed",
+    "day_id": "Tue",
+    "period_id": 4,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T006",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 5,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T010",
+    "subject_id": "Health Ed",
+    "day_id": "Tue",
+    "period_id": 1,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 2,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T010",
+    "subject_id": "Physical Ed",
+    "day_id": "Tue",
+    "period_id": 3,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "Thai",
+    "day_id": "Tue",
+    "period_id": 4,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 5,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "Thai",
+    "day_id": "Tue",
+    "period_id": 1,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "Thai",
+    "day_id": "Tue",
+    "period_id": 2,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "Social",
+    "day_id": "Tue",
+    "period_id": 3,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 4,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T018",
+    "subject_id": "Health Ed",
+    "day_id": "Tue",
+    "period_id": 5,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "Social",
+    "day_id": "Wed",
+    "period_id": 1,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "UNKNOWN",
+    "day_id": "Wed",
+    "period_id": 2,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "Math",
+    "day_id": "Wed",
+    "period_id": 3,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "UNKNOWN",
+    "day_id": "Wed",
+    "period_id": 4,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "English",
+    "day_id": "Wed",
+    "period_id": 1,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "Math",
+    "day_id": "Wed",
+    "period_id": 2,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "Science",
+    "day_id": "Wed",
+    "period_id": 3,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "Math",
+    "day_id": "Wed",
+    "period_id": 4,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "Thai",
+    "day_id": "Wed",
+    "period_id": 1,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "English",
+    "day_id": "Wed",
+    "period_id": 2,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "English",
+    "day_id": "Wed",
+    "period_id": 3,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "Occupation",
+    "day_id": "Wed",
+    "period_id": 4,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "Social",
+    "day_id": "Thu",
+    "period_id": 1,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "English",
+    "day_id": "Thu",
+    "period_id": 2,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "Math",
+    "day_id": "Thu",
+    "period_id": 3,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "Thai",
+    "day_id": "Thu",
+    "period_id": 4,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T006",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 5,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "Math",
+    "day_id": "Thu",
+    "period_id": 1,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "Thai",
+    "day_id": "Thu",
+    "period_id": 2,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "Occupation",
+    "day_id": "Thu",
+    "period_id": 3,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "Occupation",
+    "day_id": "Thu",
+    "period_id": 4,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "Social",
+    "day_id": "Thu",
+    "period_id": 5,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "Science",
+    "day_id": "Thu",
+    "period_id": 1,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "Science",
+    "day_id": "Thu",
+    "period_id": 2,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T018",
+    "subject_id": "Physical Ed",
+    "day_id": "Thu",
+    "period_id": 3,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 4,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 5,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "Thai",
+    "day_id": "Fri",
+    "period_id": 1,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T017",
+    "subject_id": "Occupation",
+    "day_id": "Fri",
+    "period_id": 2,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "English",
+    "day_id": "Fri",
+    "period_id": 3,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "Math",
+    "day_id": "Fri",
+    "period_id": 4,
+    "class_id": "ป.4"
+  },
+  {
+    "teacher_id": "T004",
+    "subject_id": "English",
+    "day_id": "Fri",
+    "period_id": 1,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "Social",
+    "day_id": "Fri",
+    "period_id": 2,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "UNKNOWN",
+    "day_id": "Fri",
+    "period_id": 3,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "Thai",
+    "day_id": "Fri",
+    "period_id": 4,
+    "class_id": "ป.5"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "UNKNOWN",
+    "day_id": "Fri",
+    "period_id": 1,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "Math",
+    "day_id": "Fri",
+    "period_id": 2,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "Math",
+    "day_id": "Fri",
+    "period_id": 3,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T003",
+    "subject_id": "Social",
+    "day_id": "Fri",
+    "period_id": 4,
+    "class_id": "ป.6"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "English",
+    "day_id": "Mon",
+    "period_id": 1,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "Thai",
+    "day_id": "Mon",
+    "period_id": 2,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "Math",
+    "day_id": "Mon",
+    "period_id": 3,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "Math",
+    "day_id": "Mon",
+    "period_id": 4,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "Social",
+    "day_id": "Mon",
+    "period_id": 5,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "Science",
+    "day_id": "Mon",
+    "period_id": 6,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "Thai",
+    "day_id": "Mon",
+    "period_id": 1,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "Social",
+    "day_id": "Mon",
+    "period_id": 2,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "UNKNOWN",
+    "day_id": "Mon",
+    "period_id": 3,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "Science",
+    "day_id": "Mon",
+    "period_id": 4,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "Math",
+    "day_id": "Mon",
+    "period_id": 5,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "English",
+    "day_id": "Mon",
+    "period_id": 6,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "UNKNOWN",
+    "day_id": "Mon",
+    "period_id": 1,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "English",
+    "day_id": "Mon",
+    "period_id": 2,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "English",
+    "day_id": "Mon",
+    "period_id": 3,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "Thai",
+    "day_id": "Mon",
+    "period_id": 4,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "UNKNOWN",
+    "day_id": "Mon",
+    "period_id": 5,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T018",
+    "subject_id": "UNKNOWN",
+    "day_id": "Mon",
+    "period_id": 6,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "Science",
+    "day_id": "Tue",
+    "period_id": 1,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 2,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 3,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "English",
+    "day_id": "Tue",
+    "period_id": 4,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 5,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 6,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 1,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T018",
+    "subject_id": "Physical Ed",
+    "day_id": "Tue",
+    "period_id": 2,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 3,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "Math",
+    "day_id": "Tue",
+    "period_id": 4,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 5,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 6,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "Math",
+    "day_id": "Tue",
+    "period_id": 1,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "Math",
+    "day_id": "Tue",
+    "period_id": 2,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 3,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 4,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "Social",
+    "day_id": "Tue",
+    "period_id": 5,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "UNKNOWN",
+    "day_id": "Tue",
+    "period_id": 6,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "UNKNOWN",
+    "day_id": "Wed",
+    "period_id": 1,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "Math",
+    "day_id": "Wed",
+    "period_id": 2,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "History",
+    "day_id": "Wed",
+    "period_id": 3,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "UNKNOWN",
+    "day_id": "Wed",
+    "period_id": 4,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "Social",
+    "day_id": "Wed",
+    "period_id": 5,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "Thai",
+    "day_id": "Wed",
+    "period_id": 1,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "Social",
+    "day_id": "Wed",
+    "period_id": 2,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T018",
+    "subject_id": "UNKNOWN",
+    "day_id": "Wed",
+    "period_id": 3,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T018",
+    "subject_id": "History",
+    "day_id": "Wed",
+    "period_id": 4,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "UNKNOWN",
+    "day_id": "Wed",
+    "period_id": 5,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "Science",
+    "day_id": "Wed",
+    "period_id": 1,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "Science",
+    "day_id": "Wed",
+    "period_id": 2,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "Social",
+    "day_id": "Wed",
+    "period_id": 3,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "UNKNOWN",
+    "day_id": "Wed",
+    "period_id": 4,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "UNKNOWN",
+    "day_id": "Wed",
+    "period_id": 5,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T010",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 1,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "Thai",
+    "day_id": "Thu",
+    "period_id": 2,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T010",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 3,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 4,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 5,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "Social",
+    "day_id": "Thu",
+    "period_id": 6,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "Thai",
+    "day_id": "Thu",
+    "period_id": 1,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "Social",
+    "day_id": "Thu",
+    "period_id": 2,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 3,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 4,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "English",
+    "day_id": "Thu",
+    "period_id": 5,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 6,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "Math",
+    "day_id": "Thu",
+    "period_id": 1,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 2,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "Social",
+    "day_id": "Thu",
+    "period_id": 3,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T001",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 4,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 5,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "UNKNOWN",
+    "day_id": "Thu",
+    "period_id": 6,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "UNKNOWN",
+    "day_id": "Fri",
+    "period_id": 1,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "English",
+    "day_id": "Fri",
+    "period_id": 2,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "UNKNOWN",
+    "day_id": "Fri",
+    "period_id": 3,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "Thai",
+    "day_id": "Fri",
+    "period_id": 4,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T008",
+    "subject_id": "UNKNOWN",
+    "day_id": "Fri",
+    "period_id": 5,
+    "class_id": "ม.1"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "English",
+    "day_id": "Fri",
+    "period_id": 1,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "Math",
+    "day_id": "Fri",
+    "period_id": 2,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T016",
+    "subject_id": "UNKNOWN",
+    "day_id": "Fri",
+    "period_id": 3,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "Science",
+    "day_id": "Fri",
+    "period_id": 4,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "UNKNOWN",
+    "day_id": "Fri",
+    "period_id": 5,
+    "class_id": "ม.2"
+  },
+  {
+    "teacher_id": "T013",
+    "subject_id": "UNKNOWN",
+    "day_id": "Fri",
+    "period_id": 1,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "Thai",
+    "day_id": "Fri",
+    "period_id": 2,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T015",
+    "subject_id": "Thai",
+    "day_id": "Fri",
+    "period_id": 3,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T012",
+    "subject_id": "English",
+    "day_id": "Fri",
+    "period_id": 4,
+    "class_id": "ม.3"
+  },
+  {
+    "teacher_id": "T011",
+    "subject_id": "UNKNOWN",
+    "day_id": "Fri",
+    "period_id": 5,
+    "class_id": "ม.3"
+  }
+]
