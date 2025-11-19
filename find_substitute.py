@@ -19,13 +19,14 @@ def find_best_substitute_teacher(
     Find the best substitute teacher for a given period based on scoring algorithm.
 
     Scoring criteria:
-        +10 points: Teacher can teach the subject (required)
+        +2 points: Teacher can teach the subject (bonus, not required)
         +5 points: Teacher's level matches class level
         -2 points: Level mismatch penalty
         -2 points per period: Daily teaching load
         -1 point per substitution: Historical substitution count
         -0.5 points per period: Total term load (excluding leave days)
-        -999 points: Teacher is absent or cannot teach subject
+        -50 points: Last resort teachers (T006, T010, T018)
+        -999 points: Teacher is absent
 
     Args:
         subject_id: Subject that needs to be taught
@@ -38,7 +39,7 @@ def find_best_substitute_teacher(
         all_teacher_ids: List of all available teacher IDs
         absent_teacher_ids: List of absent teacher IDs
         leave_logs: Teacher leave records
-        teacher_levels: Teachers' qualified levels (elementary/middle)
+        teacher_levels: Teachers' qualified levels (lower_elementary/upper_elementary/middle)
         class_levels: Class level mapping
 
     Returns:
@@ -78,11 +79,14 @@ def find_best_substitute_teacher(
 
         score = 0
 
-        # Teacher must be able to teach the subject
+        # Last resort teachers penalty (Sitisuk, Panisara, Patanasuk)
+        last_resort_teachers = ["T006", "T010", "T018"]
+        if teacher_id in last_resort_teachers:
+            score -= 50
+
+        # Bonus if teacher can teach the subject
         if subject_id in teacher_subjects.get(teacher_id, []):
-            score += 10
-        else:
-            return -999  # Not qualified for subject
+            score += 2
 
         # Consider level suitability
         class_level = class_levels.get(class_id)
@@ -165,7 +169,7 @@ def assign_substitutes_for_day(
         all_teacher_ids: List of all available teacher IDs
         absent_teacher_ids: List of absent teacher IDs
         leave_logs: Teacher leave records
-        teacher_levels: Teachers' qualified levels (elementary/middle)
+        teacher_levels: Teachers' qualified levels (lower_elementary/upper_elementary/middle)
         class_levels: Class level mapping
 
     Returns:

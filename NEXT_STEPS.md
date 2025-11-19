@@ -1,8 +1,8 @@
 # Next Steps for TimeTableConverting Project
 
-**Generated:** 2025-11-18
-**Current Status:** Production-ready with real-world validation complete
-**Last Commit:** (To be created in this session closeout)
+**Generated:** 2025-11-19
+**Current Status:** Production-ready with enhanced flexibility and expanded subject coverage
+**Last Commit:** be68978 - refactor: Enhance algorithm flexibility and expand subject coverage
 
 ---
 
@@ -10,7 +10,23 @@
 
 The project is now in a **production-ready state with real-world validation** with:
 
-### Completed in This Session (Nov 18, 2025)
+### Completed in Latest Session (Nov 19, 2025)
+1. **Enhanced subject mappings:**
+   - Added 18 new Thai-to-English mappings (26+ total subjects)
+   - Covers Computer, STEM, Anti-Corruption, Applied Math, Music-Drama, Visual Arts, etc.
+   - Changed unknown handling to preserve original Thai text
+2. **Algorithm flexibility improvements:**
+   - Modified subject qualification from requirement to bonus (+2 points)
+   - Added last resort teacher penalties (-50 for T006, T010, T018)
+   - Allows assignment when no qualified teachers available
+3. **Three-tier level system:**
+   - Split elementary into lower (ป.1-3) and upper (ป.4-6)
+   - More precise age-appropriate teacher matching
+4. **Data quality improvements:**
+   - Updated real_timetable.json with 15+ newly mapped subjects
+   - Eliminated "UNKNOWN" subject entries
+
+### Completed in Previous Session (Nov 18, 2025)
 1. **Critical parser bug fixes:**
    - Time-range period parsing for elementary sheets (09.00-10.00 format)
    - Lunch break text filtering in middle school sheets
@@ -40,11 +56,14 @@ The project is now in a **production-ready state with real-world validation** wi
 - All tests passing: 24/24 unit tests (100%)
 - Real-world validation: Successful with actual school data
 - Parser functionality: 100% elementary + middle school coverage
-- Data quality: Zero conflicts, clean 222 entries
+- Subject coverage: 26+ subjects mapped (expanded Nov 19, 2025)
+- Data quality: Zero conflicts, clean 222 entries, minimal unknown entities
+- Algorithm flexibility: Handles edge cases (no qualified teachers)
+- Level precision: Three-tier system for better matching
 - Dependencies: Installed and documented
-- Documentation: Complete and synchronized
+- Documentation: Complete and synchronized (updated Nov 19, 2025)
 - Cross-platform: Windows and Unix compatible
-- **Production Status: READY FOR DEPLOYMENT**
+- **Production Status: READY FOR DEPLOYMENT with Enhanced Flexibility**
 
 ---
 
@@ -106,15 +125,15 @@ jobs:
 
 ---
 
-### 3. Expand Teacher and Subject Mappings (MEDIUM PRIORITY)
-**Why:** Real timetable may contain additional unmapped teachers/subjects not yet in dictionaries.
+### 3. Monitor and Refine Mappings (LOW PRIORITY - Major expansion completed Nov 19, 2025)
+**Why:** Continue improving coverage as additional curriculum variations emerge.
 
 **Tasks:**
-- [ ] Review warnings from real timetable conversion
-- [ ] Add any unknown subjects to subject_map in excel_converting.py
-- [ ] Add any unknown teachers to teacher_map in excel_converting.py
-- [ ] Re-test with updated mappings to ensure 100% coverage
-- [ ] Document naming conventions for future additions
+- [x] Added 18 new subject mappings (completed Nov 19, 2025)
+- [x] Updated real_timetable.json with newly mapped subjects
+- [ ] Monitor real-world usage for additional unmapped teachers
+- [ ] Document any new subject variations discovered
+- [ ] Consider making last-resort teacher list user-configurable
 
 **Implementation Guidance:**
 ```python
@@ -342,5 +361,5 @@ python diagnose_excel.py
 
 ---
 
-**Last Updated:** 2025-11-18
-**Status:** Production-ready, validated with real data, ready for deployment
+**Last Updated:** 2025-11-19
+**Status:** Production-ready with enhanced flexibility, expanded subject coverage, and three-tier level system

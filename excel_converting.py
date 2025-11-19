@@ -19,7 +19,26 @@ subject_map = {
     "สุขศึกษาและพลศึกษา": "Health Ed",
     "สุขศึกษาฯ(พละ)": "Physical Ed",
     "กิจกรรมพัฒนาผู้เรียน": "Activity",
-    "ชุมนุม": "Club"
+    "ชุมนุม": "Club",
+    # Added from unknown subjects
+    "การงาน": "Occupation",
+    "การป้องกันการทุจริต": "Anti-Corruption",
+    "คณิตประยุกต์": "Applied Math",
+    "คอมพิวเตอร์": "Computer",
+    "ดนตรี-นาฏศิลป์": "Music-Drama",
+    "ทัศนศิลป์": "Visual Arts",
+    "ประว้ติศาสตร์": "History", # Typo from excel
+    "ป้องกันการทุจริต": "Anti-Corruption",
+    "ป้องการการทุจริต": "Anti-Corruption",
+    "ภาษาอังกฤษเพิ่มเติม": "English Extra",
+    "ภาษาไทยเพิ่มเติม": "Thai Extra",
+    "วิทยาการคำนวณ": "Computer Science",
+    "วิทยาศาสตร์เพิ่ม ฯ": "Science Extra",
+    "วิทยาศาสตร์แบบสะเต็มศึกษา": "STEM Education",
+    "ศิลปะ(ดนตรี)": "Art (Music)",
+    "ศิลปะ(ทัศนศิลป์)": "Art (Visual)",
+    "สุขศึกษาฯ": "Health Ed",
+    "สุขศึกษาฯ (พละ)": "Physical Ed",
 }
 
 teacher_map = {
@@ -137,8 +156,8 @@ def convert_timetable(file_path: str, output_file: str = "timetable_output.json"
                         unknown_subjects.add(subject_stripped)
 
                     all_timetables.append({
-                        "teacher_id": teacher_map.get(teacher_stripped, "UNKNOWN"),
-                        "subject_id": subject_map.get(subject_stripped, "UNKNOWN"),
+                        "teacher_id": teacher_map.get(teacher_stripped, teacher_stripped),
+                        "subject_id": subject_map.get(subject_stripped, subject_stripped),
                         "day_id": day,
                         "period_id": period_num,  # Use actual period number from Excel
                         "class_id": str(class_id)

@@ -288,3 +288,147 @@ See updated NEXT_STEPS.md for recommended follow-up work. Key priorities:
 
 ---
 
+## Session 2025-11-19: Algorithm Refinement and Enhanced Data Mappings
+
+**Date:** November 19, 2025
+**Duration:** Full session
+**Focus Area:** Algorithm Flexibility, Subject Mapping Expansion, Level Granularity
+
+### Overview
+Enhanced the timetable management system's flexibility and real-world applicability by expanding subject mappings, refining the substitute finding algorithm to handle edge cases, and implementing a more granular level system for better teacher-class matching.
+
+### Files Modified
+
+**1. excel_converting.py - Comprehensive Subject Mapping Expansion**
+- **Added 18 new Thai-to-English subject mappings** (lines 22-40)
+  - General subjects: "การงาน" (Occupation), "คอมพิวเตอร์" (Computer), "ดนตรี-นาฏศิลป์" (Music-Drama), "ทัศนศิลป์" (Visual Arts)
+  - Specialty subjects: "วิทยาการคำนวณ" (Computer Science), "วิทยาศาสตร์แบบสะเต็มศึกษา" (STEM Education)
+  - Extra/enrichment: "ภาษาอังกฤษเพิ่มเติม" (English Extra), "ภาษาไทยเพิ่มเติม" (Thai Extra), "วิทยาศาสตร์เพิ่ม ฯ" (Science Extra)
+  - Civic education: "การป้องกันการทุจริต" (Anti-Corruption) with 3 spelling variations
+  - Math variants: "คณิตประยุกต์" (Applied Math)
+  - Arts: "ศิลปะ(ดนตรี)" (Art Music), "ศิลปะ(ทัศนศิลป์)" (Art Visual)
+  - Health: "สุขศึกษาฯ" (Health Ed), "สุขศึกษาฯ (พละ)" (Physical Ed)
+  - Academic: "ประว้ติศาสตร์" (History) - includes typo variant from Excel
+
+- **Changed Unknown Entity Handling** (lines 159-160)
+  - **Before:** Unmapped subjects/teachers marked as "UNKNOWN"
+  - **After:** Preserves original Thai text as identifier
+  - **Rationale:** Maintains data integrity, allows for incremental mapping updates, prevents information loss
+
+**Impact:** Reduced unknown subjects in real_timetable.json from 15+ to nearly zero by handling real-world curriculum variations.
+
+**2. find_substitute.py - Algorithm Flexibility Enhancement**
+- **Modified Subject Qualification Logic** (lines 84-88)
+  - **Before:** Subject match required (+10 points), else -999 penalty (disqualification)
+  - **After:** Subject match gives +2 bonus points, no longer required
+  - **Rationale:** Allows system to assign any available teacher when no subject-qualified teacher exists, improving coverage
+
+- **Added Last Resort Teacher Penalties** (lines 81-86)
+  - Introduced -50 point penalty for teachers T006 (Sitisuk), T010 (Panisara), T018 (Patanasuk)
+  - These teachers only assigned when no better options available
+  - Implements institutional knowledge about teacher availability/preferences
+
+- **Updated Documentation** (lines 22-30)
+  - Changed scoring documentation: "+2 points: Teacher can teach the subject (bonus, not required)"
+  - Added last resort teacher penalty description
+  - Updated level system references to reflect three-tier system (lower_elementary/upper_elementary/middle)
+
+**Impact:** Algorithm now handles edge cases where no qualified teacher available, improving assignment success rate while respecting institutional preferences.
+
+**3. test_real_timetable.py - Three-Tier Level System**
+- **Split Elementary Level** (lines 31-42)
+  - **Before:** Single "elementary" level for ป.1-6
+  - **After:**
+    - "lower_elementary" for ป.1-3 (ages 6-9)
+    - "upper_elementary" for ป.4-6 (ages 9-12)
+    - "middle" for ม.1-3 (ages 12-15)
+  - Implementation: Parses grade number from class_id and categorizes accordingly
+
+**Rationale:** More precise age-appropriate teacher matching, reflects pedagogical differences between lower/upper elementary education.
+
+**Impact:** Better teacher-class matching for substitute assignments, considers developmental appropriateness.
+
+**4. real_timetable.json - Data Quality Improvements**
+- **Updated 15+ entries** with newly mapped subjects
+  - "UNKNOWN" → "English Extra" (4 entries)
+  - "UNKNOWN" → "Anti-Corruption" (3 entries)
+  - "UNKNOWN" → "Art (Visual)" (1 entry)
+  - "UNKNOWN" → "Art (Music)" (1 entry)
+  - "UNKNOWN" → "Computer" (2 entries)
+  - Plus additional entries for various subjects
+
+**Impact:** Cleaner data representation, improved readability, better algorithm performance with accurate subject information.
+
+### Key Decisions
+
+1. **Flexible vs Strict Subject Matching:**
+   - **Decision:** Changed from strict requirement to bonus-based scoring
+   - **Trade-off:** May assign non-specialist teachers vs leaving periods uncovered
+   - **Justification:** Real-world constraints often require flexibility; better to have any teacher than none
+
+2. **Institutional Knowledge Integration:**
+   - **Decision:** Hardcoded specific teacher penalties based on school preferences
+   - **Trade-off:** Less generic algorithm vs better fit for specific school
+   - **Justification:** System designed for specific school; institutional knowledge improves practical utility
+
+3. **Three-Tier Level System:**
+   - **Decision:** Split elementary into lower/upper
+   - **Trade-off:** More complex logic vs better precision
+   - **Justification:** Significant pedagogical differences between teaching ป.1 vs ป.6; improves teacher-student fit
+
+4. **Preserve Original Text for Unknowns:**
+   - **Decision:** Use Thai text instead of "UNKNOWN" label
+   - **Trade-off:** Less immediately obvious what's unmapped vs preserving actual data
+   - **Justification:** Allows gradual mapping updates without data loss; original text more useful for debugging
+
+### Technical Improvements
+
+1. **Data Coverage:** Expanded subject mappings from ~8 base subjects to 26+ variations
+2. **Algorithm Robustness:** Can now handle scenarios with no qualified teachers
+3. **Precision:** Three-level system provides better granularity for teacher-class matching
+4. **Maintainability:** Preserving original text makes incremental mapping updates easier
+
+### Issues Resolved
+
+1. **Subject Mapping Gaps:** Real timetable had 15+ unmapped subjects causing "UNKNOWN" entries
+2. **Algorithm Rigidity:** Previous version failed when no subject-qualified teacher available
+3. **Level Granularity:** Binary elementary/middle insufficient for age-appropriate matching
+4. **Institutional Preferences:** No mechanism to encode school-specific teacher preferences
+
+### Testing Results
+
+- **Unit Tests:** Still 24/24 passing (no test changes required)
+- **Real Timetable:**
+  - Before: 15+ "UNKNOWN" subjects
+  - After: Nearly all subjects properly mapped
+  - Data quality significantly improved
+
+### Project Status
+
+**PRODUCTION-READY with Enhanced Flexibility** - The system now:
+- Handles broader curriculum variations (26+ subject types)
+- Gracefully handles edge cases (no qualified teachers)
+- Provides more precise teacher-class matching (3-tier levels)
+- Incorporates institutional knowledge (last resort teachers)
+- Maintains data integrity (preserves original unmapped text)
+- Ready for real-world deployment with better adaptability
+
+### Insights Gained
+
+1. **Real-World Data Complexity:** Even after initial real-world testing, additional curriculum variations emerged requiring expanded mappings
+
+2. **Algorithm Trade-offs:** Strict qualification requirements can lead to coverage gaps; flexibility often better than rigidity in constrained scheduling
+
+3. **Institutional Knowledge Matters:** Generic algorithms benefit from school-specific knowledge (teacher preferences, availability patterns)
+
+4. **Incremental Refinement:** Production systems benefit from iterative refinement based on actual usage patterns rather than trying to anticipate all scenarios upfront
+
+### Next Steps
+See updated NEXT_STEPS.md for recommended follow-up work. Key priorities:
+1. Monitor real-world usage for additional unmapped subjects/teachers
+2. Gather feedback on three-tier level system effectiveness
+3. Evaluate substitute assignment success rate with refined algorithm
+4. Consider making last-resort teacher list configurable rather than hardcoded
+
+---
+

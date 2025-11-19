@@ -31,11 +31,16 @@ def analyze_timetable(timetable):
 
         # Determine level from class_id
         if class_id.startswith('ป.'):
-            level = 'elementary'
+            # Split elementary into lower (ป.1-3) and upper (ป.4-6)
+            grade = class_id.replace('ป.', '')
+            if grade in ['1', '2', '3']:
+                level = 'lower_elementary'
+            else:  # 4, 5, 6
+                level = 'upper_elementary'
         elif class_id.startswith('ม.'):
             level = 'middle'
         else:
-            level = 'elementary'  # default
+            level = 'lower_elementary'  # default
 
         teacher_levels[teacher_id].add(level)
         class_levels[class_id] = level

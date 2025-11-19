@@ -108,13 +108,14 @@ substitutes = assign_substitutes_for_day(
 The algorithm uses a scoring system to find the best substitute:
 
 ### Scoring Criteria
-- **+10 points**: Teacher can teach the subject (required)
+- **+2 points**: Teacher can teach the subject (bonus, not required)
 - **+5 points**: Teacher's level matches class level
 - **-2 points**: Level mismatch penalty
 - **-2 points per period**: Daily teaching load
 - **-1 point per substitution**: Historical substitution count
 - **-0.5 points per period**: Total term load (excluding leave days)
-- **-999 points**: Teacher is absent or cannot teach subject
+- **-50 points**: Last resort teachers (assigned only when no better options)
+- **-999 points**: Teacher is absent
 
 ### Features
 - Prevents double-booking (teachers can't be in two places at once)
@@ -201,9 +202,10 @@ For detailed testing documentation, see:
 ### Teacher Levels
 ```python
 {
-    "T001": ["elementary", "middle"],
-    "ป.1": "elementary",
-    "ม.1": "middle"
+    "T001": ["lower_elementary", "upper_elementary", "middle"],
+    "ป.1": "lower_elementary",  # Grades 1-3
+    "ป.5": "upper_elementary",  # Grades 4-6
+    "ม.1": "middle"              # Grades 7-9
 }
 ```
 
@@ -251,12 +253,21 @@ TimeTableConverting/
   - Lunch break text filtering in middle school sheets
   - Row limiting to avoid duplicate entries from multiple tables
   - Results: 100% elementary data coverage, zero conflicts, clean 222 entries
+- ✅ **Expanded subject mappings (Nov 2025):**
+  - Added 18 new Thai-to-English subject mappings (26+ total subjects)
+  - Changed unknown handling to preserve original Thai text instead of "UNKNOWN"
+  - Handles curriculum variations: Computer, Music-Drama, Visual Arts, Anti-Corruption, STEM, Applied Math, etc.
 
 ### find_substitute.py
 - ✅ Added type hints for all functions
 - ✅ Added comprehensive docstrings
 - ✅ Added input validation
 - ✅ Better documentation of scoring algorithm
+- ✅ **Enhanced algorithm flexibility (Nov 2025):**
+  - Changed subject qualification from requirement to bonus (+2 points)
+  - Can now assign any available teacher when no subject-qualified option exists
+  - Added last resort teacher penalties (-50 points for specific teachers)
+  - Implements institutional knowledge for better real-world fit
 
 ### Testing
 - ✅ Created comprehensive test suite for both modules
@@ -271,6 +282,9 @@ TimeTableConverting/
   - Zero scheduling conflicts
   - 75% substitute finding success rate
   - Comprehensive diagnostic tools created
+- ✅ **Enhanced level system (Nov 2025):**
+  - Implemented three-tier system: lower_elementary/upper_elementary/middle
+  - Provides more precise age-appropriate teacher-class matching
 
 ## Excel File Format
 

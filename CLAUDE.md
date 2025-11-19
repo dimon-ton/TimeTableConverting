@@ -66,6 +66,8 @@ Parses Excel worksheets with hardcoded Thai-to-English mappings for days, subjec
 - Windows compatibility: ASCII output, proper file handle cleanup
 
 **Key mappings:** `day_map`, `subject_map`, `teacher_map` (lines 8-44)
+- As of Nov 19, 2025: 26+ subject mappings including specialty subjects (Computer, STEM, Anti-Corruption, Applied Math, Music-Drama, Visual Arts, etc.)
+- Unknown entities now preserve original Thai text instead of marking "UNKNOWN"
 
 **Recent Fixes (Nov 2025):**
 - **Critical Parser Bugs Fixed:**
@@ -88,13 +90,17 @@ Scoring-based algorithm that balances subject qualification, level matching, and
 **Core algorithm (find_best_substitute_teacher):**
 1. Filter available teachers (not teaching at that period)
 2. Score each candidate:
-   - +10: Can teach subject (required, else -999)
+   - +2: Can teach subject (bonus, not required - changed Nov 19, 2025)
    - +5: Teacher's level matches class level
    - -2: Level mismatch penalty
    - -2 per period: Daily load on same day
    - -1 per entry: Historical substitution count
    - -0.5 per period: Total term load (excluding leave days)
+   - -50: Last resort teachers (T006, T010, T018 - added Nov 19, 2025)
+   - -999: Teacher is absent
 3. Select randomly among top-scored candidates (handles ties)
+
+**Note:** As of Nov 19, 2025, subject qualification is a bonus rather than requirement, allowing flexible assignment when no qualified teachers available.
 
 **assign_substitutes_for_day:** Iterates through all absent teachers' slots for a day, calling find_best_substitute_teacher for each. Includes newly assigned substitutes in constraint checking to avoid double-booking.
 
@@ -113,8 +119,11 @@ All data structures use this timetable entry format:
 
 **Additional data structures:**
 - `teacher_subjects`: `{teacher_id: [subject_ids]}`
-- `teacher_levels`: `{teacher_id: ["elementary", "middle"]}`
-- `class_levels`: `{class_id: "elementary" | "middle"}`
+- `teacher_levels`: `{teacher_id: ["lower_elementary", "upper_elementary", "middle"]}` (three-tier system as of Nov 19, 2025)
+- `class_levels`: `{class_id: "lower_elementary" | "upper_elementary" | "middle"}`
+  - lower_elementary: ป.1-3 (ages 6-9)
+  - upper_elementary: ป.4-6 (ages 9-12)
+  - middle: ม.1-3 (ages 12-15)
 - `leave_logs`: List of timetable entries marking leave periods
 
 ## Testing
@@ -180,8 +189,20 @@ See TESTING.md for quick reference or TEST_REPORT.md for comprehensive analysis.
 
 ## Important Notes
 - Thai encoding: All mappings and output use UTF-8
-- Level system: "elementary" (ป.1-ป.6) vs "middle" (ม.1-ม.3) affects substitute matching
+- Level system (as of Nov 19, 2025): Three-tier system
+  - "lower_elementary" (ป.1-3), "upper_elementary" (ป.4-6), "middle" (ม.1-3)
+  - Provides more precise age-appropriate teacher matching
 - The substitute algorithm intentionally uses randomization for fairness when scores tie
 - Workload balancing considers: daily load, historical substitutions, and term load
 - Teachers can be assigned outside their level (with penalty) if no better option exists
+- Subject qualification is now a bonus (+2) rather than requirement, improving coverage in edge cases
+- Last resort teachers (T006, T010, T018) receive -50 penalty, assigned only when necessary
+- Unknown subjects/teachers preserve original Thai text instead of "UNKNOWN" label
 - Dependencies: Install via `pip install -r requirements.txt` (requires openpyxl)
+
+## Recent Changes (Nov 19, 2025)
+- Expanded subject mappings from ~8 to 26+ subjects
+- Changed subject qualification from requirement to bonus scoring
+- Implemented three-tier level system (lower/upper elementary + middle)
+- Added last resort teacher penalties for institutional preferences
+- Changed unknown entity handling to preserve original Thai text

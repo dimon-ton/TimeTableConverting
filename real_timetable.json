@@ -57,7 +57,7 @@
   },
   {
     "teacher_id": "T007",
-    "subject_id": "UNKNOWN",
+    "subject_id": "English Extra",
     "day_id": "Mon",
     "period_id": 4,
     "class_id": "ป.2"
@@ -120,7 +120,7 @@
   },
   {
     "teacher_id": "T002",
-    "subject_id": "UNKNOWN",
+    "subject_id": "English Extra",
     "day_id": "Tue",
     "period_id": 3,
     "class_id": "ป.1"
@@ -134,7 +134,7 @@
   },
   {
     "teacher_id": "T002",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Anti-Corruption",
     "day_id": "Tue",
     "period_id": 5,
     "class_id": "ป.1"
@@ -204,7 +204,7 @@
   },
   {
     "teacher_id": "T005",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Anti-Corruption",
     "day_id": "Tue",
     "period_id": 5,
     "class_id": "ป.3"
@@ -393,7 +393,7 @@
   },
   {
     "teacher_id": "T005",
-    "subject_id": "UNKNOWN",
+    "subject_id": "English Extra",
     "day_id": "Thu",
     "period_id": 5,
     "class_id": "ป.3"
@@ -449,7 +449,7 @@
   },
   {
     "teacher_id": "T007",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Anti-Corruption",
     "day_id": "Fri",
     "period_id": 4,
     "class_id": "ป.2"
@@ -540,7 +540,7 @@
   },
   {
     "teacher_id": "T003",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Art (Visual)",
     "day_id": "Mon",
     "period_id": 4,
     "class_id": "ป.5"
@@ -617,7 +617,7 @@
   },
   {
     "teacher_id": "T006",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Art (Music)",
     "day_id": "Tue",
     "period_id": 5,
     "class_id": "ป.4"
@@ -631,7 +631,7 @@
   },
   {
     "teacher_id": "T017",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Computer",
     "day_id": "Tue",
     "period_id": 2,
     "class_id": "ป.5"
@@ -652,7 +652,7 @@
   },
   {
     "teacher_id": "T004",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Anti-Corruption",
     "day_id": "Tue",
     "period_id": 5,
     "class_id": "ป.5"
@@ -680,7 +680,7 @@
   },
   {
     "teacher_id": "T017",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Computer",
     "day_id": "Tue",
     "period_id": 4,
     "class_id": "ป.6"
@@ -701,7 +701,7 @@
   },
   {
     "teacher_id": "T017",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Computer",
     "day_id": "Wed",
     "period_id": 2,
     "class_id": "ป.4"
@@ -715,7 +715,7 @@
   },
   {
     "teacher_id": "T003",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Anti-Corruption",
     "day_id": "Wed",
     "period_id": 4,
     "class_id": "ป.4"
@@ -806,7 +806,7 @@
   },
   {
     "teacher_id": "T006",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Art (Visual)",
     "day_id": "Thu",
     "period_id": 5,
     "class_id": "ป.4"
@@ -869,14 +869,14 @@
   },
   {
     "teacher_id": "T016",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Art (Music)",
     "day_id": "Thu",
     "period_id": 4,
     "class_id": "ป.6"
   },
   {
     "teacher_id": "T008",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Anti-Corruption",
     "day_id": "Thu",
     "period_id": 5,
     "class_id": "ป.6"
@@ -925,7 +925,7 @@
   },
   {
     "teacher_id": "T003",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Art (Music)",
     "day_id": "Fri",
     "period_id": 3,
     "class_id": "ป.5"
@@ -939,7 +939,7 @@
   },
   {
     "teacher_id": "T016",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Art (Visual)",
     "day_id": "Fri",
     "period_id": 1,
     "class_id": "ป.6"
@@ -1023,7 +1023,7 @@
   },
   {
     "teacher_id": "T008",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Thai Extra",
     "day_id": "Mon",
     "period_id": 3,
     "class_id": "ม.2"
@@ -1051,7 +1051,7 @@
   },
   {
     "teacher_id": "T011",
-    "subject_id": "UNKNOWN",
+    "subject_id": "STEM Education",
     "day_id": "Mon",
     "period_id": 1,
     "class_id": "ม.3"
@@ -1079,14 +1079,14 @@
   },
   {
     "teacher_id": "T011",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Science Extra",
     "day_id": "Mon",
     "period_id": 5,
     "class_id": "ม.3"
   },
   {
     "teacher_id": "T018",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Music-Drama",
     "day_id": "Mon",
     "period_id": 6,
     "class_id": "ม.3"
@@ -1100,14 +1100,14 @@
   },
   {
     "teacher_id": "T016",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Visual Arts",
     "day_id": "Tue",
     "period_id": 2,
     "class_id": "ม.1"
   },
   {
     "teacher_id": "T011",
-    "subject_id": "UNKNOWN",
+    "subject_id": "STEM Education",
     "day_id": "Tue",
     "period_id": 3,
     "class_id": "ม.1"
@@ -1121,21 +1121,21 @@
   },
   {
     "teacher_id": "T013",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Computer Science",
     "day_id": "Tue",
     "period_id": 5,
     "class_id": "ม.1"
   },
   {
     "teacher_id": "T012",
-    "subject_id": "UNKNOWN",
+    "subject_id": "English Extra",
     "day_id": "Tue",
     "period_id": 6,
     "class_id": "ม.1"
   },
   {
     "teacher_id": "T015",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Occupation",
     "day_id": "Tue",
     "period_id": 1,
     "class_id": "ม.2"
@@ -1149,7 +1149,7 @@
   },
   {
     "teacher_id": "T016",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Music-Drama",
     "day_id": "Tue",
     "period_id": 3,
     "class_id": "ม.2"
@@ -1163,14 +1163,14 @@
   },
   {
     "teacher_id": "T011",
-    "subject_id": "UNKNOWN",
+    "subject_id": "STEM Education",
     "day_id": "Tue",
     "period_id": 5,
     "class_id": "ม.2"
   },
   {
     "teacher_id": "T015",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Anti-Corruption",
     "day_id": "Tue",
     "period_id": 6,
     "class_id": "ม.2"
@@ -1191,14 +1191,14 @@
   },
   {
     "teacher_id": "T012",
-    "subject_id": "UNKNOWN",
+    "subject_id": "English Extra",
     "day_id": "Tue",
     "period_id": 3,
     "class_id": "ม.3"
   },
   {
     "teacher_id": "T001",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Visual Arts",
     "day_id": "Tue",
     "period_id": 4,
     "class_id": "ม.3"
@@ -1212,14 +1212,14 @@
   },
   {
     "teacher_id": "T001",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Health Ed",
     "day_id": "Tue",
     "period_id": 6,
     "class_id": "ม.3"
   },
   {
     "teacher_id": "T016",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Music-Drama",
     "day_id": "Wed",
     "period_id": 1,
     "class_id": "ม.1"
@@ -1240,7 +1240,7 @@
   },
   {
     "teacher_id": "T008",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Occupation",
     "day_id": "Wed",
     "period_id": 4,
     "class_id": "ม.1"
@@ -1268,7 +1268,7 @@
   },
   {
     "teacher_id": "T018",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Health Ed",
     "day_id": "Wed",
     "period_id": 3,
     "class_id": "ม.2"
@@ -1282,7 +1282,7 @@
   },
   {
     "teacher_id": "T013",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Computer Science",
     "day_id": "Wed",
     "period_id": 5,
     "class_id": "ม.2"
@@ -1310,21 +1310,21 @@
   },
   {
     "teacher_id": "T015",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Anti-Corruption",
     "day_id": "Wed",
     "period_id": 4,
     "class_id": "ม.3"
   },
   {
     "teacher_id": "T008",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Thai Extra",
     "day_id": "Wed",
     "period_id": 5,
     "class_id": "ม.3"
   },
   {
     "teacher_id": "T010",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Physical Ed",
     "day_id": "Thu",
     "period_id": 1,
     "class_id": "ม.1"
@@ -1338,21 +1338,21 @@
   },
   {
     "teacher_id": "T010",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Health Ed",
     "day_id": "Thu",
     "period_id": 3,
     "class_id": "ม.1"
   },
   {
     "teacher_id": "T013",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Applied Math",
     "day_id": "Thu",
     "period_id": 4,
     "class_id": "ม.1"
   },
   {
     "teacher_id": "T015",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Anti-Corruption",
     "day_id": "Thu",
     "period_id": 5,
     "class_id": "ม.1"
@@ -1380,14 +1380,14 @@
   },
   {
     "teacher_id": "T013",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Applied Math",
     "day_id": "Thu",
     "period_id": 3,
     "class_id": "ม.2"
   },
   {
     "teacher_id": "T011",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Science Extra",
     "day_id": "Thu",
     "period_id": 4,
     "class_id": "ม.2"
@@ -1401,7 +1401,7 @@
   },
   {
     "teacher_id": "T012",
-    "subject_id": "UNKNOWN",
+    "subject_id": "English Extra",
     "day_id": "Thu",
     "period_id": 6,
     "class_id": "ม.2"
@@ -1415,7 +1415,7 @@
   },
   {
     "teacher_id": "T013",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Applied Math",
     "day_id": "Thu",
     "period_id": 2,
     "class_id": "ม.3"
@@ -1429,28 +1429,28 @@
   },
   {
     "teacher_id": "T001",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Physical Ed",
     "day_id": "Thu",
     "period_id": 4,
     "class_id": "ม.3"
   },
   {
     "teacher_id": "T011",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Occupation",
     "day_id": "Thu",
     "period_id": 5,
     "class_id": "ม.3"
   },
   {
     "teacher_id": "T011",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Occupation",
     "day_id": "Thu",
     "period_id": 6,
     "class_id": "ม.3"
   },
   {
     "teacher_id": "T011",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Science Extra",
     "day_id": "Fri",
     "period_id": 1,
     "class_id": "ม.1"
@@ -1464,7 +1464,7 @@
   },
   {
     "teacher_id": "T008",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Thai Extra",
     "day_id": "Fri",
     "period_id": 3,
     "class_id": "ม.1"
@@ -1478,7 +1478,7 @@
   },
   {
     "teacher_id": "T008",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Occupation",
     "day_id": "Fri",
     "period_id": 5,
     "class_id": "ม.1"
@@ -1499,7 +1499,7 @@
   },
   {
     "teacher_id": "T016",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Visual Arts",
     "day_id": "Fri",
     "period_id": 3,
     "class_id": "ม.2"
@@ -1513,14 +1513,14 @@
   },
   {
     "teacher_id": "T015",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Occupation",
     "day_id": "Fri",
     "period_id": 5,
     "class_id": "ม.2"
   },
   {
     "teacher_id": "T013",
-    "subject_id": "UNKNOWN",
+    "subject_id": "Computer Science",
     "day_id": "Fri",
     "period_id": 1,
     "class_id": "ม.3"
@@ -1548,7 +1548,7 @@
   },
   {
     "teacher_id": "T011",
-    "subject_id": "UNKNOWN",
+    "subject_id": "History",
     "day_id": "Fri",
     "period_id": 5,
     "class_id": "ม.3"
