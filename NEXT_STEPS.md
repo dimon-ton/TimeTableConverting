@@ -125,7 +125,58 @@ jobs:
 
 ---
 
-### 3. Monitor and Refine Mappings (LOW PRIORITY - Major expansion completed Nov 19, 2025)
+### 3. Google Sheets Integration for Leave Logs (MEDIUM PRIORITY)
+**Why:** Enable easy tracking and management of teacher absences and substitutions using Google Sheets as a database.
+
+**Tasks:**
+- [ ] Install Google Sheets API dependencies (gspread, google-auth)
+- [ ] Set up Google Cloud Console project and enable Sheets API
+- [ ] Create service account credentials (credentials.json)
+- [ ] Design Google Sheets structure (Date, Absent Teacher, Day, Period, Class, Subject, Substitute, Notes)
+- [ ] Create sync_leave_logs.py script to read from Google Sheets
+- [ ] Create add_absence_to_sheets.py for writing new absences
+- [ ] Update requirements.txt with new dependencies
+- [ ] Test bidirectional sync workflow
+- [ ] Document Google Sheets setup process in README.md
+
+**Benefits:**
+- Accessible from anywhere (cloud-based)
+- Multiple staff can update simultaneously
+- User-friendly interface (no JSON editing)
+- Historical record easy to audit and review
+- Familiar tool for most schools (Google Workspace)
+
+**Implementation Guidance:**
+```python
+# sync_leave_logs.py - Read from Google Sheets
+import gspread
+from google.oauth2.service_account import Credentials
+
+def sync_leave_logs_from_sheets():
+    creds = Credentials.from_service_account_file('credentials.json')
+    client = gspread.authorize(creds)
+    sheet = client.open('School Timetable - Leave Logs').worksheet('Leave_Logs')
+    records = sheet.get_all_records()
+    # Convert to leave_logs format...
+    return leave_logs
+
+# Usage in find_substitute workflow:
+from sync_leave_logs import load_leave_logs_for_algorithm
+leave_logs = load_leave_logs_for_algorithm()
+```
+
+**Google Sheets Structure:**
+| Date | Absent Teacher | Day | Period | Class | Subject | Substitute Teacher | Notes |
+|------|----------------|-----|--------|-------|---------|-------------------|-------|
+| 2025-01-15 | T001 | Mon | 3 | ป.4 | Math | T005 | Sick leave |
+
+**Estimated Effort:** 3-4 hours
+**Dependencies:** Google Cloud Console access, Google account for Sheets
+**Blocking:** No
+
+---
+
+### 4. Monitor and Refine Mappings (LOW PRIORITY - Major expansion completed Nov 19, 2025)
 **Why:** Continue improving coverage as additional curriculum variations emerge.
 
 **Tasks:**
@@ -158,7 +209,7 @@ teacher_map = {
 
 ---
 
-### 4. Test Coverage Analysis (LOW PRIORITY)
+### 5. Test Coverage Analysis (LOW PRIORITY)
 **Why:** Identify untested code paths and aim for 90%+ coverage target.
 
 **Tasks:**
@@ -191,7 +242,7 @@ coverage html
 
 ---
 
-### 5. Performance Testing (LOW PRIORITY)
+### 6. Performance Testing (LOW PRIORITY)
 **Why:** Ensure the system performs well with large datasets.
 
 **Tasks:**
@@ -223,7 +274,7 @@ cProfile.run('convert_timetable("large_file.xlsm")')
 
 ---
 
-### 6. Enhanced Error Handling (LOW PRIORITY)
+### 7. Enhanced Error Handling (LOW PRIORITY)
 **Why:** Improve resilience to corrupted or malformed input files.
 
 **Tasks:**

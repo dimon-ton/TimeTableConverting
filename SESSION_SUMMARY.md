@@ -432,3 +432,67 @@ See updated NEXT_STEPS.md for recommended follow-up work. Key priorities:
 
 ---
 
+## Session 2025-11-19 (Afternoon): Project Planning - Google Sheets Integration
+
+**Date:** November 19, 2025
+**Duration:** Brief planning session
+**Focus Area:** Project Planning, Future Enhancements
+
+### Overview
+Brief session focused on project planning and roadmap refinement. Added Google Sheets integration as a medium-priority task to enable cloud-based teacher absence tracking and substitute assignment management.
+
+### Files Modified
+
+**1. NEXT_STEPS.md - Added Google Sheets Integration Task**
+- **Inserted new task #3:** "Google Sheets Integration for Leave Logs" (MEDIUM PRIORITY)
+- **Renumbered subsequent tasks:** Previous tasks 3-6 became 4-7
+- **Task Details Added:**
+  - Complete implementation roadmap for Google Sheets API integration
+  - Dependencies: gspread, google-auth libraries
+  - Setup guidance for Google Cloud Console
+  - Code examples for reading from and writing to Google Sheets
+  - Data structure design (Date, Absent Teacher, Day, Period, Class, Subject, Substitute, Notes)
+  - Benefits analysis (cloud accessibility, multi-user support, user-friendly interface)
+  - Estimated effort: 3-4 hours
+  - Implementation scripts planned: sync_leave_logs.py, add_absence_to_sheets.py
+
+### Rationale for Google Sheets Integration
+
+**User Experience Improvements:**
+- Eliminates need for manual JSON editing (technical barrier for non-developers)
+- Provides familiar interface for school administrators
+- Enables real-time updates from any device with internet access
+- Supports collaborative editing for multiple staff members
+
+**Data Management Benefits:**
+- Centralized cloud storage for leave logs
+- Built-in version history and audit trail
+- Easy to review and analyze historical substitution patterns
+- Reduces risk of local file corruption or loss
+
+**Integration Approach:**
+- Leave logs stored in Google Sheets as source of truth
+- Python scripts sync data bidirectionally
+- Maintains existing algorithm compatibility
+- Minimal changes to core codebase
+
+### Project Status
+
+**PRODUCTION-READY** - System remains in production-ready state with:
+- All 24 tests passing
+- Real-world validation completed
+- 26+ subject mappings
+- Three-tier level system operational
+- Google Sheets integration added to roadmap as next major enhancement
+
+### No Code Changes
+This was a planning-only session. No implementation code was modified. All changes limited to project documentation and task planning.
+
+### Next Steps
+1. Review NEXT_STEPS.md for complete roadmap
+2. Consider prioritizing Google Sheets integration after initial deployment feedback
+3. Evaluate whether to implement Google Sheets before or after CI/CD setup
+4. Gather requirements from school administrators for Google Sheets structure
+
+---
+
