@@ -11,15 +11,15 @@ School timetable management system with two main functions:
 
 ### Convert Excel to JSON
 ```bash
-python excel_converting.py <excel_file> [output_file]
+python -m src.timetable.converter <excel_file> [output_file]
 ```
 **Examples:**
 ```bash
 # Using default output file (timetable_output.json)
-python excel_converting.py timetable.xlsm
+python -m src.timetable.converter timetable.xlsm
 
 # Specifying custom output file
-python excel_converting.py timetable.xlsm my_output.json
+python -m src.timetable.converter timetable.xlsm my_output.json
 ```
 
 **Features:**
@@ -38,13 +38,13 @@ python excel_converting.py timetable.xlsm my_output.json
 
 ### Find Substitutes
 ```python
-from find_substitute import find_best_substitute_teacher, assign_substitutes_for_day
+from src.timetable.substitute import find_best_substitute_teacher, assign_substitutes_for_day
 ```
-The module provides importable functions, not a standalone script. See `test_find_substitute.py` for usage examples.
+The module provides importable functions, not a standalone script. See `tests/test_substitute.py` for usage examples.
 
 ### Test with Real Timetable
 ```bash
-python test_real_timetable.py
+python -m tests.test_real_timetable
 ```
 Comprehensive test script using real school timetable data. Simulates teacher absence and validates substitute finding with actual constraints. Provides detailed analysis including:
 - Teacher schedule visualization
@@ -54,7 +54,25 @@ Comprehensive test script using real school timetable data. Simulates teacher ab
 
 ## Architecture
 
-### excel_converting.py
+**Project Structure:**
+```
+src/
+├── config.py                    # Centralized configuration
+├── timetable/
+│   ├── converter.py             # Excel to JSON conversion
+│   ├── substitute.py            # Substitute teacher finding
+│   └── ai_parser.py             # AI-powered leave request parsing
+├── utils/
+│   ├── build_teacher_data.py    # Generate teacher data files
+│   ├── daily_leave_processor.py # Daily workflow orchestration
+│   ├── leave_log_sync.py        # Google Sheets sync
+│   └── add_absence_to_sheets.py # Add absences to Sheets
+└── web/
+    ├── webhook.py               # LINE webhook server
+    └── line_messaging.py        # LINE notifications
+```
+
+### src/timetable/converter.py
 Parses Excel worksheets with hardcoded Thai-to-English mappings for days, subjects, and teacher names. Handles merged cells by preserving previous day/class values. Strips numeric characters from subject names during parsing.
 
 **Key Features:**
@@ -84,7 +102,7 @@ Parses Excel worksheets with hardcoded Thai-to-English mappings for days, subjec
 - Parser automatically detects format and maps time ranges to sequential period numbers
 - Intelligently skips invalid entries (lunch break text, empty cells)
 
-### find_substitute.py
+### src/timetable/substitute.py
 Scoring-based algorithm that balances subject qualification, level matching, and workload distribution.
 
 **Core algorithm (find_best_substitute_teacher):**
@@ -111,23 +129,24 @@ Scoring-based algorithm that balances subject qualification, level matching, and
 #### System Architecture
 
 ```
-[Teachers] → [LINE Group] → [webhook.py] → [ai_parser.py] → [Google Sheets]
-                                                                     ↓
-[LINE Group] ← [line_messaging.py] ← [process_daily_leaves.py] ← [Cron Job]
-                                              ↓
-                                     [find_substitute.py]
+[Teachers] → [LINE Group] → [src/web/webhook.py] → [src/timetable/ai_parser.py] → [Google Sheets]
+                                                                                              ↓
+[LINE Group] ← [src/web/line_messaging.py] ← [src/utils/daily_leave_processor.py] ← [Cron Job]
+                                                              ↓
+                                                 [src/timetable/substitute.py]
 ```
 
 #### Core Components
 
-**config.py** - Centralized configuration management
+**src/config.py** - Centralized configuration management
 - Loads environment variables from .env file using python-dotenv
 - Validates all required credentials and file paths
 - Provides config.SPREADSHEET_ID, config.LINE_CHANNEL_SECRET, etc.
 - Includes config.validate() and config.print_status() methods
+- Uses PROJECT_ROOT for absolute paths to data/ directory
 - All other modules import configuration from here
 
-**webhook.py** - Flask server for LINE webhooks (lines 1-380)
+**src/web/webhook.py** - Flask server for LINE webhooks
 - HTTP server running on port 5000 (configurable)
 - `/callback` endpoint receives LINE message events
 - Verifies LINE signatures using HMAC-SHA256 for security
@@ -139,7 +158,7 @@ Scoring-based algorithm that balances subject qualification, level matching, and
 - Handles errors gracefully with Thai error messages
 - Includes /health endpoint for monitoring
 
-**ai_parser.py** - AI-powered message parsing (lines 1-340)
+**src/timetable/ai_parser.py** - AI-powered message parsing
 - Uses OpenRouter API to access Gemini free tier model
 - Model: google/gemini-2.0-flash-exp:free (configurable)
 - System prompt provides parsing rules in Thai (lines 18-44)
@@ -155,7 +174,7 @@ Scoring-based algorithm that balances subject qualification, level matching, and
 - parse_leave_request_fallback() for regex-based parsing without API
 - Temperature set to 0.2 for consistent, deterministic parsing
 
-**line_messaging.py** - Outgoing notifications (lines 1-280)
+**src/web/line_messaging.py** - Outgoing notifications
 - send_message_to_group() - Generic message sender
 - send_daily_report() - Sends substitute teacher report
 - send_error_notification() - Sends system errors
@@ -165,11 +184,11 @@ Scoring-based algorithm that balances subject qualification, level matching, and
 - Uses linebot SDK's push_message API
 - Sends to LINE_GROUP_ID from config
 
-**process_daily_leaves.py** - Daily orchestration (lines 1-400)
+**src/utils/daily_leave_processor.py** - Daily orchestration
 - Main workflow script, designed for cron job execution
 - Command-line interface:
-  - `python process_daily_leaves.py` - Process today
-  - `python process_daily_leaves.py 2025-11-21` - Specific date
+  - `python -m src.utils.daily_leave_processor` - Process today
+  - `python -m src.utils.daily_leave_processor 2025-11-21` - Specific date
   - `--test` flag for read-only mode (no Sheets updates)
   - `--send-line` flag to enable LINE notification
 - Workflow:
@@ -182,8 +201,8 @@ Scoring-based algorithm that balances subject qualification, level matching, and
   7. Optionally sends report via line_messaging.send_daily_report()
 - Returns comprehensive report string with success rates
 
-**build_teacher_data.py** - Data file generator (lines 1-208)
-- Analyzes real_timetable.json to extract teacher information
+**src/utils/build_teacher_data.py** - Data file generator
+- Analyzes data/real_timetable.json to extract teacher information
 - Generates 5 required JSON files:
   1. teacher_subjects.json - Maps teacher_id → [subject_ids]
   2. teacher_levels.json - Maps teacher_id → [level categories]
@@ -192,7 +211,8 @@ Scoring-based algorithm that balances subject qualification, level matching, and
   5. teacher_full_names.json - Maps teacher_id → full display name (editable)
 - classify_class_level() determines level based on class_id prefix
 - Run once when setting up system, or when timetable changes
-- Output files used by find_substitute.py and process_daily_leaves.py
+- Output files saved to data/ directory
+- Used by src/timetable/substitute.py and src/utils/daily_leave_processor.py
 
 #### Data Flow
 
@@ -252,15 +272,15 @@ Excel:
 #### Deployment
 
 **Development (Windows with ngrok):**
-1. Run `python webhook.py` locally
+1. Run `python -m src.web.webhook` locally
 2. Run `ngrok http 5000` to expose webhook
 3. Set LINE webhook URL to ngrok URL + /callback
 4. Test with real LINE messages
 
 **Production (Raspberry Pi):**
 1. Deploy code to `/home/pi/TimeTableConverting`
-2. Create systemd service for webhook.py (runs on boot)
-3. Add cron job: `55 8 * * 1-5` for process_daily_leaves.py
+2. Create systemd service for `python -m src.web.webhook` (runs on boot)
+3. Add cron job: `55 8 * * 1-5` for `python -m src.utils.daily_leave_processor`
 4. Configure router port forwarding (port 5000)
 5. Set LINE webhook URL to public IP/domain + /callback
 
@@ -309,14 +329,16 @@ All data structures use this timetable entry format:
 
 Run all tests (recommended):
 ```bash
-python run_all_tests.py
+python -m unittest discover tests -v
+# Or use the script:
+python -m scripts.run_all_tests
 ```
 
 Run individual test suites:
 ```bash
-python test_find_substitute.py   # 10 tests for substitute finding
-python test_excel_converting.py  # 14 tests for Excel conversion
-python test_real_timetable.py    # Real timetable validation test
+python -m unittest tests.test_substitute -v   # 10 tests for substitute finding
+python -m unittest tests.test_converter -v    # 14 tests for Excel conversion
+python -m tests.test_real_timetable           # Real timetable validation test
 ```
 
 **Test Coverage:**
@@ -357,12 +379,12 @@ See TESTING.md for quick reference or TEST_REPORT.md for comprehensive analysis.
 - Substitute finding algorithm achieves 75% success rate with real data
 - All three sheets parsed correctly (ป.1-3, ป.4-6, ม.1-3)
 
-**Diagnostic Tools Created:**
-- `diagnose_excel.py` - Inspect Excel structure and period columns
-- `check_conflicts.py` - Detect scheduling conflicts in JSON output
-- `check_prathom_periods.py` - Validate period format handling
-- `test_period_parsing.py` - Test period parsing logic
-- `check_t011_duplicates.py` - Verify duplicate resolution
+**Diagnostic Tools (in scripts/ directory):**
+- `scripts/diagnose_excel.py` - Inspect Excel structure and period columns
+- `scripts/check_conflicts.py` - Detect scheduling conflicts in JSON output
+- `scripts/check_prathom_periods.py` - Validate period format handling
+- `tests/test_period_parsing.py` - Test period parsing logic
+- `scripts/check_t011_duplicates.py` - Verify duplicate resolution
 
 ## Important Notes
 - Thai encoding: All mappings and output use UTF-8
@@ -378,6 +400,26 @@ See TESTING.md for quick reference or TEST_REPORT.md for comprehensive analysis.
 - Dependencies: Install via `pip install -r requirements.txt` (requires openpyxl)
 
 ## Recent Changes
+
+### Nov 20, 2025: Project Reorganization
+- **Complete restructure following Python best practices:**
+  - Moved data files to data/ directory
+  - Moved documentation to docs/ directory
+  - Organized source code in src/ with subpackages (timetable/, utils/, web/)
+  - Moved utility scripts to scripts/ directory
+  - Moved tests to tests/ directory
+- **Updated all imports to src.* structure:**
+  - All modules now use `from src.config import config`
+  - Import examples: `from src.timetable.converter import convert_timetable`
+  - File paths use PROJECT_ROOT for cross-platform compatibility
+- **LINE SDK v3 migration:**
+  - Updated webhook.py to use linebot.v3 API
+  - Changed from LineBotApi to MessagingApi
+  - Updated handler decorators and message models
+- **Centralized configuration:**
+  - src/config.py manages all file paths with PROJECT_ROOT
+  - Absolute paths to data/ directory
+  - All modules share single configuration source
 
 ### Nov 20, 2025: LINE Bot Integration
 - **Complete automated leave request system:**

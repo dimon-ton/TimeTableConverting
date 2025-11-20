@@ -50,16 +50,16 @@ pip install -r requirements.txt
 Convert your Excel timetable to JSON format:
 
 ```bash
-python excel_converting.py <excel_file> [output_file]
+python -m src.timetable.converter <excel_file> [output_file]
 ```
 
 **Examples:**
 ```bash
 # Using default output file (timetable_output.json)
-python excel_converting.py timetable.xlsm
+python -m src.timetable.converter timetable.xlsm
 
 # Specifying custom output file
-python excel_converting.py timetable.xlsm my_output.json
+python -m src.timetable.converter timetable.xlsm my_output.json
 ```
 
 **Features:**
@@ -96,36 +96,36 @@ pip install gspread google-auth
 
 4. **Configure spreadsheet ID:**
    - Copy the spreadsheet ID from the URL
-   - Update `SPREADSHEET_ID` in `sync_leave_logs.py` and `add_absence_to_sheets.py`
+   - Update `SPREADSHEET_ID` in `src/utils/leave_log_sync.py` and `src/utils/add_absence_to_sheets.py`
 
 #### Adding Teacher Absences
 
 **Interactive mode** (easiest for manual entry):
 ```bash
-python add_absence_to_sheets.py
+python -m src.utils.add_absence_to_sheets
 ```
 
 **Command-line mode** (for scripting):
 ```bash
-python add_absence_to_sheets.py --date 2025-11-20 --teacher T001 --day Mon --period 3 --class ป.4 --subject Math --notes "Sick leave"
+python -m src.utils.add_absence_to_sheets --date 2025-11-20 --teacher T001 --day Mon --period 3 --class ป.4 --subject Math --notes "Sick leave"
 ```
 
 **With automatic substitute finding:**
 ```bash
-python add_absence_to_sheets.py --date 2025-11-20 --teacher T001 --day Mon --period 3 --class ป.4 --find-substitute
+python -m src.utils.add_absence_to_sheets --date 2025-11-20 --teacher T001 --day Mon --period 3 --class ป.4 --find-substitute
 ```
 
 #### Reading Leave Logs
 
 Load leave logs from Google Sheets in your code:
 ```python
-from sync_leave_logs import load_leave_logs_from_sheets
+from src.utils.leave_log_sync import load_leave_logs_from_sheets
 
 # Get all leave logs from Google Sheets
 leave_logs = load_leave_logs_from_sheets()
 
 # Use with substitute finding algorithm
-from find_substitute import assign_substitutes_for_day
+from src.timetable.substitute import assign_substitutes_for_day
 
 substitutes = assign_substitutes_for_day(
     day_id="Mon",
@@ -138,7 +138,7 @@ substitutes = assign_substitutes_for_day(
 
 **Test connection:**
 ```bash
-python sync_leave_logs.py
+python -m src.utils.leave_log_sync
 ```
 
 #### Benefits of Google Sheets Integration
@@ -163,7 +163,7 @@ Automate leave requests and substitute notifications using LINE Messaging API.
      ↓
 [Auto-add to Google Sheets]
      ↓
-[Cron: 8:55 AM Mon-Fri] → [process_daily_leaves.py]
+[Cron: 8:55 AM Mon-Fri] → [src/utils/daily_leave_processor.py]
      ↓
 [Find Substitutes] → [Update Sheets] → [Send LINE Report]
 ```
@@ -172,7 +172,7 @@ Automate leave requests and substitute notifications using LINE Messaging API.
 
 1. **Generate Required Data Files:**
 ```bash
-python build_teacher_data.py
+python -m src.utils.build_teacher_data
 ```
 This creates 5 JSON files: teacher_subjects.json, teacher_levels.json, class_levels.json, teacher_name_map.json, teacher_full_names.json
 
@@ -190,19 +190,19 @@ cp .env.example .env
 
 3. **Start Webhook Server:**
 ```bash
-python webhook.py
+python -m src.web.webhook
 ```
 
 4. **Process Daily Leaves:**
 ```bash
 # Manual run (test mode)
-python process_daily_leaves.py --test
+python -m src.utils.daily_leave_processor --test
 
 # Real run with LINE notification
-python process_daily_leaves.py --send-line
+python -m src.utils.daily_leave_processor --send-line
 
 # Process specific date
-python process_daily_leaves.py 2025-11-21
+python -m src.utils.daily_leave_processor 2025-11-21
 ```
 
 #### Features
@@ -260,16 +260,16 @@ Test individual components:
 
 ```bash
 # Test configuration
-python config.py
+python -m src.config
 
 # Test AI parser (requires OPENROUTER_API_KEY)
-python ai_parser.py
+python -m src.timetable.ai_parser
 
 # Test LINE messaging (requires LINE credentials)
-python line_messaging.py
+python -m src.web.line_messaging
 
 # Test daily processing (read-only)
-python process_daily_leaves.py --test
+python -m src.utils.daily_leave_processor --test
 ```
 
 #### Configuration Files
@@ -308,7 +308,7 @@ python process_daily_leaves.py --test
 Use the `find_substitute` module programmatically:
 
 ```python
-from find_substitute import find_best_substitute_teacher, assign_substitutes_for_day
+from src.timetable.substitute import find_best_substitute_teacher, assign_substitutes_for_day
 
 # Find substitute for a single period
 substitute = find_best_substitute_teacher(
@@ -454,8 +454,8 @@ TimeTableConverting/
 ├── find_substitute.py            # Substitute teacher algorithm
 │
 ├── Google Sheets Integration
-├── sync_leave_logs.py            # Read leave logs from Google Sheets
-├── add_absence_to_sheets.py      # Add absences to Google Sheets
+├── src/utils/leave_log_sync.py            # Read leave logs from Google Sheets
+├── src/utils/add_absence_to_sheets.py      # Add absences to Google Sheets
 ├── create_sheets_template.py     # Google Sheets setup helper
 ├── fix_sheet_headers.py          # Google Sheets header fix utility
 │
@@ -560,8 +560,8 @@ TimeTableConverting/
 
 ### Google Sheets Integration (Nov 2025)
 - ✅ **Cloud-based leave log management:**
-  - `sync_leave_logs.py` - Read leave logs from Google Sheets
-  - `add_absence_to_sheets.py` - Add absences with optional substitute finding
+  - `src/utils/leave_log_sync.py` - Read leave logs from Google Sheets
+  - `src/utils/add_absence_to_sheets.py` - Add absences with optional substitute finding
   - Bidirectional sync with existing timetable system
   - Interactive and command-line modes
 - ✅ **Setup utilities:**
