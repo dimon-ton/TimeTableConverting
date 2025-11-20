@@ -17,6 +17,7 @@ from collections import defaultdict
 
 from src.config import config
 from src.utils.sheet_utils import get_sheets_client, load_requests_from_sheet, add_absence
+from src.timetable.substitute import assign_substitutes_for_day
 
 
 def load_data_files() -> Tuple[List[Dict], Dict, Dict, Dict, Dict, Dict]:
@@ -244,7 +245,10 @@ def process_leaves(target_date: str, test_mode: bool = False, send_line: bool = 
 
     if not leaves:
         report = f"No valid leave requests found for {target_date} to process."
-        print(f"\n{report}")
+        try:
+            print(f"\n{report}")
+        except UnicodeEncodeError:
+            print(f"\n{report.encode('ascii', 'replace').decode('ascii')}")
         return report
 
     absent_by_day = group_leaves_by_day(leaves)
@@ -273,7 +277,11 @@ def process_leaves(target_date: str, test_mode: bool = False, send_line: bool = 
     log_assignments_to_leave_logs(all_substitutes, target_date, test_mode)
 
     report = generate_report(target_date, leaves, all_substitutes, absent_by_day, teacher_full_names)
-    print(f"\n{report}")
+    try:
+        print(f"\n{report}")
+    except UnicodeEncodeError:
+        # Windows console encoding issue - print without emojis
+        print(f"\n{report.encode('ascii', 'replace').decode('ascii')}")
 
     if send_line and not test_mode:
         try:

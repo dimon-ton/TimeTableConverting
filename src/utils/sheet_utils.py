@@ -1,3 +1,159 @@
+"""
+Google Sheets Utilities
+
+This module provides a centralized set of functions for interacting with the
+Google Sheet, including getting the client, logging requests, and reading data.
+"""
+
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import datetime
+from typing import Optional, Dict, List
+import json
+
+from src.config import config
+
+def get_sheets_client():
+    """Create and return an authenticated Google Sheets client."""
+    SCOPES = [
+        'https://www.googleapis.com/auth/spreadsheets',
+        'https://www.googleapis.com/auth/drive'
+    ]
+
+    try:
+        creds = Credentials.from_service_account_file(config.CREDENTIALS_FILE, scopes=SCOPES)
+        client = gspread.authorize(creds)
+        return client
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            f"Credentials file '{config.CREDENTIALS_FILE}' not found. "
+            "Please ensure credentials.json is in the current directory."
+        )
+    except Exception as e:
+        raise Exception(f"Failed to authenticate with Google Sheets: {e}")
+
+def log_request_to_sheet(
+    raw_message: str,
+    leave_data: Optional[Dict],
+    status: str
+):
+    """
+    Log the result of a parsing attempt to the 'Leave_Requests' sheet.
+
+    Args:
+        raw_message: The original message from the user.
+        leave_data: The structured data dictionary returned by the parser, or None if failed.
+        status: A string indicating the outcome (e.g., "Success", "Failed").
+    """
+    if not config.SPREADSHEET_ID:
+        print("WARNING: SPREADSHEET_ID not set. Skipping request logging.")
+        return
+
+    try:
+        client = get_sheets_client()
+        spreadsheet = client.open_by_key(config.SPREADSHEET_ID)
+
+        # Get or create the worksheet
+        try:
+            worksheet = spreadsheet.worksheet(config.LEAVE_REQUESTS_WORKSHEET)
+        except gspread.WorksheetNotFound:
+            print(f"Worksheet '{config.LEAVE_REQUESTS_WORKSHEET}' not found. Creating it...")
+            worksheet = spreadsheet.add_worksheet(
+                title=config.LEAVE_REQUESTS_WORKSHEET, rows=1, cols=7
+            )
+            # Add headers to the new sheet
+            headers = [
+                "Timestamp", "Raw Message", "Teacher Name",
+                "Date", "Periods", "Reason", "Status"
+            ]
+            worksheet.append_row(headers, value_input_option='USER_ENTERED')
+            print(f"OK - Created '{config.LEAVE_REQUESTS_WORKSHEET}' worksheet and added headers.")
+
+        # Prepare row data
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        if leave_data:
+            row = [
+                timestamp,
+                raw_message,
+                leave_data.get('teacher_name', ''),
+                leave_data.get('date', ''),
+                str(leave_data.get('periods', [])), # Convert list to string
+                leave_data.get('reason', ''),
+                status
+            ]
+        else:
+            row = [
+                timestamp,
+                raw_message,
+                "", "", "", "", # Empty columns for failed parse
+                status
+            ]
+
+        # Append the row
+        worksheet.append_row(row, value_input_option='USER_ENTERED')
+        print(f"OK - Logged request to '{config.LEAVE_REQUESTS_WORKSHEET}'")
+
+    except Exception as e:
+        import traceback
+        print(f"ERROR: Failed to log request to Google Sheets: {e}")
+        traceback.print_exc()
+
+def load_requests_from_sheet(target_date: str) -> List[Dict]:
+    """
+    Reads leave requests from the 'Leave_Requests' sheet for a specific date.
+
+    Args:
+        target_date: The date to filter requests for (YYYY-MM-DD).
+
+    Returns:
+        A list of leave request dictionaries, each containing:
+        - teacher_name (str)
+        - date (str)
+        - periods (list[int])
+        - reason (str)
+    """
+    print(f"Loading leave requests for {target_date} from '{config.LEAVE_REQUESTS_WORKSHEET}' sheet...")
+
+    try:
+        client = get_sheets_client()
+        spreadsheet = client.open_by_key(config.SPREADSHEET_ID)
+        worksheet = spreadsheet.worksheet(config.LEAVE_REQUESTS_WORKSHEET)
+
+        all_requests = worksheet.get_all_records() # Reads sheet as a list of dicts
+
+        requests_for_date = []
+        for request in all_requests:
+            # Filter by date and ensure status is 'Success'
+            if request.get('Date') == target_date and str(request.get('Status')).startswith('Success'):
+                try:
+                    # The 'Periods' column is a string like "[1, 2, 3]"
+                    periods_str = request.get('Periods', '[]')
+                    periods = json.loads(periods_str)
+                    
+                    if not isinstance(periods, list):
+                        print(f"WARNING: Skipping request with invalid periods format: {request}")
+                        continue
+
+                    requests_for_date.append({
+                        "teacher_name": request.get("Teacher Name"),
+                        "date": request.get("Date"),
+                        "periods": periods,
+                        "reason": request.get("Reason")
+                    })
+                except (json.JSONDecodeError, TypeError) as e:
+                    print(f"WARNING: Could not parse periods '{periods_str}' for request: {request}. Error: {e}. Skipping.")
+                    continue
+        
+        print(f"Found {len(requests_for_date)} valid leave requests.")
+        return requests_for_date
+
+    except Exception as e:
+        import traceback
+        print(f"ERROR: Failed to load requests from Google Sheets: {e}")
+        traceback.print_exc()
+        return []
+
 def add_absence(
     date: str,
     absent_teacher: str,

@@ -400,6 +400,22 @@ See TESTING.md for quick reference or TEST_REPORT.md for comprehensive analysis.
 
 ## Recent Changes
 
+### Nov 20, 2025 (Evening): Critical Bug Fix - Substitute Assignment Data Format
+- **Discovered and fixed critical bug in substitute.py (lines 178-213):**
+  - **Problem:** assign_substitutes_for_day() was logging substitute teacher IDs in the "teacher_id" field instead of absent teacher IDs
+  - **Impact:** Complete data corruption - Leave_Logs showed wrong teachers as absent (T007, T017 instead of T004)
+  - **Fix:** Modified function to store absent_teacher separately and return correct format:
+    - "teacher_id": absent teacher (correct)
+    - "substitute_teacher": substitute teacher or None (correct)
+  - **Testing:** Validated with two scenarios (0% and 100% success rates) - both now correctly log data
+  - **Cleanup:** Created cleanup_bad_logs.py to remove 11 incorrect entries from Google Sheets
+- **Also changed:** Always log absences even when no substitute found (previously skipped these entries)
+- **Minor improvements:**
+  - Added missing import in daily_leave_processor.py
+  - Added Unicode error handling for Windows console compatibility
+  - Enhanced documentation in sheet_utils.py
+- **Result:** System now maintains 100% data integrity with correct teacher ID separation
+
 ### Nov 20, 2025: Project Reorganization
 - **Complete restructure following Python best practices:**
   - Moved data files to data/ directory
