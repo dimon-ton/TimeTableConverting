@@ -178,6 +178,7 @@ def assign_substitutes_for_day(
     new_substitutes = []
     for row in timetable:
         if row["day_id"] == day_id and row["teacher_id"] in absent_teacher_ids:
+            absent_teacher = row["teacher_id"]  # Store the absent teacher ID
             subject_id = row["subject_id"]
             period_id = row["period_id"]
             class_id = row["class_id"]
@@ -197,15 +198,16 @@ def assign_substitutes_for_day(
                 class_levels,
             )
 
-            if substitute:
-                new_substitutes.append(
-                    {
-                        "teacher_id": substitute,
-                        "subject_id": subject_id,
-                        "day_id": day_id,
-                        "period_id": period_id,
-                        "class_id": class_id,
-                    }
-                )
+            # Always log the absence, even if no substitute found
+            new_substitutes.append(
+                {
+                    "teacher_id": absent_teacher,  # Absent teacher (not substitute)
+                    "subject_id": subject_id,
+                    "day_id": day_id,
+                    "period_id": period_id,
+                    "class_id": class_id,
+                    "substitute_teacher": substitute if substitute else None,  # Separate field
+                }
+            )
 
     return new_substitutes
