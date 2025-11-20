@@ -3,7 +3,8 @@ Test script for real timetable data with simulated teacher absence
 """
 import json
 from collections import defaultdict
-from find_substitute import find_best_substitute_teacher, assign_substitutes_for_day
+from src.timetable.substitute import find_best_substitute_teacher, assign_substitutes_for_day
+from src.config import config
 
 
 def load_real_timetable(filename):
@@ -83,7 +84,7 @@ def main():
 
     # Load real timetable
     print("\n[1] Loading real timetable data...")
-    timetable = load_real_timetable('real_timetable.json')
+    timetable = load_real_timetable(config.TIMETABLE_FILE)
     print(f"    Loaded {len(timetable)} timetable entries")
 
     # Analyze timetable

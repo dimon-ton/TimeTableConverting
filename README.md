@@ -10,6 +10,9 @@ A Python-based timetable management system for schools that handles Excel-to-JSO
 - ✅ Level-based matching (elementary/middle school)
 - ✅ Subject qualification validation
 - ✅ Comprehensive test suite
+- ✅ **Google Sheets integration for cloud-based leave log management**
+- ✅ **LINE Bot integration for automated leave requests and notifications**
+- ✅ **AI-powered message parsing (OpenRouter/Gemini)**
 
 ## Installation
 
@@ -65,6 +68,240 @@ python excel_converting.py timetable.xlsm my_output.json
 - Handles merged cells automatically
 - UTF-8 encoding for Thai characters
 - Progress feedback during processing
+
+### Google Sheets Integration (NEW!)
+
+Manage teacher absences and leave logs using Google Sheets instead of manual JSON editing.
+
+#### Initial Setup
+
+1. **Install dependencies** (already included in requirements.txt):
+```bash
+pip install gspread google-auth
+```
+
+2. **Set up Google Cloud Console:**
+   - Go to https://console.cloud.google.com/
+   - Create a new project
+   - Enable **Google Sheets API** and **Google Drive API**
+   - Create a service account
+   - Download credentials as `credentials.json` and place in project folder
+
+3. **Create Google Sheet:**
+   - Go to https://sheets.google.com
+   - Create a new sheet named "School Timetable - Leave Logs"
+   - Rename first worksheet to "Leave_Logs"
+   - Add headers in row 1: Date, Absent Teacher, Day, Period, Class, Subject, Substitute Teacher, Notes
+   - Share the sheet with your service account email (found in credentials.json)
+
+4. **Configure spreadsheet ID:**
+   - Copy the spreadsheet ID from the URL
+   - Update `SPREADSHEET_ID` in `sync_leave_logs.py` and `add_absence_to_sheets.py`
+
+#### Adding Teacher Absences
+
+**Interactive mode** (easiest for manual entry):
+```bash
+python add_absence_to_sheets.py
+```
+
+**Command-line mode** (for scripting):
+```bash
+python add_absence_to_sheets.py --date 2025-11-20 --teacher T001 --day Mon --period 3 --class ป.4 --subject Math --notes "Sick leave"
+```
+
+**With automatic substitute finding:**
+```bash
+python add_absence_to_sheets.py --date 2025-11-20 --teacher T001 --day Mon --period 3 --class ป.4 --find-substitute
+```
+
+#### Reading Leave Logs
+
+Load leave logs from Google Sheets in your code:
+```python
+from sync_leave_logs import load_leave_logs_from_sheets
+
+# Get all leave logs from Google Sheets
+leave_logs = load_leave_logs_from_sheets()
+
+# Use with substitute finding algorithm
+from find_substitute import assign_substitutes_for_day
+
+substitutes = assign_substitutes_for_day(
+    day_id="Mon",
+    timetable=timetable,
+    teacher_subjects=teacher_subjects,
+    # ... other parameters ...
+    leave_logs=leave_logs  # Use logs from Google Sheets
+)
+```
+
+**Test connection:**
+```bash
+python sync_leave_logs.py
+```
+
+#### Benefits of Google Sheets Integration
+- ✅ **Cloud-based**: Access from anywhere with internet
+- ✅ **Collaborative**: Multiple staff can update simultaneously
+- ✅ **User-friendly**: Familiar spreadsheet interface, no JSON editing
+- ✅ **Audit trail**: Built-in version history
+- ✅ **Real-time**: Changes sync automatically
+
+### LINE Bot Integration (NEW!)
+
+Automate leave requests and substitute notifications using LINE Messaging API.
+
+#### System Overview
+
+```
+[Teachers] → [LINE Group: "พรุ่งนี้ขอลานะครับ"]
+     ↓
+[LINE Bot Webhook] → [Flask Server]
+     ↓
+[OpenRouter AI (Gemini)] → Extract: Teacher, Date, Periods
+     ↓
+[Auto-add to Google Sheets]
+     ↓
+[Cron: 8:55 AM Mon-Fri] → [process_daily_leaves.py]
+     ↓
+[Find Substitutes] → [Update Sheets] → [Send LINE Report]
+```
+
+#### Quick Start
+
+1. **Generate Required Data Files:**
+```bash
+python build_teacher_data.py
+```
+This creates 5 JSON files: teacher_subjects.json, teacher_levels.json, class_levels.json, teacher_name_map.json, teacher_full_names.json
+
+2. **Set Up Credentials:**
+```bash
+# Copy example environment file
+cp .env.example .env
+
+# Edit .env and add your credentials:
+# - LINE_CHANNEL_SECRET
+# - LINE_CHANNEL_ACCESS_TOKEN
+# - OPENROUTER_API_KEY
+# - LINE_GROUP_ID (get this from webhook logs)
+```
+
+3. **Start Webhook Server:**
+```bash
+python webhook.py
+```
+
+4. **Process Daily Leaves:**
+```bash
+# Manual run (test mode)
+python process_daily_leaves.py --test
+
+# Real run with LINE notification
+python process_daily_leaves.py --send-line
+
+# Process specific date
+python process_daily_leaves.py 2025-11-21
+```
+
+#### Features
+
+**Incoming Leave Requests:**
+- Teachers send natural language requests in Thai to LINE group
+- AI extracts structured data: teacher name, date, periods, reason
+- Automatically adds to Google Sheets "Leave_Logs" tab
+- Sends confirmation message back to teacher
+
+**Example Messages:**
+- "ครูสุกฤษฎิ์ ขอลาพรุ่งนี้ คาบ 1-3" → Parsed to structured data
+- "ครูอำพร ลาป่วยวันนี้ ทั้งวัน" → Handles full day absences
+- "ครูกฤตชยากร ขอลาวันจันทร์ คาบ 2, 4, 6" → Handles specific periods
+
+**Daily Processing:**
+- Scheduled cron job at 8:55 AM (Monday-Friday)
+- Reads all leaves for the day from Google Sheets
+- Finds substitute teachers for each absence
+- Updates Google Sheets with substitute assignments
+- Sends formatted report to LINE group
+
+**Report Format:**
+```
+📋 รายงานครูแทนประจำวัน
+📅 วันที่: 2025-11-20
+==============================
+
+👥 ครูที่ลา: 2 คน
+📚 จำนวนคาบ: 5 คาบ
+✅ หาครูแทนได้: 4/5 คาบ
+
+📌 Mon
+--------------------
+✅ คาบ 1 | ป.1 - Math
+   T001 → T005
+❌ คาบ 3 | ป.4 - Science
+   T002 → ไม่มีครูแทน
+```
+
+#### Setup Instructions
+
+For complete setup instructions including:
+- LINE Developer account creation
+- Channel configuration
+- OpenRouter API key
+- Webhook setup with ngrok (local testing)
+- Raspberry Pi deployment (production)
+
+**See: [LINE_BOT_SETUP.md](LINE_BOT_SETUP.md)**
+
+#### Testing
+
+Test individual components:
+
+```bash
+# Test configuration
+python config.py
+
+# Test AI parser (requires OPENROUTER_API_KEY)
+python ai_parser.py
+
+# Test LINE messaging (requires LINE credentials)
+python line_messaging.py
+
+# Test daily processing (read-only)
+python process_daily_leaves.py --test
+```
+
+#### Configuration Files
+
+- **config.py** - Centralized configuration management
+- **.env** - Environment variables (YOU create from .env.example)
+- **.env.example** - Template with all required variables
+
+#### Architecture
+
+**New Modules:**
+- `config.py` - Configuration management with validation
+- `webhook.py` - Flask server for LINE webhooks
+- `ai_parser.py` - AI-powered message parsing (OpenRouter/Gemini)
+- `line_messaging.py` - Send notifications to LINE groups
+- `process_daily_leaves.py` - Daily orchestration script
+- `build_teacher_data.py` - Generate required data files
+
+**Integration Points:**
+1. LINE → Webhook → AI Parser → Google Sheets (incoming)
+2. Google Sheets → Daily Processor → Substitute Finder → Google Sheets (processing)
+3. Google Sheets → LINE Messaging (outgoing reports)
+
+#### Benefits
+
+- ✅ **Zero manual data entry**: Teachers send requests via LINE
+- ✅ **Natural language**: No forms or structured input required
+- ✅ **Automated processing**: Daily substitute assignment at 8:55 AM
+- ✅ **Instant notifications**: Reports delivered to LINE group
+- ✅ **AI-powered parsing**: Handles Thai language nuances
+- ✅ **Cloud-based**: Works on Raspberry Pi or any server
+- ✅ **Scalable**: Add more teachers or classes easily
 
 ### Finding Substitute Teachers
 
@@ -213,27 +450,62 @@ For detailed testing documentation, see:
 
 ```
 TimeTableConverting/
-├── excel_converting.py         # Excel to JSON converter
-├── find_substitute.py           # Substitute teacher algorithm
-├── test_excel_converting.py     # Excel conversion tests (14 tests)
-├── test_find_substitute.py      # Substitute finding tests (10 tests)
-├── test_real_timetable.py       # Real timetable validation test
-├── run_all_tests.py             # Unified test runner
-├── diagnose_excel.py            # Excel structure inspection tool
-├── check_conflicts.py           # Scheduling conflict detector
-├── check_prathom_periods.py     # Period format validator
-├── test_period_parsing.py       # Period parsing unit tests
-├── check_t011_duplicates.py     # Duplicate verification tool
-├── real_timetable.json          # Parsed real school timetable (222 entries)
-├── requirements.txt             # Python dependencies
-├── README.md                    # This file
-├── CLAUDE.md                    # Claude Code instructions
-├── GEMINI.md                    # Google Gemini instructions
-├── TESTING.md                   # Quick testing guide
-├── TEST_REPORT.md               # Comprehensive test documentation
-├── SESSION_SUMMARY.md           # Work session history
-├── NEXT_STEPS.md                # Recommended next actions
-└── venv/                        # Virtual environment (created by you)
+├── excel_converting.py          # Excel to JSON converter
+├── find_substitute.py            # Substitute teacher algorithm
+│
+├── Google Sheets Integration
+├── sync_leave_logs.py            # Read leave logs from Google Sheets
+├── add_absence_to_sheets.py      # Add absences to Google Sheets
+├── create_sheets_template.py     # Google Sheets setup helper
+├── fix_sheet_headers.py          # Google Sheets header fix utility
+│
+├── LINE Bot System (NEW!)
+├── config.py                     # Centralized configuration management
+├── webhook.py                    # Flask server for LINE webhooks
+├── ai_parser.py                  # AI-powered message parsing (OpenRouter/Gemini)
+├── line_messaging.py             # Send notifications to LINE groups
+├── process_daily_leaves.py       # Daily orchestration script
+├── build_teacher_data.py         # Generate required data files
+├── .env.example                  # Environment variables template
+├── LINE_BOT_SETUP.md            # Complete LINE Bot setup guide
+│
+├── Testing
+├── test_excel_converting.py      # Excel conversion tests (14 tests)
+├── test_find_substitute.py       # Substitute finding tests (10 tests)
+├── test_real_timetable.py        # Real timetable validation test
+├── run_all_tests.py              # Unified test runner
+│
+├── Diagnostic Tools
+├── diagnose_excel.py             # Excel structure inspection tool
+├── check_conflicts.py            # Scheduling conflict detector
+├── check_prathom_periods.py      # Period format validator
+├── test_period_parsing.py        # Period parsing unit tests
+├── check_t011_duplicates.py      # Duplicate verification tool
+│
+├── Data Files
+├── real_timetable.json           # Parsed real school timetable (222 entries)
+├── teacher_subjects.json         # Generated by build_teacher_data.py
+├── teacher_levels.json           # Generated by build_teacher_data.py
+├── class_levels.json             # Generated by build_teacher_data.py
+├── teacher_name_map.json         # Generated by build_teacher_data.py
+├── teacher_full_names.json       # Generated by build_teacher_data.py
+│
+├── Configuration (YOU create)
+├── credentials.json              # Google API service account credentials
+├── .env                          # Environment variables (from .env.example)
+│
+├── Documentation
+├── requirements.txt              # Python dependencies
+├── README.md                     # This file
+├── CLAUDE.md                     # Claude Code instructions
+├── GEMINI.md                     # Google Gemini instructions
+├── LINE_BOT_SETUP.md            # LINE Bot setup guide
+├── TESTING.md                    # Quick testing guide
+├── TEST_REPORT.md                # Comprehensive test documentation
+├── SESSION_SUMMARY.md            # Work session history
+├── NEXT_STEPS.md                 # Recommended next actions
+│
+└── venv/                         # Virtual environment (created by you)
 ```
 
 ## Improvements Made
@@ -285,6 +557,49 @@ TimeTableConverting/
 - ✅ **Enhanced level system (Nov 2025):**
   - Implemented three-tier system: lower_elementary/upper_elementary/middle
   - Provides more precise age-appropriate teacher-class matching
+
+### Google Sheets Integration (Nov 2025)
+- ✅ **Cloud-based leave log management:**
+  - `sync_leave_logs.py` - Read leave logs from Google Sheets
+  - `add_absence_to_sheets.py` - Add absences with optional substitute finding
+  - Bidirectional sync with existing timetable system
+  - Interactive and command-line modes
+- ✅ **Setup utilities:**
+  - `create_sheets_template.py` - Automated sheet creation helper
+  - `fix_sheet_headers.py` - Header correction utility
+- ✅ **Benefits:**
+  - Eliminates need for manual JSON editing
+  - Accessible from anywhere (cloud-based)
+  - Multi-user collaborative editing
+  - Familiar spreadsheet interface for school staff
+  - Built-in version history and audit trail
+
+### LINE Bot Integration (Nov 2025)
+- ✅ **Automated leave request processing:**
+  - `webhook.py` - Flask server receives LINE messages with signature verification
+  - `ai_parser.py` - OpenRouter/Gemini parses Thai natural language requests
+  - Automatically extracts teacher name, date, periods, and reason
+  - Adds absences to Google Sheets with confirmation
+- ✅ **Daily substitute assignment workflow:**
+  - `process_daily_leaves.py` - Orchestrates entire daily workflow
+  - Reads leaves from Google Sheets
+  - Finds substitutes using existing algorithm
+  - Updates Sheets with assignments
+  - Sends formatted reports to LINE group
+- ✅ **Messaging system:**
+  - `line_messaging.py` - Send notifications and reports to LINE
+  - Rich text formatting with Thai language support
+  - Error notifications and system status updates
+- ✅ **Configuration management:**
+  - `config.py` - Centralized configuration with validation
+  - `.env` support for secure credential storage
+  - `build_teacher_data.py` - Generates required data files
+- ✅ **Benefits:**
+  - Zero-touch leave request submission
+  - Natural language interface (no forms!)
+  - Automated daily processing with cron jobs
+  - Instant notifications to all staff
+  - Seamless integration with existing Google Sheets system
 
 ## Excel File Format
 

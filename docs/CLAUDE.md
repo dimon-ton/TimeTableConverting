@@ -104,6 +104,183 @@ Scoring-based algorithm that balances subject qualification, level matching, and
 
 **assign_substitutes_for_day:** Iterates through all absent teachers' slots for a day, calling find_best_substitute_teacher for each. Includes newly assigned substitutes in constraint checking to avoid double-booking.
 
+### LINE Bot System (Nov 2025)
+
+**Complete automated leave request and substitute assignment system with cloud integration.**
+
+#### System Architecture
+
+```
+[Teachers] → [LINE Group] → [webhook.py] → [ai_parser.py] → [Google Sheets]
+                                                                     ↓
+[LINE Group] ← [line_messaging.py] ← [process_daily_leaves.py] ← [Cron Job]
+                                              ↓
+                                     [find_substitute.py]
+```
+
+#### Core Components
+
+**config.py** - Centralized configuration management
+- Loads environment variables from .env file using python-dotenv
+- Validates all required credentials and file paths
+- Provides config.SPREADSHEET_ID, config.LINE_CHANNEL_SECRET, etc.
+- Includes config.validate() and config.print_status() methods
+- All other modules import configuration from here
+
+**webhook.py** - Flask server for LINE webhooks (lines 1-380)
+- HTTP server running on port 5000 (configurable)
+- `/callback` endpoint receives LINE message events
+- Verifies LINE signatures using HMAC-SHA256 for security
+- Filters messages by configured LINE_GROUP_ID
+- Checks for leave keywords: ลา, ขอลา, หยุด, ไม่มา
+- Calls ai_parser.parse_leave_request() for natural language processing
+- Calls add_absence_to_sheets.add_absence() to save to Google Sheets
+- Sends confirmation reply using line_bot_api.reply_message()
+- Handles errors gracefully with Thai error messages
+- Includes /health endpoint for monitoring
+
+**ai_parser.py** - AI-powered message parsing (lines 1-340)
+- Uses OpenRouter API to access Gemini free tier model
+- Model: google/gemini-2.0-flash-exp:free (configurable)
+- System prompt provides parsing rules in Thai (lines 18-44)
+- Extracts: teacher_name, date (YYYY-MM-DD), periods (list), reason
+- Handles Thai date expressions:
+  - พรุ่งนี้ (tomorrow), วันนี้ (today)
+  - วันจันทร์ (next Monday), etc.
+- Handles period formats:
+  - "คาบ 1-3" → [1, 2, 3]
+  - "คาบ 1, 3, 5" → [1, 3, 5]
+  - "ทั้งวัน" → [1-8]
+- parse_leave_request() returns dict or None on failure
+- parse_leave_request_fallback() for regex-based parsing without API
+- Temperature set to 0.2 for consistent, deterministic parsing
+
+**line_messaging.py** - Outgoing notifications (lines 1-280)
+- send_message_to_group() - Generic message sender
+- send_daily_report() - Sends substitute teacher report
+- send_error_notification() - Sends system errors
+- send_test_message() - Verification/health check
+- format_substitute_summary() - Creates concise summaries
+- send_formatted_report() - Rich text with emojis and formatting
+- Uses linebot SDK's push_message API
+- Sends to LINE_GROUP_ID from config
+
+**process_daily_leaves.py** - Daily orchestration (lines 1-400)
+- Main workflow script, designed for cron job execution
+- Command-line interface:
+  - `python process_daily_leaves.py` - Process today
+  - `python process_daily_leaves.py 2025-11-21` - Specific date
+  - `--test` flag for read-only mode (no Sheets updates)
+  - `--send-line` flag to enable LINE notification
+- Workflow:
+  1. load_data_files() - Loads all 5 JSON data files + timetable
+  2. get_leaves_for_date() - Reads from Google Sheets via sync_leave_logs.py
+  3. group_leaves_by_day() - Groups by day, extracts absent teacher IDs
+  4. Calls assign_substitutes_for_day() for each day with absences
+  5. update_sheets_with_substitutes() - Writes results back to Sheets
+  6. generate_report() - Creates formatted text summary
+  7. Optionally sends report via line_messaging.send_daily_report()
+- Returns comprehensive report string with success rates
+
+**build_teacher_data.py** - Data file generator (lines 1-208)
+- Analyzes real_timetable.json to extract teacher information
+- Generates 5 required JSON files:
+  1. teacher_subjects.json - Maps teacher_id → [subject_ids]
+  2. teacher_levels.json - Maps teacher_id → [level categories]
+  3. class_levels.json - Maps class_id → level (lower/upper elementary, middle)
+  4. teacher_name_map.json - Maps Thai name → teacher_id
+  5. teacher_full_names.json - Maps teacher_id → full display name (editable)
+- classify_class_level() determines level based on class_id prefix
+- Run once when setting up system, or when timetable changes
+- Output files used by find_substitute.py and process_daily_leaves.py
+
+#### Data Flow
+
+**Incoming Leave Request:**
+1. Teacher sends message: "ครูสุกฤษฎิ์ ขอลาพรุ่งนี้ คาบ 1-3"
+2. LINE platform sends webhook POST to /callback
+3. webhook.py verifies signature and extracts message text
+4. ai_parser.py sends to Gemini: extracts {teacher_name, date, periods, reason}
+5. add_absence_to_sheets.py adds row to Google Sheets "Leave_Logs" tab
+6. webhook.py sends confirmation reply to LINE group
+
+**Daily Processing (8:55 AM cron):**
+1. process_daily_leaves.py reads today's leaves from Google Sheets
+2. Groups absences by day (Mon, Tue, Wed, Thu, Fri)
+3. For each day, calls find_substitute.py's assign_substitutes_for_day()
+4. Substitute finder scores all available teachers using algorithm
+5. Updates Google Sheets with substitute teacher assignments (column 7)
+6. Generates formatted report with success rate statistics
+7. line_messaging.py sends report to LINE group
+
+#### Configuration Files
+
+**.env** (created by user from .env.example)
+```
+SPREADSHEET_ID=1KpQZlrJk03ZS_Q0bTWvxHjG9UFiD1xPZGyIsQfRkRWo
+LINE_CHANNEL_SECRET=your_channel_secret
+LINE_CHANNEL_ACCESS_TOKEN=your_access_token
+LINE_GROUP_ID=C1234567890abcdef (get from webhook logs)
+OPENROUTER_API_KEY=sk-or-v1-...
+WEBHOOK_HOST=0.0.0.0
+WEBHOOK_PORT=5000
+DEBUG_MODE=False
+```
+
+**credentials.json** (Google service account)
+- Downloaded from Google Cloud Console
+- Used by gspread for Sheets API authentication
+- Must be shared with service account email
+
+#### Dependencies (requirements.txt)
+
+Google Sheets:
+- gspread==6.2.1
+- google-auth==2.41.1
+
+LINE Bot:
+- line-bot-sdk==3.9.0
+- Flask==3.0.0
+
+Configuration & AI:
+- python-dotenv==1.0.0
+- requests==2.31.0 (for OpenRouter API)
+
+Excel:
+- openpyxl==3.1.2
+
+#### Deployment
+
+**Development (Windows with ngrok):**
+1. Run `python webhook.py` locally
+2. Run `ngrok http 5000` to expose webhook
+3. Set LINE webhook URL to ngrok URL + /callback
+4. Test with real LINE messages
+
+**Production (Raspberry Pi):**
+1. Deploy code to `/home/pi/TimeTableConverting`
+2. Create systemd service for webhook.py (runs on boot)
+3. Add cron job: `55 8 * * 1-5` for process_daily_leaves.py
+4. Configure router port forwarding (port 5000)
+5. Set LINE webhook URL to public IP/domain + /callback
+
+#### Error Handling
+
+- Webhook validates signatures, returns 400 on invalid
+- AI parser has fallback regex-based parser if OpenRouter fails
+- Config validation checks all required credentials before starting
+- Google Sheets operations wrapped in try-except with error messages
+- LINE messaging handles API errors gracefully
+- process_daily_leaves.py has --test mode for safe testing
+
+#### Security
+
+- LINE signatures verified with HMAC-SHA256
+- Credentials stored in .env (not committed to git)
+- .env added to .gitignore automatically
+- Google service account has minimal permissions
+- Flask runs on local network (Raspberry Pi) or behind ngrok
+
 ## Data Format
 
 All data structures use this timetable entry format:
@@ -200,7 +377,31 @@ See TESTING.md for quick reference or TEST_REPORT.md for comprehensive analysis.
 - Unknown subjects/teachers preserve original Thai text instead of "UNKNOWN" label
 - Dependencies: Install via `pip install -r requirements.txt` (requires openpyxl)
 
-## Recent Changes (Nov 19, 2025)
+## Recent Changes
+
+### Nov 20, 2025: LINE Bot Integration
+- **Complete automated leave request system:**
+  - Added webhook.py Flask server for LINE Messaging API
+  - Added ai_parser.py for AI-powered Thai message parsing (OpenRouter/Gemini)
+  - Added line_messaging.py for sending reports and notifications
+  - Added process_daily_leaves.py for daily workflow orchestration
+  - Added config.py for centralized configuration management
+  - Added build_teacher_data.py to generate required data files
+- **Integration with existing systems:**
+  - Links LINE → AI Parser → Google Sheets (incoming requests)
+  - Links Google Sheets → Substitute Finder → LINE (daily reports)
+  - Full end-to-end automation from teacher message to substitute assignment
+- **Dependencies added:**
+  - line-bot-sdk==3.9.0 (LINE API)
+  - Flask==3.0.0 (webhook server)
+  - python-dotenv==1.0.0 (environment variables)
+  - requests==2.31.0 (OpenRouter API)
+- **Documentation:**
+  - Created LINE_BOT_SETUP.md with complete setup guide
+  - Updated README.md with LINE Bot usage and architecture
+  - Updated CLAUDE.md with system architecture details
+
+### Nov 19, 2025: Algorithm & Parser Enhancements
 - Expanded subject mappings from ~8 to 26+ subjects
 - Changed subject qualification from requirement to bonus scoring
 - Implemented three-tier level system (lower/upper elementary + middle)

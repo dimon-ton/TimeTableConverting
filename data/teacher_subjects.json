@@ -1,0 +1,103 @@
+{
+  "T002": [
+    "Anti-Corruption",
+    "English Extra",
+    "Health Ed",
+    "History",
+    "Math",
+    "Social",
+    "Thai"
+  ],
+  "T004": [
+    "Anti-Corruption",
+    "English"
+  ],
+  "T006": [
+    "Art",
+    "Art (Music)",
+    "Art (Visual)",
+    "Occupation",
+    "Science"
+  ],
+  "T007": [
+    "Anti-Corruption",
+    "English Extra",
+    "Health Ed",
+    "History",
+    "Social",
+    "Thai"
+  ],
+  "T005": [
+    "Anti-Corruption",
+    "English Extra",
+    "Health Ed",
+    "History",
+    "Math",
+    "Social"
+  ],
+  "T003": [
+    "Anti-Corruption",
+    "Art (Music)",
+    "Art (Visual)",
+    "History",
+    "Social",
+    "Thai"
+  ],
+  "T017": [
+    "Computer",
+    "Occupation",
+    "Science"
+  ],
+  "T001": [
+    "Health Ed",
+    "Math",
+    "Physical Ed",
+    "Visual Arts"
+  ],
+  "T008": [
+    "Anti-Corruption",
+    "History",
+    "Occupation",
+    "Thai",
+    "Thai Extra"
+  ],
+  "T010": [
+    "Health Ed",
+    "Physical Ed"
+  ],
+  "T018": [
+    "Health Ed",
+    "History",
+    "Music-Drama",
+    "Physical Ed"
+  ],
+  "T012": [
+    "English",
+    "English Extra"
+  ],
+  "T016": [
+    "Art (Music)",
+    "Art (Visual)",
+    "Music-Drama",
+    "Social",
+    "Visual Arts"
+  ],
+  "T015": [
+    "Anti-Corruption",
+    "History",
+    "Occupation",
+    "Thai"
+  ],
+  "T013": [
+    "Applied Math",
+    "Computer Science",
+    "Math"
+  ],
+  "T011": [
+    "History",
+    "Occupation",
+    "STEM Education",
+    "Science",
+    "Science Extra"
+  ]
+}

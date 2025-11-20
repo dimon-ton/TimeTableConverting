@@ -8,10 +8,21 @@ env/
 venv/
 ENV/
 
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
 # Excel and JSON outputs
 *.xlsx
 *.xlsm
 timetable_output.json
+
+# Google API credentials
+credentials.json
+
+# Environment variables
+.env
 
 # IDE
 .vscode/

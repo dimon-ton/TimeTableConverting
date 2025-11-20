@@ -9,7 +9,7 @@ import os
 import json
 import tempfile
 from openpyxl import Workbook
-from excel_converting import convert_timetable, day_map, subject_map, teacher_map
+from src.timetable.converter import convert_timetable, day_map, subject_map, teacher_map
 
 
 class TestExcelConverting(unittest.TestCase):

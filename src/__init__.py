@@ -1,0 +1,1 @@
+"""School timetable management system."""

@@ -6,7 +6,7 @@ Or: python test_find_substitute.py
 """
 
 import unittest
-from find_substitute import find_best_substitute_teacher, assign_substitutes_for_day
+from src.timetable.substitute import find_best_substitute_teacher, assign_substitutes_for_day
 
 
 class TestFindBestSubstituteTeacher(unittest.TestCase):
