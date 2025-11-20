@@ -115,7 +115,12 @@ class TestFindBestSubstituteTeacher(unittest.TestCase):
         self.assertEqual(result, "T005")
 
     def test_no_qualified_substitute(self):
-        """Test when no qualified substitute is available"""
+        """Test when no qualified substitute is available
+
+        As of Nov 19, 2025: Subject qualification is a BONUS (+2) rather than
+        a requirement. Algorithm will assign any available teacher, even if
+        they're not qualified for the subject (with a scoring penalty).
+        """
         result = find_best_substitute_teacher(
             subject_id="History",  # No teacher can teach History
             day_id="Mon",
@@ -131,8 +136,10 @@ class TestFindBestSubstituteTeacher(unittest.TestCase):
             class_levels=self.class_levels,
         )
 
-        # Should return None (no one can teach History)
-        self.assertIsNone(result)
+        # Should assign SOMEONE even if not qualified (new behavior Nov 19, 2025)
+        # Instead of returning None, algorithm assigns best available teacher
+        self.assertIsNotNone(result)
+        self.assertIn(result, self.all_teacher_ids)  # Valid teacher ID
 
     def test_level_matching_preference(self):
         """Test that teachers with matching levels are preferred"""
