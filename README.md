@@ -69,15 +69,23 @@ python -m src.timetable.converter timetable.xlsm my_output.json
 - UTF-8 encoding for Thai characters
 - Progress feedback during processing
 
-### Google Sheets Integration (NEW!)
+### LINE Bot Integration (NEW!)
 
-Manage teacher absences and leave logs using Google Sheets instead of manual JSON editing.
+Automated teacher absence management through LINE messaging with AI-powered parsing and Google Sheets integration.
+
+#### System Architecture
+
+```
+Teacher → LINE Message → Webhook → AI Parser → Google Sheets
+                                                      ↓
+Daily Cron → Process Leaves → Find Substitutes → Update Sheets → Notify via LINE
+```
 
 #### Initial Setup
 
 1. **Install dependencies** (already included in requirements.txt):
 ```bash
-pip install gspread google-auth
+pip install gspread google-auth line-bot-sdk Flask python-dotenv requests
 ```
 
 2. **Set up Google Cloud Console:**
@@ -85,176 +93,150 @@ pip install gspread google-auth
    - Create a new project
    - Enable **Google Sheets API** and **Google Drive API**
    - Create a service account
-   - Download credentials as `credentials.json` and place in project folder
+   - Download credentials as `credentials.json` and place in project root
 
-3. **Create Google Sheet:**
+3. **Set up LINE Bot:**
+   - Go to https://developers.line.biz/console/
+   - Create a Messaging API channel
+   - Get Channel Secret and Channel Access Token
+   - Set webhook URL: `http://your-server:5000/callback`
+
+4. **Create Google Sheet:**
    - Go to https://sheets.google.com
-   - Create a new sheet named "School Timetable - Leave Logs"
-   - Rename first worksheet to "Leave_Logs"
-   - Add headers in row 1: Date, Absent Teacher, Day, Period, Class, Subject, Substitute Teacher, Notes
-   - Share the sheet with your service account email (found in credentials.json)
+   - Create sheet named "School Timetable - Leave Management"
+   - Create two worksheets:
+     - "Leave_Requests" (raw incoming requests)
+     - "Leave_Logs" (enriched final assignments)
+   - Share with service account email from credentials.json
+   - Or use the template creation script:
+     ```bash
+     python -m scripts.create_sheets_template
+     ```
 
-4. **Configure spreadsheet ID:**
-   - Copy the spreadsheet ID from the URL
-   - Update `SPREADSHEET_ID` in `src/utils/leave_log_sync.py` and `src/utils/add_absence_to_sheets.py`
+5. **Configure environment variables:**
+   - Copy `.env.example` to `.env`
+   - Fill in all required values:
+     ```
+     SPREADSHEET_ID=your_spreadsheet_id_here
+     LINE_CHANNEL_SECRET=your_channel_secret
+     LINE_CHANNEL_ACCESS_TOKEN=your_access_token
+     LINE_GROUP_ID=your_group_id
+     OPENROUTER_API_KEY=your_openrouter_key
+     ```
 
-#### Adding Teacher Absences
+#### Using the LINE Bot
 
-**Interactive mode** (easiest for manual entry):
+**Sending Leave Requests:**
+
+Teachers send messages in the LINE group:
+```
+ครูสุกฤษฎิ์ ขอลาพรุ่งนี้ คาบ 1-3
+(Teacher Sukrit requests leave tomorrow, periods 1-3)
+```
+
+The bot automatically:
+1. Parses the message using AI
+2. Logs to Google Sheets "Leave_Requests" tab
+3. Sends confirmation to the group
+
+**Daily Processing:**
+
+Run manually for testing:
 ```bash
-python -m src.utils.add_absence_to_sheets
-```
-
-**Command-line mode** (for scripting):
-```bash
-python -m src.utils.add_absence_to_sheets --date 2025-11-20 --teacher T001 --day Mon --period 3 --class ป.4 --subject Math --notes "Sick leave"
-```
-
-**With automatic substitute finding:**
-```bash
-python -m src.utils.add_absence_to_sheets --date 2025-11-20 --teacher T001 --day Mon --period 3 --class ป.4 --find-substitute
-```
-
-#### Reading Leave Logs
-
-Load leave logs from Google Sheets in your code:
-```python
-from src.utils.leave_log_sync import load_leave_logs_from_sheets
-
-# Get all leave logs from Google Sheets
-leave_logs = load_leave_logs_from_sheets()
-
-# Use with substitute finding algorithm
-from src.timetable.substitute import assign_substitutes_for_day
-
-substitutes = assign_substitutes_for_day(
-    day_id="Mon",
-    timetable=timetable,
-    teacher_subjects=teacher_subjects,
-    # ... other parameters ...
-    leave_logs=leave_logs  # Use logs from Google Sheets
-)
-```
-
-**Test connection:**
-```bash
-python -m src.utils.leave_log_sync
-```
-
-#### Benefits of Google Sheets Integration
-- ✅ **Cloud-based**: Access from anywhere with internet
-- ✅ **Collaborative**: Multiple staff can update simultaneously
-- ✅ **User-friendly**: Familiar spreadsheet interface, no JSON editing
-- ✅ **Audit trail**: Built-in version history
-- ✅ **Real-time**: Changes sync automatically
-
-### LINE Bot Integration (NEW!)
-
-Automate leave requests and substitute notifications using LINE Messaging API.
-
-#### System Overview
-
-```
-[Teachers] → [LINE Group: "พรุ่งนี้ขอลานะครับ"]
-     ↓
-[LINE Bot Webhook] → [Flask Server]
-     ↓
-[OpenRouter AI (Gemini)] → Extract: Teacher, Date, Periods
-     ↓
-[Auto-add to Google Sheets]
-     ↓
-[Cron: 8:55 AM Mon-Fri] → [src/utils/daily_leave_processor.py]
-     ↓
-[Find Substitutes] → [Update Sheets] → [Send LINE Report]
-```
-
-#### Quick Start
-
-1. **Generate Required Data Files:**
-```bash
-python -m src.utils.build_teacher_data
-```
-This creates 5 JSON files: teacher_subjects.json, teacher_levels.json, class_levels.json, teacher_name_map.json, teacher_full_names.json
-
-2. **Set Up Credentials:**
-```bash
-# Copy example environment file
-cp .env.example .env
-
-# Edit .env and add your credentials:
-# - LINE_CHANNEL_SECRET
-# - LINE_CHANNEL_ACCESS_TOKEN
-# - OPENROUTER_API_KEY
-# - LINE_GROUP_ID (get this from webhook logs)
-```
-
-3. **Start Webhook Server:**
-```bash
-python -m src.web.webhook
-```
-
-4. **Process Daily Leaves:**
-```bash
-# Manual run (test mode)
-python -m src.utils.daily_leave_processor --test
-
-# Real run with LINE notification
-python -m src.utils.daily_leave_processor --send-line
+# Process today's leaves
+python -m src.utils.daily_leave_processor
 
 # Process specific date
 python -m src.utils.daily_leave_processor 2025-11-21
+
+# Send report to LINE
+python -m src.utils.daily_leave_processor --send-line
+
+# Test mode (no Sheets updates)
+python -m src.utils.daily_leave_processor --test
 ```
 
-#### Features
-
-**Incoming Leave Requests:**
-- Teachers send natural language requests in Thai to LINE group
-- AI extracts structured data: teacher name, date, periods, reason
-- Automatically adds to Google Sheets "Leave_Logs" tab
-- Sends confirmation message back to teacher
-
-**Example Messages:**
-- "ครูสุกฤษฎิ์ ขอลาพรุ่งนี้ คาบ 1-3" → Parsed to structured data
-- "ครูอำพร ลาป่วยวันนี้ ทั้งวัน" → Handles full day absences
-- "ครูกฤตชยากร ขอลาวันจันทร์ คาบ 2, 4, 6" → Handles specific periods
-
-**Daily Processing:**
-- Scheduled cron job at 8:55 AM (Monday-Friday)
-- Reads all leaves for the day from Google Sheets
-- Finds substitute teachers for each absence
-- Updates Google Sheets with substitute assignments
-- Sends formatted report to LINE group
-
-**Report Format:**
-```
-📋 รายงานครูแทนประจำวัน
-📅 วันที่: 2025-11-20
-==============================
-
-👥 ครูที่ลา: 2 คน
-📚 จำนวนคาบ: 5 คาบ
-✅ หาครูแทนได้: 4/5 คาบ
-
-📌 Mon
---------------------
-✅ คาบ 1 | ป.1 - Math
-   T001 → T005
-❌ คาบ 3 | ป.4 - Science
-   T002 → ไม่มีครูแทน
+Or set up cron job (runs at 8:55 AM Monday-Friday):
+```bash
+55 8 * * 1-5 cd /path/to/project && python -m src.utils.daily_leave_processor --send-line
 ```
 
-#### Setup Instructions
+#### Running the Webhook Server
 
-For complete setup instructions including:
-- LINE Developer account creation
-- Channel configuration
-- OpenRouter API key
-- Webhook setup with ngrok (local testing)
-- Raspberry Pi deployment (production)
+**Development (with ngrok):**
+```bash
+# Terminal 1: Start webhook
+python -m src.web.webhook
 
-**See: [LINE_BOT_SETUP.md](LINE_BOT_SETUP.md)**
+# Terminal 2: Expose to internet
+ngrok http 5000
 
-#### Testing
+# Update LINE webhook URL to ngrok URL + /callback
+```
+
+**Production (Raspberry Pi):**
+```bash
+# Create systemd service (see docs/LINE_BOT_SETUP.md)
+sudo systemctl start timetable-webhook
+sudo systemctl enable timetable-webhook
+
+# Check status
+sudo systemctl status timetable-webhook
+```
+
+#### Direct Google Sheets Access
+
+**Load leave requests:**
+```python
+from src.utils.sheet_utils import load_requests_from_sheet
+
+# Get requests for a specific date
+requests = load_requests_from_sheet("2025-11-21")
+```
+
+**Add a leave request manually:**
+```python
+from src.utils.sheet_utils import log_request_to_sheet
+
+log_request_to_sheet(
+    raw_message="ครูสมชาย ลาวันจันทร์ คาบ 2-4",
+    leave_data={
+        "teacher_name": "สมชาย",
+        "date": "2025-11-21",
+        "periods": [2, 3, 4],
+        "reason": "ลากิจ"
+    },
+    status="Success (Manual)"
+)
+```
+
+**Add enriched absence to Leave_Logs:**
+```python
+from src.utils.sheet_utils import add_absence
+
+add_absence(
+    date="2025-11-21",
+    absent_teacher="T001",
+    day="Mon",
+    period=3,
+    class_id="ป.4",
+    subject="Math",
+    substitute_teacher="T005",
+    notes="AI assigned substitute"
+)
+```
+
+#### Benefits of LINE Bot Integration
+- ✅ **Fully Automated**: From message to substitute assignment
+- ✅ **AI-Powered**: Natural Thai language understanding
+- ✅ **Cloud-Based**: Google Sheets accessible anywhere
+- ✅ **Real-Time**: Instant confirmations and daily reports
+- ✅ **Reliable**: Fallback parser if AI fails
+- ✅ **Audit Trail**: Complete request and assignment history
+
+For detailed LINE Bot setup instructions, see [docs/LINE_BOT_SETUP.md](docs/LINE_BOT_SETUP.md).
+
+#### Testing LINE Bot Components
 
 Test individual components:
 
@@ -271,22 +253,6 @@ python -m src.web.line_messaging
 # Test daily processing (read-only)
 python -m src.utils.daily_leave_processor --test
 ```
-
-#### Configuration Files
-
-- **config.py** - Centralized configuration management
-- **.env** - Environment variables (YOU create from .env.example)
-- **.env.example** - Template with all required variables
-
-#### Architecture
-
-**New Modules:**
-- `config.py` - Configuration management with validation
-- `webhook.py` - Flask server for LINE webhooks
-- `ai_parser.py` - AI-powered message parsing (OpenRouter/Gemini)
-- `line_messaging.py` - Send notifications to LINE groups
-- `process_daily_leaves.py` - Daily orchestration script
-- `build_teacher_data.py` - Generate required data files
 
 **Integration Points:**
 1. LINE → Webhook → AI Parser → Google Sheets (incoming)

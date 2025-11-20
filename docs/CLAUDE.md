@@ -65,8 +65,7 @@ src/
 ├── utils/
 │   ├── build_teacher_data.py    # Generate teacher data files
 │   ├── daily_leave_processor.py # Daily workflow orchestration
-│   ├── leave_log_sync.py        # Google Sheets sync
-│   └── add_absence_to_sheets.py # Add absences to Sheets
+│   └── sheet_utils.py           # Google Sheets operations (read/write)
 └── web/
     ├── webhook.py               # LINE webhook server
     └── line_messaging.py        # LINE notifications
@@ -153,7 +152,7 @@ Scoring-based algorithm that balances subject qualification, level matching, and
 - Filters messages by configured LINE_GROUP_ID
 - Checks for leave keywords: ลา, ขอลา, หยุด, ไม่มา
 - Calls ai_parser.parse_leave_request() for natural language processing
-- Calls add_absence_to_sheets.add_absence() to save to Google Sheets
+- Calls sheet_utils.log_request_to_sheet() to save to Google Sheets Leave_Requests tab
 - Sends confirmation reply using line_bot_api.reply_message()
 - Handles errors gracefully with Thai error messages
 - Includes /health endpoint for monitoring
@@ -221,7 +220,7 @@ Scoring-based algorithm that balances subject qualification, level matching, and
 2. LINE platform sends webhook POST to /callback
 3. webhook.py verifies signature and extracts message text
 4. ai_parser.py sends to Gemini: extracts {teacher_name, date, periods, reason}
-5. add_absence_to_sheets.py adds row to Google Sheets "Leave_Logs" tab
+5. sheet_utils.log_request_to_sheet() adds row to Google Sheets "Leave_Requests" tab
 6. webhook.py sends confirmation reply to LINE group
 
 **Daily Processing (8:55 AM cron):**

@@ -3,23 +3,25 @@
 This file provides guidance to Google Gemini when working with code in this repository.
 
 ## Overview
-School timetable management system with two main functions:
+School timetable management system with complete automation:
 1. Converting Excel timetables (.xlsm) to JSON
 2. Finding substitute teachers based on intelligent scoring
+3. LINE Bot integration for automated leave requests
+4. Google Sheets integration for cloud-based data management
 
 ## Running the Scripts
 
 ### Convert Excel to JSON
 ```bash
-python excel_converting.py <excel_file> [output_file]
+python -m src.timetable.converter <excel_file> [output_file]
 ```
 **Examples:**
 ```bash
-# Using default output file (timetable_output.json)
-python excel_converting.py timetable.xlsm
+# Using default output file (data/timetable_output.json)
+python -m src.timetable.converter timetable.xlsm
 
 # Specifying custom output file
-python excel_converting.py timetable.xlsm my_output.json
+python -m src.timetable.converter timetable.xlsm my_output.json
 ```
 
 **Features:**
@@ -30,83 +32,131 @@ python excel_converting.py timetable.xlsm my_output.json
 - UTF-8 encoding for Thai characters
 - Progress feedback during processing
 
-**Excel Structure:**
-- Row 1: Headers
-- Row 2: Period numbers (columns 3+)
-- Row 3+: Alternating subject/teacher rows, grouped by day and class
-- Columns 1-2: Day and Class (may be merged cells)
-
 ### Find Substitutes
 ```python
-from find_substitute import find_best_substitute_teacher, assign_substitutes_for_day
+from src.timetable.substitute import find_best_substitute_teacher, assign_substitutes_for_day
 ```
-The module provides importable functions, not a standalone script. See `test_find_substitute.py` for usage examples.
+The module provides importable functions. See `tests/test_substitute.py` for usage examples.
 
 ### Test with Real Timetable
 ```bash
-python test_real_timetable.py
+python -m tests.test_real_timetable
 ```
-Comprehensive test script using real school timetable data. Simulates teacher absence and validates substitute finding with actual constraints. Provides detailed analysis including:
-- Teacher schedule visualization
-- Substitute assignments with qualification checking
-- Success rate calculation
-- Level matching validation
+Comprehensive test script using real school timetable data.
 
-## Architecture
+## Project Structure
 
-### excel_converting.py
-Parses Excel worksheets with hardcoded Thai-to-English mappings for days, subjects, and teacher names. Handles merged cells by preserving previous day/class values. Strips numeric characters from subject names during parsing.
+```
+src/
+├── config.py                    # Centralized configuration
+├── timetable/
+│   ├── converter.py             # Excel to JSON conversion
+│   ├── substitute.py            # Substitute teacher finding
+│   └── ai_parser.py             # AI-powered leave request parsing
+├── utils/
+│   ├── build_teacher_data.py    # Generate teacher data files
+│   ├── daily_leave_processor.py # Daily workflow orchestration
+│   └── sheet_utils.py           # Google Sheets operations (read/write)
+└── web/
+    ├── webhook.py               # LINE webhook server
+    └── line_messaging.py        # LINE notifications
+```
 
-**Key Features:**
-- Type hints and comprehensive docstrings
-- Error handling with descriptive messages
-- Input validation (file existence, worksheet presence)
-- Unknown entity tracking (warns about unmapped teachers/subjects)
-- Command-line interface with usage help
-- Windows compatibility: ASCII output, proper file handle cleanup
+## LINE Bot System
 
-**Key mappings:** `day_map`, `subject_map`, `teacher_map` (lines 8-44)
-- As of Nov 19, 2025: 26+ subject mappings including specialty subjects (Computer, STEM, Anti-Corruption, Applied Math, Music-Drama, Visual Arts, etc.)
-- Unknown entities now preserve original Thai text instead of marking "UNKNOWN"
+**Complete automated leave request and substitute assignment system.**
 
-**Recent Fixes (Nov 2025):**
-- **Critical Parser Bugs Fixed:**
-  - **Time-Range Parsing:** Added support for time-based periods (e.g., "09.00-10.00") used in elementary sheets (lines 97-107)
-  - **Lunch Break Filtering:** Skip non-numeric period entries like lunch break text (lines 86-107)
-  - **Row Limiting:** Limited parsing to row 32 to avoid duplicate entries from multiple tables per sheet (line 114)
-  - **Results:** Fixed missing elementary data (0% to 100% coverage), eliminated scheduling conflicts, reduced duplicate entries from 384 to 222
-- Replaced Unicode characters (✓, ⚠️) with ASCII ("OK", "WARNING") for Windows console compatibility
-- Added `wb.close()` to prevent file handle leaks and Windows file locking issues
+### System Architecture
 
-**Period Format Handling:**
-- Middle school sheets (ม.1-3): Use numeric periods (1, 2, 3, etc.)
-- Elementary sheets (ป.1-6): Use time ranges ("09.00-10.00", "10.00-11.00", etc.)
-- Parser automatically detects format and maps time ranges to sequential period numbers
-- Intelligently skips invalid entries (lunch break text, empty cells)
+```
+[Teachers] → [LINE Group] → [webhook.py] → [ai_parser.py] → [Google Sheets]
+                                                                     ↓
+[LINE Group] ← [line_messaging.py] ← [daily_leave_processor.py] ← [Cron Job]
+                                              ↓
+                                     [substitute.py]
+```
 
-### find_substitute.py
-Scoring-based algorithm that balances subject qualification, level matching, and workload distribution.
+### Core Components
 
-**Core algorithm (find_best_substitute_teacher):**
-1. Filter available teachers (not teaching at that period)
-2. Score each candidate:
-   - +2: Can teach subject (bonus, not required - changed Nov 19, 2025)
-   - +5: Teacher's level matches class level
-   - -2: Level mismatch penalty
-   - -2 per period: Daily load on same day
-   - -1 per entry: Historical substitution count
-   - -0.5 per period: Total term load (excluding leave days)
-   - -50: Last resort teachers (T006, T010, T018 - added Nov 19, 2025)
-   - -999: Teacher is absent
-3. Select randomly among top-scored candidates (handles ties)
+**src/config.py** - Centralized configuration
+- Loads environment variables from .env file
+- Validates all required credentials
+- Uses PROJECT_ROOT for absolute paths
 
-**Note:** As of Nov 19, 2025, subject qualification is a bonus rather than requirement, allowing flexible assignment when no qualified teachers available.
+**src/web/webhook.py** - Flask server for LINE webhooks
+- HTTP server on port 5000 (configurable)
+- `/callback` endpoint receives LINE events
+- Verifies LINE signatures (HMAC-SHA256)
+- Calls ai_parser for message parsing
+- Logs to Google Sheets via sheet_utils
 
-**assign_substitutes_for_day:** Iterates through all absent teachers' slots for a day, calling find_best_substitute_teacher for each. Includes newly assigned substitutes in constraint checking to avoid double-booking.
+**src/timetable/ai_parser.py** - AI-powered message parsing
+- Uses OpenRouter API (DeepSeek R1 Free model)
+- Extracts: teacher_name, date, periods, reason
+- Handles Thai date expressions
+- Fallback regex-based parser
+
+**src/web/line_messaging.py** - Outgoing notifications
+- send_message_to_group() - Generic messaging
+- send_daily_report() - Substitute teacher reports
+- Uses LINE SDK v3 MessagingApi
+
+**src/utils/daily_leave_processor.py** - Daily orchestration
+- Reads from Google Sheets Leave_Requests
+- Enriches with timetable data
+- Finds substitutes
+- Logs to Leave_Logs sheet
+- Sends LINE report
+
+**src/utils/sheet_utils.py** - Google Sheets operations (NEW in Nov 2025)
+- get_sheets_client() - Authenticated gspread client
+- load_requests_from_sheet() - Read Leave_Requests
+- log_request_to_sheet() - Write incoming requests
+- add_absence() - Log final assignments to Leave_Logs
+- Consolidated from previous add_absence_to_sheets.py and leave_log_sync.py
+
+**src/utils/build_teacher_data.py** - Data file generator
+- Analyzes timetable to extract teacher info
+- Generates 5 JSON files in data/ directory
+- Run once during setup
+
+### Data Flow
+
+**Incoming Leave Request:**
+1. Teacher sends message: "ครูสุกฤษฎิ์ ขอลาพรุ่งนี้ คาบ 1-3"
+2. LINE platform → webhook.py POST /callback
+3. ai_parser.py extracts {teacher_name, date, periods, reason}
+4. sheet_utils.log_request_to_sheet() → Google Sheets "Leave_Requests"
+5. webhook.py sends confirmation reply
+
+**Daily Processing (8:55 AM cron):**
+1. daily_leave_processor.py reads from Leave_Requests sheet
+2. Enriches with timetable data (class, subject)
+3. assign_substitutes_for_day() finds best substitutes
+4. sheet_utils.add_absence() → Google Sheets "Leave_Logs"
+5. line_messaging.py sends report to LINE group
+
+### Configuration Files
+
+**.env** (created from .env.example)
+```
+SPREADSHEET_ID=your_spreadsheet_id
+LINE_CHANNEL_SECRET=your_secret
+LINE_CHANNEL_ACCESS_TOKEN=your_token
+LINE_GROUP_ID=your_group_id
+OPENROUTER_API_KEY=your_api_key
+WEBHOOK_HOST=0.0.0.0
+WEBHOOK_PORT=5000
+DEBUG_MODE=False
+```
+
+**credentials.json** (Google service account)
+- Downloaded from Google Cloud Console
+- Used by gspread for Sheets API authentication
 
 ## Data Format
 
-All data structures use this timetable entry format:
+Timetable entry format:
 ```python
 {
     "teacher_id": str,    # e.g., "T001"
@@ -119,90 +169,84 @@ All data structures use this timetable entry format:
 
 **Additional data structures:**
 - `teacher_subjects`: `{teacher_id: [subject_ids]}`
-- `teacher_levels`: `{teacher_id: ["lower_elementary", "upper_elementary", "middle"]}` (three-tier system as of Nov 19, 2025)
+- `teacher_levels`: `{teacher_id: ["lower_elementary", "upper_elementary", "middle"]}`
 - `class_levels`: `{class_id: "lower_elementary" | "upper_elementary" | "middle"}`
   - lower_elementary: ป.1-3 (ages 6-9)
   - upper_elementary: ป.4-6 (ages 9-12)
   - middle: ม.1-3 (ages 12-15)
-- `leave_logs`: List of timetable entries marking leave periods
 
 ## Testing
 
 ### Running Tests
 
-Run all tests (recommended):
+Run all tests:
 ```bash
-python run_all_tests.py
+python -m unittest discover tests -v
+# Or use the script:
+python -m scripts.run_all_tests
 ```
 
 Run individual test suites:
 ```bash
-python test_find_substitute.py   # 10 tests for substitute finding
-python test_excel_converting.py  # 14 tests for Excel conversion
-python test_real_timetable.py    # Real timetable validation test
+python -m unittest tests.test_substitute -v   # Substitute finding
+python -m unittest tests.test_converter -v    # Excel conversion
+python -m tests.test_real_timetable           # Real timetable validation
 ```
 
 **Test Coverage:**
-
-**Substitute Finding (10 tests):**
-- Basic substitute finding functionality
-- Absent teacher exclusion
-- Availability checking (prevents double-booking)
-- No qualified substitute scenarios
-- Level matching preferences
-- Workload balancing
-- Input validation
-- Multiple absent teachers handling
-
-**Excel Conversion (14 tests):**
-- File parsing and JSON structure validation
-- Thai-English mappings (days, subjects, teachers)
-- Merged cell handling
-- UTF-8 encoding for Thai characters
-- Error cases (missing files, missing worksheets)
-- Edge cases (numeric character stripping)
-
-**Test Strategy:**
-- Uses programmatic mock creation (no external fixture files)
-- unittest framework (Python standard library)
-- Proper cleanup of temporary files
-- All 24 tests passing
-
-See TESTING.md for quick reference or TEST_REPORT.md for comprehensive analysis.
-
-### Real-World Validation
-
-**Production Testing (Nov 2025):**
-- Tested with actual school timetable (ตารางเรียนเทอม2 ปี 68-2 .xlsm)
-- Successfully parsed 222 timetable entries covering all 9 classes
-- 16 active teachers identified
-- Zero scheduling conflicts in parsed data
-- Substitute finding algorithm achieves 75% success rate with real data
-- All three sheets parsed correctly (ป.1-3, ป.4-6, ม.1-3)
-
-**Diagnostic Tools Created:**
-- `diagnose_excel.py` - Inspect Excel structure and period columns
-- `check_conflicts.py` - Detect scheduling conflicts in JSON output
-- `check_prathom_periods.py` - Validate period format handling
-- `test_period_parsing.py` - Test period parsing logic
-- `check_t011_duplicates.py` - Verify duplicate resolution
+- 10 tests for substitute finding algorithm
+- 14 tests for Excel conversion
+- Real-world validation with actual school data
+- All 24 tests passing (100%)
 
 ## Important Notes
-- Thai encoding: All mappings and output use UTF-8
-- Level system (as of Nov 19, 2025): Three-tier system
-  - "lower_elementary" (ป.1-3), "upper_elementary" (ป.4-6), "middle" (ม.1-3)
-  - Provides more precise age-appropriate teacher matching
-- The substitute algorithm intentionally uses randomization for fairness when scores tie
-- Workload balancing considers: daily load, historical substitutions, and term load
-- Teachers can be assigned outside their level (with penalty) if no better option exists
-- Subject qualification is now a bonus (+2) rather than requirement, improving coverage in edge cases
-- Last resort teachers (T006, T010, T018) receive -50 penalty, assigned only when necessary
-- Unknown subjects/teachers preserve original Thai text instead of "UNKNOWN" label
-- Dependencies: Install via `pip install -r requirements.txt` (requires openpyxl)
 
-## Recent Changes (Nov 19, 2025)
-- Expanded subject mappings from ~8 to 26+ subjects
-- Changed subject qualification from requirement to bonus scoring
-- Implemented three-tier level system (lower/upper elementary + middle)
-- Added last resort teacher penalties for institutional preferences
-- Changed unknown entity handling to preserve original Thai text
+- **Project Structure:** Uses src/ package structure following Python best practices
+- **Import Paths:** All imports use `from src.module import ...` format
+- **File Paths:** config.py uses PROJECT_ROOT for absolute, cross-platform paths
+- **Thai Encoding:** All mappings and output use UTF-8
+- **Level System:** Three-tier (lower_elementary, upper_elementary, middle)
+- **AI Model:** DeepSeek R1 Free (switched from Gemini to avoid rate limits)
+- **Two-Sheet Data Model:** Leave_Requests (raw) and Leave_Logs (enriched)
+- **Dependencies:** Install via `pip install -r requirements.txt`
+
+## Recent Changes (Nov 2025)
+
+### Nov 20, 2025: Google Sheets Consolidation & Refactoring
+- **Consolidated Google Sheets operations:**
+  - Merged add_absence_to_sheets.py and leave_log_sync.py into sheet_utils.py
+  - Single source of truth for all Sheets operations
+  - Improved maintainability and reduced code duplication
+- **Refactored daily_leave_processor.py:**
+  - Two-sheet workflow: Leave_Requests (raw) → Leave_Logs (enriched)
+  - Added timetable enrichment step
+  - Better separation of concerns
+- **Updated webhook.py:**
+  - Uses sheet_utils.log_request_to_sheet()
+  - Added fallback parser integration
+  - Enhanced error handling with status tracking
+- **Fixed AI parser model:**
+  - Corrected from 'deepseek-chat:free' to 'deepseek-r1:free'
+  - Resolved 404 errors
+  - Improved reliability
+
+### Complete LINE Bot Integration
+- Flask webhook server (src/web/webhook.py)
+- AI message parser using OpenRouter API
+- Google Sheets bidirectional sync
+- Automated daily processing with cron
+- LINE notifications for reports and confirmations
+- Production-ready deployment instructions
+
+### Project Reorganization
+- Moved to src/ package structure
+- Separated code into timetable/, utils/, web/ subpackages
+- Moved data files to data/, docs to docs/, scripts to scripts/
+- Centralized configuration in src/config.py
+- Updated all imports to src.* format
+
+For complete documentation, see:
+- **README.md** - User guide and setup instructions
+- **docs/CLAUDE.md** - Detailed technical documentation
+- **docs/LINE_BOT_SETUP.md** - LINE Bot setup guide
+- **docs/SESSION_SUMMARY.md** - Development history

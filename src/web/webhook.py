@@ -34,8 +34,8 @@ from linebot.v3.messaging import (
 from linebot.v3.webhooks import MessageEvent, TextMessageContent
 
 from src.config import config
-from src.timetable.ai_parser import parse_leave_request
-from src.utils.add_absence_to_sheets import add_absence
+from src.timetable.ai_parser import parse_leave_request, parse_leave_request_fallback
+from src.utils.sheet_utils import log_request_to_sheet
 
 
 # Initialize Flask app
@@ -185,12 +185,8 @@ def handle_text_message(event):
 
 def process_leave_request_message(text: str, group_id: str, reply_token: str):
     """
-    Process a potential leave request message.
-
-    Args:
-        text: Message text
-        group_id: LINE group ID
-        reply_token: Token for replying to message
+    Process a potential leave request message, log it to the Leave_Requests
+    sheet, and send a confirmation reply.
     """
     # Check if this is from the configured group (if set)
     if config.LINE_GROUP_ID and group_id != config.LINE_GROUP_ID:
@@ -198,21 +194,27 @@ def process_leave_request_message(text: str, group_id: str, reply_token: str):
         return
 
     # Check if message looks like a leave request
-    # Keywords: ลา (leave), ขอลา (request leave), etc.
     leave_keywords = ['ลา', 'ขอลา', 'หยุด', 'ไม่มา']
-    is_leave_request = any(keyword in text for keyword in leave_keywords)
-
-    if not is_leave_request:
+    if not any(keyword in text for keyword in leave_keywords):
         print(f"Message doesn't look like a leave request: {text}")
         return
 
     try:
-        # Parse leave request using AI
-        print(f"Parsing leave request with AI...")
+        # 1. Parse leave request (with fallback)
+        print("Parsing leave request...")
         leave_data = parse_leave_request(text)
-
+        status = "Success (AI)"
         if not leave_data:
-            print("Failed to parse leave request")
+            print("AI parsing failed. Trying fallback parser...")
+            leave_data = parse_leave_request_fallback(text)
+            status = "Success (Fallback)"
+
+        # 2. Log the parsing attempt to "Leave_Requests" sheet
+        if leave_data:
+            log_request_to_sheet(raw_message=text, leave_data=leave_data, status=status)
+        else:
+            log_request_to_sheet(raw_message=text, leave_data=None, status="Failed")
+            print("Failed to parse leave request with any method.")
             send_reply(
                 reply_token,
                 "ขออภัยค่ะ ไม่เข้าใจข้อความ กรุณาระบุ: ชื่อครู, วันที่, และคาบที่ลา\n"
@@ -220,49 +222,20 @@ def process_leave_request_message(text: str, group_id: str, reply_token: str):
             )
             return
 
-        print(f"Parsed leave data: {json.dumps(leave_data, ensure_ascii=False)}")
-
-        # Extract data
-        teacher_name = leave_data.get('teacher_name')
-        date_str = leave_data.get('date')
+        # 3. Send confirmation to user
+        teacher_name = leave_data.get('teacher_name', 'N/A')
+        date_str = leave_data.get('date', 'N/A')
         periods = leave_data.get('periods', [])
-        reason = leave_data.get('reason', 'ลากิจ')
+        periods_str = ", ".join(map(str, periods))
 
-        # Validate required fields
-        if not all([teacher_name, date_str, periods]):
-            send_reply(
-                reply_token,
-                "ข้อมูลไม่ครบถ้วน กรุณาระบุ: ชื่อครู, วันที่, และคาบที่ลา"
-            )
-            return
-
-        # Add to Google Sheets
-        print(f"Adding absence to Google Sheets...")
-        success = add_absence(
-            teacher_name=teacher_name,
-            date=date_str,
-            periods=periods,
-            reason=reason
+        confirmation = (
+            f"✓ ได้รับเรื่องขอลาของ {teacher_name} เรียบร้อยแล้ว\n\n"
+            f"วันที่: {date_str}\n"
+            f"คาบ: {periods_str}\n\n"
+            f"ระบบจะประมวลผลและจัดหาครูสอนแทนในขั้นตอนถัดไป"
         )
-
-        if success:
-            # Send confirmation
-            periods_str = ", ".join(map(str, periods))
-            confirmation = (
-                f"✓ บันทึกการลาเรียบร้อยแล้ว\n\n"
-                f"ครู: {teacher_name}\n"
-                f"วันที่: {date_str}\n"
-                f"คาบ: {periods_str}\n"
-                f"เหตุผล: {reason}\n\n"
-                f"ระบบจะจัดครูแทนให้อัตโนมัติในเวลา {config.DAILY_PROCESS_TIME} น."
-            )
-            send_reply(reply_token, confirmation)
-            print("Leave request processed successfully")
-        else:
-            send_reply(
-                reply_token,
-                "เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง"
-            )
+        send_reply(reply_token, confirmation)
+        print("Leave request logged successfully to 'Leave_Requests' sheet.")
 
     except Exception as e:
         print(f"ERROR processing leave request: {e}")
