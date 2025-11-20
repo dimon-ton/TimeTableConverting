@@ -14,19 +14,23 @@ Usage:
     send_daily_report("Report text here")
 """
 
-from linebot import LineBotApi
-from linebot.models import TextSendMessage
-from linebot.exceptions import LineBotApiError
+from linebot.v3.messaging import (
+    Configuration,
+    ApiClient,
+    MessagingApi,
+    PushMessageRequest,
+    TextMessage
+)
 
 from src.config import config
 
 
-def get_line_bot_api() -> LineBotApi:
+def get_line_bot_api() -> MessagingApi:
     """
-    Get LINE Bot API instance.
+    Get LINE Bot API instance (v3).
 
     Returns:
-        LineBotApi instance
+        MessagingApi instance
 
     Raises:
         ValueError: If LINE_CHANNEL_ACCESS_TOKEN not set
@@ -34,7 +38,9 @@ def get_line_bot_api() -> LineBotApi:
     if not config.LINE_CHANNEL_ACCESS_TOKEN:
         raise ValueError("LINE_CHANNEL_ACCESS_TOKEN not set in environment")
 
-    return LineBotApi(config.LINE_CHANNEL_ACCESS_TOKEN)
+    configuration = Configuration(access_token=config.LINE_CHANNEL_ACCESS_TOKEN)
+    api_client = ApiClient(configuration)
+    return MessagingApi(api_client)
 
 
 def send_message_to_group(message: str, group_id: str = None) -> bool:
@@ -60,18 +66,17 @@ def send_message_to_group(message: str, group_id: str = None) -> bool:
         # Get LINE Bot API
         line_bot_api = get_line_bot_api()
 
-        # Send message
+        # Send message using v3 API
         line_bot_api.push_message(
-            group_id,
-            TextSendMessage(text=message)
+            PushMessageRequest(
+                to=group_id,
+                messages=[TextMessage(text=message)]
+            )
         )
 
         print(f"Successfully sent message to group: {group_id}")
         return True
 
-    except LineBotApiError as e:
-        print(f"LINE API Error: {e.status_code} - {e.message}")
-        return False
     except ValueError as e:
         print(f"Configuration Error: {e}")
         return False
