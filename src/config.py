@@ -49,7 +49,7 @@ class Config:
 
     # ==================== OpenRouter AI ====================
     OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', '')
-    OPENROUTER_MODEL = "google/gemini-2.0-flash-exp:free"  # Free Gemini model
+    OPENROUTER_MODEL = os.getenv('OPENROUTER_MODEL', 'deepseek/deepseek-chat:free')  # Free model (configurable via .env)
     OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
     # ==================== System Settings ====================
