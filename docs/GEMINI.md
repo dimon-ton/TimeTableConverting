@@ -102,18 +102,24 @@ src/
 - Uses LINE SDK v3 MessagingApi
 
 **src/utils/daily_leave_processor.py** - Daily orchestration
-- Reads from Google Sheets Leave_Requests
+- Loads historical substitute data from Leave_Logs (NEW - Nov 23, 2025)
+- Reads today's requests from Leave_Requests sheet
 - Enriches with timetable data
-- Finds substitutes
-- Logs to Leave_Logs sheet
+- Finds substitutes using historical context
+- Logs new assignments to Leave_Logs sheet
+- Automatic cumulative learning for next day
 - Sends LINE report
 
-**src/utils/sheet_utils.py** - Google Sheets operations (NEW in Nov 2025)
+**src/utils/sheet_utils.py** - Google Sheets operations (Enhanced Nov 23, 2025)
 - get_sheets_client() - Authenticated gspread client
 - load_requests_from_sheet() - Read Leave_Requests
 - log_request_to_sheet() - Write incoming requests
 - add_absence() - Log final assignments to Leave_Logs
-- Consolidated from previous add_absence_to_sheets.py and leave_log_sync.py
+- **load_substitute_logs_from_sheet()** - Load historical substitute data (NEW)
+  - Reads past substitute assignments from Leave_Logs
+  - Provides algorithm with historical context
+  - Enables fair workload distribution
+  - Automatic cumulative learning
 
 **src/utils/build_teacher_data.py** - Data file generator
 - Analyzes timetable to extract teacher info
@@ -129,12 +135,14 @@ src/
 4. sheet_utils.log_request_to_sheet() → Google Sheets "Leave_Requests"
 5. webhook.py sends confirmation reply
 
-**Daily Processing (8:55 AM cron):**
-1. daily_leave_processor.py reads from Leave_Requests sheet
-2. Enriches with timetable data (class, subject)
-3. assign_substitutes_for_day() finds best substitutes
-4. sheet_utils.add_absence() → Google Sheets "Leave_Logs"
-5. line_messaging.py sends report to LINE group
+**Daily Processing (8:55 AM cron) - Enhanced Nov 23, 2025:**
+1. daily_leave_processor.py loads historical substitute data from Leave_Logs
+2. Reads today's requests from Leave_Requests sheet
+3. Enriches with timetable data (class, subject)
+4. assign_substitutes_for_day() finds best substitutes using historical context
+5. sheet_utils.add_absence() → logs new assignments to Leave_Logs
+6. New assignments become historical data for next day (cumulative learning)
+7. line_messaging.py sends report to LINE group
 
 ### Configuration Files
 
@@ -211,6 +219,22 @@ python -m tests.test_real_timetable           # Real timetable validation
 - **Dependencies:** Install via `pip install -r requirements.txt`
 
 ## Recent Changes (Nov 2025)
+
+### Nov 23, 2025: Historical Data Integration & Fair Workload Distribution
+- **Historical data loading implemented:**
+  - Added load_substitute_logs_from_sheet() to read past substitute assignments
+  - Algorithm now has "memory" of historical substitutions
+  - Fair workload distribution based on cumulative history
+  - Automatic learning: each day's assignments become next day's context
+- **Field name standardization:**
+  - Consistent naming: absent_teacher_id and substitute_teacher_id
+  - Fixed data flow across all modules
+  - Clean Sheets → Algorithm → Sheets integration
+- **Algorithm enhancement:**
+  - history_load penalty now functional (was always 0)
+  - Complete 6-factor scoring system operational
+  - Prevents teacher burnout through fair rotation
+- **No database needed:** Uses existing Google Sheets infrastructure
 
 ### Nov 20, 2025: Google Sheets Consolidation & Refactoring
 - **Consolidated Google Sheets operations:**

@@ -35,7 +35,10 @@ def find_best_substitute_teacher(
         class_id: Class identifier (e.g., "ป.1", "ม.1")
         timetables: Regular timetable entries
         teacher_subjects: Mapping of teachers to subjects they can teach
-        substitute_logs: Historical substitution records
+        substitute_logs: Historical substitution records with structure:
+            - absent_teacher_id: The teacher who was absent
+            - substitute_teacher_id: The teacher who covered (or None)
+            - subject_id, day_id, period_id, class_id: The slot details
         all_teacher_ids: List of all available teacher IDs
         absent_teacher_ids: List of absent teacher IDs
         leave_logs: Teacher leave records
@@ -58,13 +61,24 @@ def find_best_substitute_teacher(
 
     def is_available(teacher_id: str) -> bool:
         """Check if the teacher is free at that period"""
-        for row in timetables + substitute_logs:
+        # Check regular timetable - is the teacher assigned to teach this slot?
+        for row in timetables:
             if (
                 row["teacher_id"] == teacher_id
                 and row["day_id"] == day_id
                 and row["period_id"] == period_id
             ):
                 return False
+
+        # Check substitute logs - is the teacher already substituting for someone this period?
+        for row in substitute_logs:
+            if (
+                row.get("substitute_teacher_id") == teacher_id
+                and row["day_id"] == day_id
+                and row["period_id"] == period_id
+            ):
+                return False
+
         return True
 
     def calculate_score(teacher_id: str) -> float:
@@ -97,16 +111,24 @@ def find_best_substitute_teacher(
             score -= 2  # penalty for mismatch, but still possible
 
         # Daily load: fewer periods = more chance
+        # Count regular timetable periods for this day
         daily_load = sum(
             1
             for row in timetables
             if row["teacher_id"] == teacher_id and row["day_id"] == day_id
         )
+        # Add substitute assignments already made for this day
+        daily_load += sum(
+            1
+            for row in substitute_logs
+            if row.get("substitute_teacher_id") == teacher_id and row["day_id"] == day_id
+        )
         score -= daily_load * 2
 
         # History load: fewer substitutions = more chance
+        # Count how many times this teacher has SUBSTITUTED for others (not how many times they were absent)
         history_load = sum(
-            1 for row in substitute_logs if row["teacher_id"] == teacher_id
+            1 for row in substitute_logs if row.get("substitute_teacher_id") == teacher_id
         )
         score -= history_load * 1
 
@@ -165,7 +187,10 @@ def assign_substitutes_for_day(
         day_id: Day of the week (e.g., "Mon", "Tue")
         timetable: Regular timetable entries
         teacher_subjects: Mapping of teachers to subjects they can teach
-        substitute_logs: Historical substitution records
+        substitute_logs: Historical substitution records with structure:
+            - absent_teacher_id: The teacher who is absent
+            - substitute_teacher_id: The teacher covering (or None if no substitute found)
+            - subject_id, day_id, period_id, class_id: The slot details
         all_teacher_ids: List of all available teacher IDs
         absent_teacher_ids: List of absent teacher IDs
         leave_logs: Teacher leave records
@@ -173,7 +198,10 @@ def assign_substitutes_for_day(
         class_levels: Class level mapping
 
     Returns:
-        List of newly assigned substitute entries in timetable format
+        List of newly assigned substitute entries with structure:
+            - absent_teacher_id: The absent teacher
+            - substitute_teacher_id: The substitute teacher (or None)
+            - subject_id, day_id, period_id, class_id: The slot details
     """
     new_substitutes = []
     for row in timetable:
@@ -201,12 +229,12 @@ def assign_substitutes_for_day(
             # Always log the absence, even if no substitute found
             new_substitutes.append(
                 {
-                    "teacher_id": absent_teacher,  # Absent teacher (not substitute)
+                    "absent_teacher_id": absent_teacher,  # The teacher who is absent
+                    "substitute_teacher_id": substitute if substitute else None,  # The covering teacher
                     "subject_id": subject_id,
                     "day_id": day_id,
                     "period_id": period_id,
                     "class_id": class_id,
-                    "substitute_teacher": substitute if substitute else None,  # Separate field
                 }
             )
 

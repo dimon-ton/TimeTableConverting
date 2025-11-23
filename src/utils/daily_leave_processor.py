@@ -16,7 +16,7 @@ from typing import Dict, List, Tuple
 from collections import defaultdict
 
 from src.config import config
-from src.utils.sheet_utils import get_sheets_client, load_requests_from_sheet, add_absence
+from src.utils.sheet_utils import get_sheets_client, load_requests_from_sheet, add_absence, load_substitute_logs_from_sheet
 from src.timetable.substitute import assign_substitutes_for_day
 
 
@@ -137,14 +137,19 @@ def log_assignments_to_leave_logs(substitutes: List[Dict], target_date: str, tes
     
     logged_count = 0
     for sub_assignment in substitutes:
+        # Extract substitute teacher ID, handling None case
+        sub_teacher = sub_assignment.get('substitute_teacher_id')
+        if sub_teacher is None:
+            sub_teacher = 'Not Found'
+
         success = add_absence(
             date=target_date,
-            absent_teacher=sub_assignment['teacher_id'],
+            absent_teacher=sub_assignment['absent_teacher_id'],
             day=sub_assignment['day_id'],
             period=sub_assignment['period_id'],
             class_id=sub_assignment['class_id'],
             subject=sub_assignment['subject_id'],
-            substitute_teacher=sub_assignment.get('substitute_teacher', 'Not Found'),
+            substitute_teacher=sub_teacher,
             notes=sub_assignment.get('reason', 'ลากิจ')
         )
         if success:
@@ -186,7 +191,7 @@ def generate_report(
 
     total_absent = len(set(leave['teacher_id'] for leave in leaves))
     total_periods = len(leaves)
-    found_substitutes = sum(1 for sub in substitutes if sub.get('substitute_teacher'))
+    found_substitutes = sum(1 for sub in substitutes if sub.get('substitute_teacher_id'))
     success_rate = (found_substitutes / total_periods * 100) if total_periods > 0 else 0
 
     report_lines.append("\nสรุปผล:")
@@ -210,8 +215,8 @@ def generate_report(
         for period in sorted(by_period.keys()):
             report_lines.append(f"  คาบที่ {period}:")
             for sub in by_period[period]:
-                absent_name = teacher_full_names.get(sub['teacher_id'], sub['teacher_id'])
-                sub_teacher_id = sub.get('substitute_teacher')
+                absent_name = teacher_full_names.get(sub['absent_teacher_id'], sub['absent_teacher_id'])
+                sub_teacher_id = sub.get('substitute_teacher_id')
                 subject_thai = reverse_subject_map.get(sub['subject_id'], sub['subject_id'])
                 class_name = sub['class_id']
                 if sub_teacher_id:
@@ -240,6 +245,12 @@ def process_leaves(target_date: str, test_mode: bool = False, send_line: bool = 
     timetable, teacher_subjects, teacher_levels, class_levels, teacher_full_names, teacher_name_map = load_data_files()
     all_teacher_ids = list(set(entry['teacher_id'] for entry in timetable))
 
+    # ✨ Load historical substitute logs from Google Sheets
+    print("\n" + "="*60)
+    historical_substitute_logs = load_substitute_logs_from_sheet(limit_date=target_date)
+    print(f"✅ Loaded {len(historical_substitute_logs)} historical substitute assignments")
+    print("="*60 + "\n")
+
     # Get and enrich leaves from 'Leave_Requests' sheet
     leaves = get_and_enrich_leaves(target_date, timetable, teacher_name_map)
 
@@ -263,7 +274,7 @@ def process_leaves(target_date: str, test_mode: bool = False, send_line: bool = 
             day_id=day_id,
             timetable=timetable,
             teacher_subjects=teacher_subjects,
-            substitute_logs=[],
+            substitute_logs=historical_substitute_logs + all_substitutes,  # ✅ Use historical data + today's assignments
             all_teacher_ids=all_teacher_ids,
             absent_teacher_ids=absent_teacher_ids,
             leave_logs=leaves,

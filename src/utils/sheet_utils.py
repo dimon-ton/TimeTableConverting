@@ -154,6 +154,93 @@ def load_requests_from_sheet(target_date: str) -> List[Dict]:
         traceback.print_exc()
         return []
 
+def load_substitute_logs_from_sheet(limit_date: Optional[str] = None) -> List[Dict]:
+    """
+    Load historical substitute assignments from the 'Leave_Logs' sheet.
+
+    This function reads all substitute assignments from Google Sheets and
+    converts them to the format expected by the substitute finding algorithm.
+
+    Args:
+        limit_date: Optional date limit (YYYY-MM-DD). Only loads records on or before this date.
+
+    Returns:
+        List of dicts with structure:
+        {
+            "absent_teacher_id": str,
+            "substitute_teacher_id": str or None,
+            "subject_id": str,
+            "class_id": str,
+            "day_id": str,
+            "period_id": int
+        }
+    """
+    print(f"Loading substitute logs from '{config.LEAVE_LOGS_WORKSHEET}' sheet...")
+
+    try:
+        client = get_sheets_client()
+        spreadsheet = client.open_by_key(config.SPREADSHEET_ID)
+        worksheet = spreadsheet.worksheet(config.LEAVE_LOGS_WORKSHEET)
+
+        # Get all records (expects headers: Date, Absent_Teacher, Day, Period, Class_ID, Subject, Substitute_Teacher, Notes)
+        all_records = worksheet.get_all_records()
+
+        substitute_logs = []
+        for record in all_records:
+            # Get date and apply filter if needed
+            record_date = record.get('Date', '')
+            if limit_date and record_date > limit_date:
+                continue  # Skip future dates
+
+            # Extract fields
+            absent_teacher = record.get('Absent_Teacher', '').strip()
+            substitute_teacher = record.get('Substitute_Teacher', '').strip()
+            subject = record.get('Subject', '').strip()
+            class_id = record.get('Class_ID', '').strip()
+            day = record.get('Day', '').strip()
+            period = record.get('Period', '')
+
+            # Skip invalid records
+            if not absent_teacher or not day or not period:
+                continue
+
+            # Convert period to int
+            try:
+                period_int = int(period)
+            except (ValueError, TypeError):
+                print(f"WARNING: Invalid period '{period}' in record. Skipping.")
+                continue
+
+            # Handle substitute_teacher field
+            # Map empty strings, "Not Found", "None", etc. to None
+            if not substitute_teacher or substitute_teacher.upper() in ['NOT FOUND', 'NONE', 'N/A', '-']:
+                substitute_teacher_id = None
+            else:
+                substitute_teacher_id = substitute_teacher
+
+            # Add to list in the format expected by substitute.py
+            substitute_logs.append({
+                "absent_teacher_id": absent_teacher,
+                "substitute_teacher_id": substitute_teacher_id,
+                "subject_id": subject,
+                "class_id": class_id,
+                "day_id": day,
+                "period_id": period_int
+            })
+
+        print(f"Loaded {len(substitute_logs)} historical substitute records from Google Sheets")
+        return substitute_logs
+
+    except gspread.WorksheetNotFound:
+        print(f"WARNING: Worksheet '{config.LEAVE_LOGS_WORKSHEET}' not found. Returning empty list.")
+        return []
+    except Exception as e:
+        import traceback
+        print(f"ERROR: Failed to load substitute logs from Google Sheets: {e}")
+        traceback.print_exc()
+        return []
+
+
 def add_absence(
     date: str,
     absent_teacher: str,

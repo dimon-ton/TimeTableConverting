@@ -322,9 +322,11 @@ The algorithm uses a scoring system to find the best substitute:
 
 ### Features
 - Prevents double-booking (teachers can't be in two places at once)
-- Balances workload across teachers
+- Balances workload across teachers based on daily, historical, and term loads
 - Prioritizes subject-qualified teachers
 - Considers teacher level (elementary vs. middle school)
+- **Historical data integration:** Loads past substitute assignments from Google Sheets for fair workload distribution
+- **Cumulative learning:** Automatically learns from each day's assignments to prevent teacher burnout
 - Randomizes selection among equally-scored candidates for fairness
 
 ## Testing

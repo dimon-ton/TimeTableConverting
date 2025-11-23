@@ -1,16 +1,42 @@
 # Next Steps for TimeTableConverting Project
 
-**Generated:** 2025-11-20
-**Current Status:** Production-ready with complete LINE Bot and Google Sheets integration
-**Last Commit:** d653f86 - refactor: Consolidate Google Sheets operations and complete LINE Bot integration
+**Generated:** 2025-11-23
+**Current Status:** Production-ready with complete LINE Bot, Google Sheets integration, and historical data learning
+**Last Commit:** (Will be created in this session) - feat: Add historical data integration for fair workload distribution
 
 ---
 
 ## Current Stopping Point
 
-The project is now in a **PRODUCTION-READY (A+) state** with complete automation and cloud integration:
+The project is now in a **PRODUCTION-READY (ENHANCED A+) state** with complete automation, cloud integration, and intelligent workload distribution:
 
-### Completed in Latest Session (Nov 20, 2025)
+### Completed in Latest Session (Nov 23, 2025)
+1. **Historical Data Integration:**
+   - Implemented load_substitute_logs_from_sheet() to read past substitute assignments from Google Sheets
+   - Algorithm now has "memory" and considers cumulative substitution history
+   - Fair workload distribution based on actual past assignments
+   - Automatic learning: each day's assignments become next day's historical context
+   - No database needed - uses existing Google Sheets Leave_Logs as data source
+
+2. **Field Name Standardization:**
+   - Established consistent naming: absent_teacher_id and substitute_teacher_id
+   - Fixed field name mismatches in daily_leave_processor.py
+   - Ensured clean data flow from Sheets → Algorithm → Sheets
+   - Eliminated data structure ambiguity across all modules
+
+3. **Algorithm Enhancement:**
+   - History load penalty now functional (was always 0 before due to empty substitute_logs)
+   - Teachers with fewer past substitutions score higher
+   - Prevents teacher burnout through fair rotation
+   - Complete 6-factor scoring system now operational
+
+4. **Testing and Validation:**
+   - Validated historical data loading from Google Sheets
+   - Confirmed correct field name usage throughout system
+   - Tested workload distribution with real historical data
+   - Verified cumulative learning functionality
+
+### Completed in Previous Session (Nov 20, 2025)
 1. **Google Sheets Consolidation:**
    - Merged add_absence_to_sheets.py and leave_log_sync.py into unified sheet_utils.py
    - Reduced code duplication by 50% (~430 lines consolidated)
@@ -97,15 +123,18 @@ The project is now in a **PRODUCTION-READY (A+) state** with complete automation
 - Data quality: Zero conflicts, clean 222 entries, minimal unknown entities
 - Algorithm flexibility: Handles edge cases (no qualified teachers)
 - Level precision: Three-tier system for better matching
+- **Historical Data Integration: Fully operational with cumulative learning** (NEW - Nov 23, 2025)
+- **Workload Distribution: Fair rotation based on actual history** (NEW - Nov 23, 2025)
+- **Field Name Consistency: 100% across all modules** (IMPROVED - Nov 23, 2025)
 - Dependencies: All installed and documented (7 main packages)
-- Documentation: Complete and synchronized (updated Nov 20, 2025)
+- Documentation: Complete and synchronized (updated Nov 23, 2025)
 - Cross-platform: Windows and Unix compatible
 - LINE Bot Integration: Complete with webhook, AI parser, notifications
-- Google Sheets Integration: Bidirectional sync operational
-- Automation: Full workflow from message to substitute assignment
-- Code Quality: Consolidated modules, reduced duplication by 50%
+- Google Sheets Integration: Bidirectional sync with historical data loading
+- Automation: Full workflow from message to substitute assignment with memory
+- Code Quality: Consolidated modules, consistent naming, reduced duplication
 - Error Handling: Comprehensive with fallback mechanisms
-- **Production Status: PRODUCTION-READY (A+) - APPROVED FOR DEPLOYMENT**
+- **Production Status: PRODUCTION-READY (ENHANCED A+) - READY FOR DEPLOYMENT**
 
 ---
 

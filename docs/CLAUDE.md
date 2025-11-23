@@ -190,15 +190,31 @@ Scoring-based algorithm that balances subject qualification, level matching, and
   - `python -m src.utils.daily_leave_processor 2025-11-21` - Specific date
   - `--test` flag for read-only mode (no Sheets updates)
   - `--send-line` flag to enable LINE notification
-- Workflow:
+- Workflow (Enhanced with Historical Data - Nov 23, 2025):
   1. load_data_files() - Loads all 5 JSON data files + timetable
-  2. get_leaves_for_date() - Reads from Google Sheets via sync_leave_logs.py
-  3. group_leaves_by_day() - Groups by day, extracts absent teacher IDs
-  4. Calls assign_substitutes_for_day() for each day with absences
-  5. update_sheets_with_substitutes() - Writes results back to Sheets
-  6. generate_report() - Creates formatted text summary
-  7. Optionally sends report via line_messaging.send_daily_report()
+  2. load_substitute_logs_from_sheet() - Loads historical substitute assignments from Leave_Logs (NEW)
+  3. get_and_enrich_leaves() - Reads today's requests from Leave_Requests sheet
+  4. Enriches requests with timetable data (class, subject)
+  5. group_leaves_by_day() - Groups by day, extracts absent teacher IDs
+  6. Calls assign_substitutes_for_day() with historical substitute_logs context
+  7. update_sheets_with_substitutes() - Writes results back to Leave_Logs
+  8. generate_report() - Creates formatted text summary
+  9. Optionally sends report via line_messaging.send_daily_report()
 - Returns comprehensive report string with success rates
+- **Key Enhancement:** Algorithm now receives historical data instead of empty list, enabling fair workload distribution
+
+**src/utils/sheet_utils.py** - Google Sheets operations (Nov 23, 2025: Enhanced with historical data loading)
+- get_sheets_client() - Returns authenticated gspread client
+- load_requests_from_sheet(date) - Reads leave requests from Leave_Requests tab for specific date
+- log_request_to_sheet() - Logs incoming LINE requests to Leave_Requests tab with parsing status
+- add_absence() - Logs final enriched assignments to Leave_Logs tab
+- **load_substitute_logs_from_sheet(since_date=None)** - NEW (lines 157-241)
+  - Loads historical substitute assignments from Leave_Logs worksheet
+  - Filters rows where substitute_teacher column has value (only successful assignments)
+  - Converts to algorithm-expected format with absent_teacher_id and substitute_teacher_id
+  - Optional date filtering for specific time ranges
+  - Returns list of historical assignments for algorithm scoring
+  - Enables cumulative learning and fair workload distribution
 
 **src/utils/build_teacher_data.py** - Data file generator
 - Analyzes data/real_timetable.json to extract teacher information
@@ -223,14 +239,17 @@ Scoring-based algorithm that balances subject qualification, level matching, and
 5. sheet_utils.log_request_to_sheet() adds row to Google Sheets "Leave_Requests" tab
 6. webhook.py sends confirmation reply to LINE group
 
-**Daily Processing (8:55 AM cron):**
-1. process_daily_leaves.py reads today's leaves from Google Sheets
-2. Groups absences by day (Mon, Tue, Wed, Thu, Fri)
-3. For each day, calls find_substitute.py's assign_substitutes_for_day()
-4. Substitute finder scores all available teachers using algorithm
-5. Updates Google Sheets with substitute teacher assignments (column 7)
-6. Generates formatted report with success rate statistics
-7. line_messaging.py sends report to LINE group
+**Daily Processing (8:55 AM cron) - Enhanced with Historical Data (Nov 23, 2025):**
+1. daily_leave_processor.py loads historical substitute data from Leave_Logs sheet
+2. Reads today's leave requests from Leave_Requests sheet
+3. Enriches requests with timetable data (class_id, subject_id)
+4. Groups absences by day (Mon, Tue, Wed, Thu, Fri)
+5. For each day, calls assign_substitutes_for_day() with historical substitute_logs
+6. Algorithm scores candidates using 6 factors including history_load penalty
+7. Updates Leave_Logs sheet with new substitute assignments
+8. New assignments automatically become historical data for next day (cumulative learning)
+9. Generates formatted report with success rate statistics
+10. line_messaging.py sends daily report to LINE group
 
 #### Configuration Files
 
@@ -399,6 +418,27 @@ See TESTING.md for quick reference or TEST_REPORT.md for comprehensive analysis.
 - Dependencies: Install via `pip install -r requirements.txt` (requires openpyxl)
 
 ## Recent Changes
+
+### Nov 23, 2025: Historical Data Integration and Algorithm Enhancement
+- **Added historical data loading from Google Sheets:**
+  - Implemented load_substitute_logs_from_sheet() in src/utils/sheet_utils.py (lines 157-241)
+  - Loads past substitute assignments from Leave_Logs Google Sheet
+  - Provides algorithm with complete historical context for fair scoring
+  - Automatic cumulative learning: each day's assignments become next day's history
+- **Algorithm now has memory:**
+  - Previously: substitute_logs always passed as empty list (no memory)
+  - Now: substitute_logs loaded from Google Sheets with full historical data
+  - history_load penalty now functional (-1 point per past substitution)
+  - Fair workload distribution based on actual substitution history
+- **Field name standardization:**
+  - Established consistent naming: absent_teacher_id and substitute_teacher_id
+  - Fixed field name mismatches in daily_leave_processor.py
+  - Clean data flow: Sheets → Algorithm → Sheets with correct field mapping
+- **Impact:**
+  - Algorithm prevents teacher burnout through fair rotation
+  - Complete 6-factor scoring system now fully operational
+  - No database needed - uses existing Google Sheets infrastructure
+  - Tested and validated with real historical data
 
 ### Nov 20, 2025 (Evening): Critical Bug Fix - Substitute Assignment Data Format
 - **Discovered and fixed critical bug in substitute.py (lines 178-213):**
