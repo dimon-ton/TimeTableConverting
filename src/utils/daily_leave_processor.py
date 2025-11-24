@@ -298,7 +298,8 @@ def process_leaves(target_date: str, test_mode: bool = False, send_line: bool = 
         try:
             from src.web.line_messaging import send_daily_report
             send_daily_report(report)
-            print("\nReport sent to LINE")
+            print("\nReport sent to ADMIN group via LINE")
+            print("NOTE: Admins should review and manually forward to teacher group")
         except ImportError:
             print("\nWARNING: line_messaging module not available. Skipping LINE notification.")
         except Exception as e:

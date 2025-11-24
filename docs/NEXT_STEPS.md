@@ -1,16 +1,31 @@
 # Next Steps for TimeTableConverting Project
 
-**Generated:** 2025-11-23
-**Current Status:** Production-ready with complete LINE Bot, Google Sheets integration, and historical data learning
-**Last Commit:** (Will be created in this session) - feat: Add historical data integration for fair workload distribution
+**Generated:** 2025-11-24
+**Current Status:** Production-ready with two-group LINE notification system and historical data learning
+**Last Commit:** 896e3e7 - feat: Add historical data integration for fair workload distribution
 
 ---
 
 ## Current Stopping Point
 
-The project is now in a **PRODUCTION-READY (ENHANCED A+) state** with complete automation, cloud integration, and intelligent workload distribution:
+The project is now in a **PRODUCTION-READY (ENHANCED A+) state** with complete automation, cloud integration, intelligent workload distribution, and two-group notification system:
 
-### Completed in Latest Session (Nov 23, 2025)
+### Completed in Latest Session (Nov 24, 2025)
+1. **Two-Group LINE Notification System:**
+   - Implemented LINE_TEACHER_GROUP_ID for teacher leave request submissions
+   - Implemented LINE_ADMIN_GROUP_ID for admin notifications and reports
+   - Maintained LINE_GROUP_ID as legacy fallback for backward compatibility
+   - Updated config.py to support two-group configuration
+   - Enhanced .env.example with comprehensive documentation
+   - Updated webhook.py and line_messaging.py for group-specific routing
+   - Flexible configuration: works with single group or two separate groups
+
+2. **Documentation Updates:**
+   - Enhanced docs/LINE_BOT_SETUP.md with two-group setup instructions
+   - Updated configuration examples in all documentation files
+   - Clarified AI model as DeepSeek R1 (paid model, not free tier)
+
+### Completed in Previous Session (Nov 23, 2025)
 1. **Historical Data Integration:**
    - Implemented load_substitute_logs_from_sheet() to read past substitute assignments from Google Sheets
    - Algorithm now has "memory" and considers cumulative substitution history
@@ -123,13 +138,15 @@ The project is now in a **PRODUCTION-READY (ENHANCED A+) state** with complete a
 - Data quality: Zero conflicts, clean 222 entries, minimal unknown entities
 - Algorithm flexibility: Handles edge cases (no qualified teachers)
 - Level precision: Three-tier system for better matching
-- **Historical Data Integration: Fully operational with cumulative learning** (NEW - Nov 23, 2025)
-- **Workload Distribution: Fair rotation based on actual history** (NEW - Nov 23, 2025)
-- **Field Name Consistency: 100% across all modules** (IMPROVED - Nov 23, 2025)
+- Historical Data Integration: Fully operational with cumulative learning (Nov 23, 2025)
+- Workload Distribution: Fair rotation based on actual history (Nov 23, 2025)
+- Field Name Consistency: 100% across all modules (Nov 23, 2025)
+- **Two-Group LINE System: Flexible teacher/admin group separation** (NEW - Nov 24, 2025)
+- **Enhanced Configuration: Support for single or dual-group setups** (NEW - Nov 24, 2025)
 - Dependencies: All installed and documented (7 main packages)
-- Documentation: Complete and synchronized (updated Nov 23, 2025)
+- Documentation: Complete and synchronized (updated Nov 24, 2025)
 - Cross-platform: Windows and Unix compatible
-- LINE Bot Integration: Complete with webhook, AI parser, notifications
+- LINE Bot Integration: Complete with webhook, AI parser, two-group notifications
 - Google Sheets Integration: Bidirectional sync with historical data loading
 - Automation: Full workflow from message to substitute assignment with memory
 - Code Quality: Consolidated modules, consistent naming, reduced duplication
@@ -552,5 +569,5 @@ python diagnose_excel.py
 
 ---
 
-**Last Updated:** 2025-11-19
-**Status:** Production-ready with enhanced flexibility, expanded subject coverage, and three-tier level system
+**Last Updated:** 2025-11-24
+**Status:** Production-ready with two-group LINE notification system, historical data learning, and enhanced configuration management

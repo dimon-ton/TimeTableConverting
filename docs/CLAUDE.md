@@ -158,8 +158,8 @@ Scoring-based algorithm that balances subject qualification, level matching, and
 - Includes /health endpoint for monitoring
 
 **src/timetable/ai_parser.py** - AI-powered message parsing
-- Uses OpenRouter API to access Gemini free tier model
-- Model: google/gemini-2.0-flash-exp:free (configurable)
+- Uses OpenRouter API with DeepSeek R1 model
+- Model: deepseek/deepseek-r1 (paid model, configurable via OPENROUTER_MODEL)
 - System prompt provides parsing rules in Thai (lines 18-44)
 - Extracts: teacher_name, date (YYYY-MM-DD), periods (list), reason
 - Handles Thai date expressions:
@@ -258,8 +258,11 @@ Scoring-based algorithm that balances subject qualification, level matching, and
 SPREADSHEET_ID=1KpQZlrJk03ZS_Q0bTWvxHjG9UFiD1xPZGyIsQfRkRWo
 LINE_CHANNEL_SECRET=your_channel_secret
 LINE_CHANNEL_ACCESS_TOKEN=your_access_token
-LINE_GROUP_ID=C1234567890abcdef (get from webhook logs)
+LINE_TEACHER_GROUP_ID=C1234567890abcdef (teachers submit requests)
+LINE_ADMIN_GROUP_ID=C9876543210fedcba (admins receive notifications)
+LINE_GROUP_ID=C1234567890abcdef (legacy fallback, optional)
 OPENROUTER_API_KEY=sk-or-v1-...
+OPENROUTER_MODEL=deepseek/deepseek-r1
 WEBHOOK_HOST=0.0.0.0
 WEBHOOK_PORT=5000
 DEBUG_MODE=False
@@ -418,6 +421,21 @@ See TESTING.md for quick reference or TEST_REPORT.md for comprehensive analysis.
 - Dependencies: Install via `pip install -r requirements.txt` (requires openpyxl)
 
 ## Recent Changes
+
+### Nov 24, 2025: Two-Group LINE Notification System
+- **Enhanced LINE Bot configuration:**
+  - Added LINE_TEACHER_GROUP_ID for teacher leave request submissions
+  - Added LINE_ADMIN_GROUP_ID for admin notifications (confirmations, reports, errors)
+  - Maintained LINE_GROUP_ID as legacy fallback for backward compatibility
+  - Updated config.py with two-group support and enhanced status printing
+  - Updated .env.example with detailed group configuration documentation
+- **Improved notification routing:**
+  - Teachers submit requests in teacher group
+  - Admins receive comprehensive notifications in admin group
+  - Flexible configuration supports single-group or two-group setups
+- **Model clarification:**
+  - Updated documentation to reflect DeepSeek R1 as paid model (not free tier)
+  - Model configurable via OPENROUTER_MODEL environment variable
 
 ### Nov 23, 2025: Historical Data Integration and Algorithm Enhancement
 - **Added historical data loading from Google Sheets:**

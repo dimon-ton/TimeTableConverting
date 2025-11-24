@@ -4,9 +4,23 @@ Complete guide to setting up a LINE Messaging API bot for the automated leave re
 
 ## Overview
 
-This system uses LINE for two purposes:
-1. **Receiving leave requests** from teachers via LINE group messages
-2. **Sending daily substitute reports** back to the LINE group
+This system uses LINE with a **two-group architecture**:
+
+1. **Teacher Group** - Teachers submit leave requests here
+   - Leave requests are processed automatically
+   - Admins manually forward approved reports to this group
+
+2. **Admin Group** - Admins receive all notifications here
+   - Leave request confirmations (when teachers submit)
+   - Full substitute teacher reports (daily processing)
+   - Processing summaries and statistics
+   - Error notifications and system alerts
+
+**Workflow:**
+- Teachers → (submit leave) → Teacher Group
+- System → (send confirmation) → Admin Group
+- System → (send report) → Admin Group
+- Admins → (review & copy) → Teacher Group
 
 ---
 
@@ -117,7 +131,14 @@ This prevents the bot from sending automatic replies while your custom webhook h
    LINE_CHANNEL_SECRET=your_actual_channel_secret_here
    LINE_CHANNEL_ACCESS_TOKEN=your_actual_channel_access_token_here
 
-   # LINE Group ID (will get this in Step 7)
+   # LINE Group IDs (will get these in Step 7)
+   # Teacher Group - Teachers submit leave requests here
+   LINE_TEACHER_GROUP_ID=
+
+   # Admin Group - Receives all notifications
+   LINE_ADMIN_GROUP_ID=
+
+   # Legacy: Keep for backward compatibility (optional)
    LINE_GROUP_ID=
 
    # OpenRouter API (from Step 6)
@@ -159,43 +180,61 @@ The system uses Gemini (free tier) via OpenRouter to parse teacher leave request
 
 ---
 
-## Step 7: Add Bot to LINE Group
+## Step 7: Set Up Two LINE Groups
 
-### 7.1 Create or Use Existing Group
+### 7.1 Create Both Groups
 
 1. Open LINE app on your phone
-2. Create a new group or use existing: "พรุ่งนี้ขอลานะครับ" (Teachers' group)
-3. Add members (teachers who will send leave requests)
+2. Create two groups:
+   - **Teacher Group**: "พรุ่งนี้ขอลานะครับ" (Teachers submit leaves here)
+   - **Admin Group**: "ระบบจัดการครูแทน - แอดมิน" (Admins receive notifications)
+3. Add appropriate members:
+   - Teacher Group: All teachers who will send leave requests
+   - Admin Group: School administrators who will review and forward reports
 
-### 7.2 Add Bot to Group
+### 7.2 Add Bot to Both Groups
 
-1. In the LINE group, tap the menu (≡) → "Add friends"
-2. Search for your bot name: "Leave Request Bot"
-   - Or use QR code from Messaging API tab
-3. Add the bot to the group
+1. In **Teacher Group**, tap menu (≡) → "Add friends"
+2. Search for your bot: "Leave Request Bot" (or use QR code)
+3. Add the bot to teacher group
+4. Repeat for **Admin Group**
 
-### 7.3 Get Group ID
+### 7.3 Get Both Group IDs
 
-**Option A: From Webhook Events (Recommended)**
+**Using Webhook Events (Recommended):**
 
 1. Start your webhook server:
    ```bash
-   python webhook.py
+   python -m src.web.webhook
    ```
 
-2. In the LINE group, send a test message: "Hello bot"
+2. Send a test message in **Teacher Group**: "ทดสอบกลุ่มครู"
 
-3. Check your webhook logs - you'll see the `groupId` in the event data
+3. Check webhook logs - you'll see:
+   ```
+   Group ID: C1234567890abcdef...
+   NOTE: Add teacher group to your .env file:
+   LINE_TEACHER_GROUP_ID=C1234567890abcdef...
+   ```
 
 4. Copy the group ID and add to `.env`:
    ```env
-   LINE_GROUP_ID=C1234567890abcdef1234567890abcdef
+   LINE_TEACHER_GROUP_ID=C1234567890abcdef...
    ```
 
-**Option B: Using LINE Official Account Manager**
+5. Send a test message in **Admin Group**: "ทดสอบกลุ่มแอดมิน"
 
-- This is more complex and may not show group IDs directly
-- Option A (webhook logs) is easier
+6. Check webhook logs again for admin group ID
+
+7. Add to `.env`:
+   ```env
+   LINE_ADMIN_GROUP_ID=C9876543210fedcba...
+   ```
+
+**Important Notes:**
+- The webhook will only process leave requests from the teacher group
+- All confirmations and reports go to the admin group
+- Admins manually review and forward reports to teacher group
 
 ---
 
@@ -359,10 +398,100 @@ python process_daily_leaves.py
 ### 10.5 Test LINE Messaging
 
 ```bash
-python -c "from line_messaging import send_test_message; send_test_message()"
+python -c "from src.web.line_messaging import send_test_message; send_test_message()"
 ```
 
-Should send a test message to your configured LINE group.
+Should send a test message to your configured admin group.
+
+### 10.6 Test Two-Group Workflow
+
+**Complete end-to-end test:**
+
+1. **Teacher sends leave request:**
+   - In teacher group, send: "ครูสุกฤษฎิ์ ขอลาพรุ่งนี้ คาบ 1-3"
+   - Check admin group receives confirmation with parsed details
+
+2. **Run daily processing:**
+   ```bash
+   python -m src.utils.daily_leave_processor --send-line
+   ```
+   - Check admin group receives full substitute report
+   - Admin reviews report for accuracy
+
+3. **Admin forwards to teachers:**
+   - Admin manually copies report from admin group
+   - Admin pastes report into teacher group
+   - Teachers see final substitute assignments
+
+**Expected behavior:**
+- Teacher group: Only receives messages from admins (manual)
+- Admin group: Receives all automated notifications
+- No automatic messages sent to teacher group
+
+---
+
+## Step 11: Understanding the Two-Group Workflow
+
+### Daily Operations
+
+**Morning (Teachers submit leaves):**
+1. Teacher sends leave message in teacher group: "ครูสมชาย ขอลาวันพรุ่งนี้ คาบ 2-4 ป่วย"
+2. LINE webhook receives message
+3. AI parser extracts: teacher_name, date, periods, reason
+4. System logs to Google Sheets "Leave_Requests" tab
+5. **Admin group receives confirmation:**
+   ```
+   📝 ได้รับเรื่องขอลาใหม่
+
+   ครู: สมชาย
+   วันที่: 2025-11-25
+   คาบ: 2, 3, 4
+
+   ✓ บันทึกเรียบร้อยแล้ว (ใช้ AI Success (AI))
+   ```
+6. Teacher group receives nothing (admins will notify later)
+
+**8:55 AM (Automated processing):**
+1. Cron job runs daily_leave_processor.py
+2. Loads leave requests from Google Sheets
+3. Finds substitute teachers using algorithm
+4. Updates Leave_Logs sheet with assignments
+5. **Admin group receives full report:**
+   ```
+   📋 รายงานครูแทน
+
+   วันที่: 25 พฤศจิกายน 2568
+
+   สรุป:
+   - ครูที่ลา: 3 คน
+   - จำนวนคาบ: 8 คาบ
+   - หาครูแทนได้: 6/8 (75%)
+
+   รายละเอียด:
+   จันทร์ คาบ 2 | ป.4 - คณิตศาสตร์
+   ครูสมชาย → ครูสมศรี ✅
+   ...
+   ```
+
+**Admin reviews and forwards:**
+1. Admin reviews report in admin group
+2. If approved, admin **manually copies** report text
+3. Admin **manually pastes** into teacher group
+4. Teachers see final substitute assignments
+
+### Why This Design?
+
+**Benefits:**
+- **Admin oversight:** Reports reviewed before teachers see them
+- **Quality control:** Admins can verify accuracy before distribution
+- **Flexibility:** Admins can edit/annotate reports before forwarding
+- **Error prevention:** Incorrect assignments caught before teachers act on them
+- **Simplicity:** No complex approval commands needed
+
+**Trade-offs:**
+- Requires manual admin action (copy & paste)
+- Not fully automated end-to-end
+- Admins must be available to forward reports
 
 ---
 
@@ -391,7 +520,30 @@ Should send a test message to your configured LINE group.
 
 - Check `LINE_CHANNEL_ACCESS_TOKEN` is correct
 - Verify bot is not blocked in the group
-- Check `LINE_GROUP_ID` is correct
+- Check group IDs are correct (`LINE_TEACHER_GROUP_ID`, `LINE_ADMIN_GROUP_ID`)
+
+### Two-group specific issues
+
+**Admin not receiving leave confirmations:**
+- Check `LINE_ADMIN_GROUP_ID` is set correctly in `.env`
+- Verify bot is added to admin group
+- Check webhook logs show messages being processed
+- Run `python -m src.config` to verify config
+
+**Teacher group receiving automated messages:**
+- This should NOT happen - only admins receive automated messages
+- If happening, check webhook.py modifications are correct
+- Verify line_messaging.py sends to admin group
+
+**Webhook ignoring teacher messages:**
+- Check `LINE_TEACHER_GROUP_ID` matches actual teacher group
+- Send test message and check webhook logs
+- Verify leave request keywords present: ลา, ขอลา, หยุด, ไม่มา
+
+**Getting wrong group IDs:**
+- Send message "test" in each group separately
+- Check webhook logs for each message's group_id
+- Update `.env` with correct IDs
 
 ### Cron job not running
 

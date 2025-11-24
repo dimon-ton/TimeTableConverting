@@ -91,7 +91,8 @@ src/
 - Logs to Google Sheets via sheet_utils
 
 **src/timetable/ai_parser.py** - AI-powered message parsing
-- Uses OpenRouter API (DeepSeek R1 Free model)
+- Uses OpenRouter API with DeepSeek R1 model (paid model)
+- Model: deepseek/deepseek-r1 (configurable via OPENROUTER_MODEL)
 - Extracts: teacher_name, date, periods, reason
 - Handles Thai date expressions
 - Fallback regex-based parser
@@ -151,8 +152,11 @@ src/
 SPREADSHEET_ID=your_spreadsheet_id
 LINE_CHANNEL_SECRET=your_secret
 LINE_CHANNEL_ACCESS_TOKEN=your_token
-LINE_GROUP_ID=your_group_id
+LINE_TEACHER_GROUP_ID=your_teacher_group_id
+LINE_ADMIN_GROUP_ID=your_admin_group_id
+LINE_GROUP_ID=your_legacy_group_id
 OPENROUTER_API_KEY=your_api_key
+OPENROUTER_MODEL=deepseek/deepseek-r1
 WEBHOOK_HOST=0.0.0.0
 WEBHOOK_PORT=5000
 DEBUG_MODE=False
@@ -214,11 +218,27 @@ python -m tests.test_real_timetable           # Real timetable validation
 - **File Paths:** config.py uses PROJECT_ROOT for absolute, cross-platform paths
 - **Thai Encoding:** All mappings and output use UTF-8
 - **Level System:** Three-tier (lower_elementary, upper_elementary, middle)
-- **AI Model:** DeepSeek R1 Free (switched from Gemini to avoid rate limits)
+- **AI Model:** DeepSeek R1 (paid model, configurable via OPENROUTER_MODEL)
 - **Two-Sheet Data Model:** Leave_Requests (raw) and Leave_Logs (enriched)
+- **Two-Group LINE System:** Separate teacher and admin groups for better notification management
 - **Dependencies:** Install via `pip install -r requirements.txt`
 
 ## Recent Changes (Nov 2025)
+
+### Nov 24, 2025: Two-Group LINE Notification System
+- **Enhanced LINE Bot configuration:**
+  - Added LINE_TEACHER_GROUP_ID for teacher leave request submissions
+  - Added LINE_ADMIN_GROUP_ID for admin notifications (confirmations, reports, errors)
+  - Maintained LINE_GROUP_ID as legacy fallback for backward compatibility
+  - Updated config.py with two-group support and status printing
+  - Updated .env.example with detailed documentation
+- **Improved notification routing:**
+  - Teachers submit requests in dedicated teacher group
+  - Admins receive all notifications in admin group
+  - Flexible single-group or two-group configuration
+- **Model clarification:**
+  - DeepSeek R1 is paid model (not free tier)
+  - Fully configurable via OPENROUTER_MODEL environment variable
 
 ### Nov 23, 2025: Historical Data Integration & Fair Workload Distribution
 - **Historical data loading implemented:**

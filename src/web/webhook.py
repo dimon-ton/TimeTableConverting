@@ -174,10 +174,14 @@ def handle_text_message(event):
     print(f"User ID: {user_id}")
     print(f"{'='*60}\n")
 
-    # Save group ID if this is the target group (for first-time setup)
-    if group_id and not config.LINE_GROUP_ID:
-        print(f"\nNOTE: Add this to your .env file:")
-        print(f"LINE_GROUP_ID={group_id}\n")
+    # Save group ID suggestions (for first-time setup)
+    if group_id:
+        if not config.LINE_TEACHER_GROUP_ID:
+            print(f"\nNOTE: Add teacher group to your .env file:")
+            print(f"LINE_TEACHER_GROUP_ID={group_id}\n")
+        if not config.LINE_ADMIN_GROUP_ID:
+            print(f"\nNOTE: Add admin group to your .env file:")
+            print(f"LINE_ADMIN_GROUP_ID={group_id}\n")
 
     # Process leave request
     process_leave_request_message(text, group_id, reply_token)
@@ -186,11 +190,13 @@ def handle_text_message(event):
 def process_leave_request_message(text: str, group_id: str, reply_token: str):
     """
     Process a potential leave request message, log it to the Leave_Requests
-    sheet, and send a confirmation reply.
+    sheet, and send a confirmation to admin group.
     """
-    # Check if this is from the configured group (if set)
-    if config.LINE_GROUP_ID and group_id != config.LINE_GROUP_ID:
-        print(f"Ignoring message from non-target group: {group_id}")
+    # Only accept messages from teacher group
+    # Fallback to LINE_GROUP_ID for backward compatibility
+    teacher_group = config.LINE_TEACHER_GROUP_ID or config.LINE_GROUP_ID
+    if teacher_group and group_id != teacher_group:
+        print(f"Ignoring message from non-teacher group: {group_id}")
         return
 
     # Check if message looks like a leave request
@@ -215,26 +221,27 @@ def process_leave_request_message(text: str, group_id: str, reply_token: str):
         else:
             log_request_to_sheet(raw_message=text, leave_data=None, status="Failed")
             print("Failed to parse leave request with any method.")
-            send_reply(
-                reply_token,
-                "ขออภัยค่ะ ไม่เข้าใจข้อความ กรุณาระบุ: ชื่อครู, วันที่, และคาบที่ลา\n"
-                "ตัวอย่าง: ครูสุกฤษฎิ์ ขอลาพรุ่งนี้ คาบ 1-3"
+            send_to_admin(
+                "❌ การแจ้งลาล้มเหลว\n\n"
+                f"ข้อความ: {text}\n\n"
+                "ไม่สามารถแยกข้อมูล: ชื่อครู, วันที่, และคาบที่ลา"
             )
             return
 
-        # 3. Send confirmation to user
+        # 3. Send confirmation to admin group
         teacher_name = leave_data.get('teacher_name', 'N/A')
         date_str = leave_data.get('date', 'N/A')
         periods = leave_data.get('periods', [])
         periods_str = ", ".join(map(str, periods))
 
         confirmation = (
-            f"✓ ได้รับเรื่องขอลาของ {teacher_name} เรียบร้อยแล้ว\n\n"
+            f"📝 ได้รับเรื่องขอลาใหม่\n\n"
+            f"ครู: {teacher_name}\n"
             f"วันที่: {date_str}\n"
             f"คาบ: {periods_str}\n\n"
-            f"ระบบจะประมวลผลและจัดหาครูสอนแทนในขั้นตอนถัดไป"
+            f"✓ บันทึกเรียบร้อยแล้ว (ใช้ AI {status})"
         )
-        send_reply(reply_token, confirmation)
+        send_to_admin(confirmation)
         print("Leave request logged successfully to 'Leave_Requests' sheet.")
 
     except Exception as e:
@@ -242,10 +249,32 @@ def process_leave_request_message(text: str, group_id: str, reply_token: str):
         import traceback
         traceback.print_exc()
 
-        send_reply(
-            reply_token,
-            "เกิดข้อผิดพลาดในการประมวลผล กรุณาติดต่อผู้ดูแลระบบ"
+        send_to_admin(
+            f"⚠️ เกิดข้อผิดพลาดในการประมวลผล\n\n"
+            f"ข้อความ: {text}\n\n"
+            f"Error: {str(e)}"
         )
+
+
+def send_to_admin(text: str):
+    """
+    Send a push message to the admin group.
+
+    Args:
+        text: Message text to send to admin group
+    """
+    from src.web.line_messaging import send_to_admin_group
+
+    admin_group = config.LINE_ADMIN_GROUP_ID or config.LINE_GROUP_ID
+    if not admin_group:
+        print(f"Would send to admin: {text}")
+        return
+
+    try:
+        send_to_admin_group(text)
+        print(f"Sent to admin group: {text}")
+    except Exception as e:
+        print(f"ERROR sending to admin: {e}")
 
 
 def send_reply(reply_token: str, text: str):

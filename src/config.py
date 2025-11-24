@@ -45,11 +45,15 @@ class Config:
     # ==================== LINE Bot ====================
     LINE_CHANNEL_SECRET = os.getenv('LINE_CHANNEL_SECRET', '')
     LINE_CHANNEL_ACCESS_TOKEN = os.getenv('LINE_CHANNEL_ACCESS_TOKEN', '')
-    LINE_GROUP_ID = os.getenv('LINE_GROUP_ID', '')  # Target group for reports
+
+    # Group IDs for two-group notification system
+    LINE_TEACHER_GROUP_ID = os.getenv('LINE_TEACHER_GROUP_ID', '')  # Teachers submit leave requests
+    LINE_ADMIN_GROUP_ID = os.getenv('LINE_ADMIN_GROUP_ID', '')  # Admins receive all notifications
+    LINE_GROUP_ID = os.getenv('LINE_GROUP_ID', '')  # Legacy: fallback group
 
     # ==================== OpenRouter AI ====================
     OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', '')
-    OPENROUTER_MODEL = os.getenv('OPENROUTER_MODEL', 'deepseek/deepseek-r1')  # Free model (configurable via .env)
+    OPENROUTER_MODEL = os.getenv('OPENROUTER_MODEL', 'deepseek/deepseek-r1')  # DeepSeek R1 (paid model, configurable via .env)
     OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
     # ==================== System Settings ====================
@@ -101,6 +105,9 @@ class Config:
               ("(exists)" if os.path.exists(cls.TIMETABLE_FILE) else "(MISSING)"))
         print(f"LINE Channel Secret: {'Set' if cls.LINE_CHANNEL_SECRET else 'NOT SET'}")
         print(f"LINE Access Token: {'Set' if cls.LINE_CHANNEL_ACCESS_TOKEN else 'NOT SET'}")
+        print(f"LINE Teacher Group ID: {'Set' if cls.LINE_TEACHER_GROUP_ID else 'NOT SET'}")
+        print(f"LINE Admin Group ID: {'Set' if cls.LINE_ADMIN_GROUP_ID else 'NOT SET'}")
+        print(f"LINE Legacy Group ID: {'Set' if cls.LINE_GROUP_ID else 'NOT SET'}")
         print(f"OpenRouter API Key: {'Set' if cls.OPENROUTER_API_KEY else 'NOT SET'}")
         print(f"Debug Mode: {cls.DEBUG_MODE}")
         print("="*60)
