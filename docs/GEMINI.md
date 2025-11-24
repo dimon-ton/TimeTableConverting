@@ -90,12 +90,18 @@ src/
 - Calls ai_parser for message parsing
 - Logs to Google Sheets via sheet_utils
 
-**src/timetable/ai_parser.py** - AI-powered message parsing
+**src/timetable/ai_parser.py** - AI-powered message parsing (Enhanced Nov 25, 2025)
 - Uses OpenRouter API with DeepSeek R1 model (paid model)
 - Model: deepseek/deepseek-r1 (configurable via OPENROUTER_MODEL)
-- Extracts: teacher_name, date, periods, reason
-- Handles Thai date expressions
-- Fallback regex-based parser
+- Extracts: teacher_name, date, periods, reason, leave_type
+- Handles formal Thai greetings ("เรียนท่าน ผอ." automatically stripped)
+- Supports multiple full-day expressions (ทั้งวัน, เต็มวัน, 1 วัน, หนึ่งวัน)
+- Distinguishes late arrivals ("เข้าสาย", "มาสาย") from full absences
+- Late arrivals map to periods [1, 2, 3] (morning periods)
+- Extracts specific reasons when provided
+- Works with no-spacing messages ("วันนี้ครูวิยะดา")
+- Handles Thai date expressions (พรุ่งนี้, วันนี้, วันจันทร์, etc.)
+- Fallback regex-based parser with 100% feature parity
 
 **src/web/line_messaging.py** - Outgoing notifications
 - send_message_to_group() - Generic messaging

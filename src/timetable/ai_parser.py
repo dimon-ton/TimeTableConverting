@@ -37,25 +37,40 @@ SYSTEM_PROMPT = """คุณเป็นผู้ช่วยวิเครา�
   "teacher_name": "ชื่อครู (ต้องมีคำว่า 'ครู' นำหน้า)",
   "date": "วันที่ในรูปแบบ YYYY-MM-DD",
   "periods": [รายการคาบเรียนเป็นตัวเลข],
-  "reason": "เหตุผลการลา (ถ้าไม่ระบุให้ใช้ 'ลากิจ')"
+  "reason": "เหตุผลการลา (ถ้าไม่ระบุให้ใช้ 'ลากิจ')",
+  "leave_type": "ประเภท: 'leave' หรือ 'late'"
 }}
 
 กฎการแปลง:
-1. ชื่อครู: ให้คงคำว่า "ครู" นำหน้าชื่อไว้เสมอ (เช่น "ครูสุกฤษฎิ์" -> "ครูสุกฤษฎิ์")
+1. ชื่อครู:
+   - ให้คงคำว่า "ครู" นำหน้าชื่อไว้เสมอ (เช่น "ครูสุกฤษฎิ์" -> "ครูสุกฤษฎิ์")
+   - ข้อความอาจไม่มีช่องว่างระหว่างวันที่กับชื่อครู (เช่น "วันนี้ครูวิยะดา" -> "ครูวิยะดา")
+   - ให้ละเลยคำทักทาย "เรียนท่าน ผอ." หรือคำอื่นๆ ที่ไม่เกี่ยวข้อง
+
 2. วันที่:
    - "พรุ่งนี้" = วันถัดจากวันนี้
    - "วันนี้" = วันนี้
    - "วันจันทร์" = จันทร์หน้าที่ใกล้ที่สุด
    - วันที่ชัดเจน (เช่น "21/11/2025") = แปลงเป็น YYYY-MM-DD
+
 3. คาบเรียน:
    - "คาบ 1-3" = [1, 2, 3]
    - "คาบ 1, 3, 5" = [1, 3, 5]
    - "คาบ 2" = [2]
-   - "ทั้งวัน" = [1, 2, 3, 4, 5, 6, 7, 8]
-4. เหตุผล:
+   - "ทั้งวัน" หรือ "เต็มวัน" หรือ "1 วัน" = [1, 2, 3, 4, 5, 6, 7, 8]
+   - "เข้าสาย" = [1, 2, 3] (ขาดครึ่งวันเช้า)
+
+4. ประเภทการลา (leave_type):
+   - "เข้าสาย" หรือ "มาสาย" = "late"
+   - อื่นๆ = "leave"
+
+5. เหตุผล:
    - ถ้าไม่ระบุ ให้ใช้ "ลากิจ"
    - ถ้ามี "ป่วย" ให้ใช้ "ลาป่วย"
    - ถ้ามี "ธุระ" ให้ใช้ "ลากิจ"
+   - ถ้ามี "เข้าสาย" หรือ "มาสาย":
+     * ถ้ามีเหตุผลเฉพาะ (เช่น "ไปฟังผลตรวจสามี") ให้ระบุเหตุผลนั้น
+     * ถ้าไม่มีเหตุผลเฉพาะ ให้ใช้ "เข้าสาย" เป็นเหตุผล
 
 วันนี้คือ: {today}
 
@@ -110,10 +125,15 @@ def parse_leave_request(message: str) -> Optional[Dict]:
     Parse a Thai leave request message using AI.
 
     Args:
-        message: Natural language leave request in Thai
+        message: Natural language leave request in Thai (can include formal greetings)
 
     Returns:
-        Dictionary with keys: teacher_name, date, periods, reason
+        Dictionary with keys: teacher_name, date, periods, reason, leave_type
+        - teacher_name: Name with "ครู" prefix
+        - date: Date in YYYY-MM-DD format
+        - periods: List of period numbers
+        - reason: Reason for leave
+        - leave_type: 'leave' for regular leave, 'late' for late arrival
         Returns None if parsing fails
 
     Example:
@@ -122,7 +142,17 @@ def parse_leave_request(message: str) -> Optional[Dict]:
             'teacher_name': 'ครูสุกฤษฎิ์',
             'date': '2025-11-21',
             'periods': [1, 2, 3],
-            'reason': 'ลากิจ'
+            'reason': 'ลากิจ',
+            'leave_type': 'leave'
+        }
+
+        >>> parse_leave_request("เรียนท่าน ผอ.วันนี้ครูวิยะดาขออนุญาตลากิจ 1 วันค่ะ")
+        {
+            'teacher_name': 'ครูวิยะดา',
+            'date': '2025-11-25',
+            'periods': [1, 2, 3, 4, 5, 6, 7, 8],
+            'reason': 'ลากิจ',
+            'leave_type': 'leave'
         }
     """
     if not config.OPENROUTER_API_KEY:
@@ -194,6 +224,10 @@ def parse_leave_request(message: str) -> Optional[Dict]:
         if 'reason' not in result or not result['reason']:
             result['reason'] = 'ลากิจ'
 
+        # Set default leave_type if not provided
+        if 'leave_type' not in result or not result['leave_type']:
+            result['leave_type'] = 'leave'
+
         return result
 
     except requests.exceptions.RequestException as e:
@@ -224,54 +258,89 @@ def parse_leave_request_fallback(message: str) -> Optional[Dict]:
     """
     import re
 
+    # Strip formal greetings
+    message_clean = re.sub(r'เรียน\s*ท่าน\s*ผอ\.?', '', message)
+    message_clean = re.sub(r'เรียน\s*ผอ\.?', '', message_clean)
+
     result = {
         'teacher_name': None,
         'date': None,
         'periods': [],
-        'reason': 'ลากิจ'
+        'reason': 'ลากิจ',
+        'leave_type': 'leave'
     }
 
     # Extract teacher name (ครูXXX)
-    teacher_match = re.search(r'ครู([ก-๙a-zA-Z]+)', message)
+    teacher_match = re.search(r'ครู([ก-๙a-zA-Z]+)', message_clean)
     if teacher_match:
         result['teacher_name'] = f"ครู{teacher_match.group(1)}"
 
     # Extract date
     today = datetime.now()
-    if 'พรุ่งนี้' in message or 'พรุ่ง' in message:
+    if 'พรุ่งนี้' in message_clean or 'พรุ่ง' in message_clean:
         result['date'] = (today + timedelta(days=1)).strftime('%Y-%m-%d')
-    elif 'วันนี้' in message:
+    elif 'วันนี้' in message_clean:
         result['date'] = today.strftime('%Y-%m-%d')
     else:
-        # Default to tomorrow
-        result['date'] = (today + timedelta(days=1)).strftime('%Y-%m-%d')
-
-    # Extract periods
-    # Pattern: คาบ 1-3 or คาบ 1, 2, 3 or คาบ 1
-    period_match = re.search(r'คาบ\s*([0-9\-,\s]+)', message)
-    if period_match:
-        period_text = period_match.group(1)
-
-        # Handle range (1-3)
-        if '-' in period_text:
-            start, end = period_text.split('-')
-            result['periods'] = list(range(int(start), int(end) + 1))
-        # Handle list (1, 2, 3)
-        elif ',' in period_text:
-            result['periods'] = [int(p.strip()) for p in period_text.split(',')]
-        # Single period
+        # Check for day names
+        day_names = {
+            'จันทร์': 0, 'อังคาร': 1, 'พุธ': 2,
+            'พฤหัส': 3, 'ศุกร์': 4, 'เสาร์': 5, 'อาทิตย์': 6
+        }
+        for thai_day, weekday in day_names.items():
+            if thai_day in message_clean:
+                days_ahead = weekday - today.weekday()
+                if days_ahead <= 0:
+                    days_ahead += 7
+                result['date'] = (today + timedelta(days=days_ahead)).strftime('%Y-%m-%d')
+                break
         else:
-            result['periods'] = [int(period_text.strip())]
+            # Default to tomorrow if no date found
+            result['date'] = (today + timedelta(days=1)).strftime('%Y-%m-%d')
 
-    # Handle "ทั้งวัน" (all day)
-    if 'ทั้งวัน' in message:
-        result['periods'] = list(range(1, 9))
+    # Check for late arrival
+    if 'เข้าสาย' in message_clean or 'มาสาย' in message_clean:
+        result['leave_type'] = 'late'
+        result['periods'] = [1, 2, 3]  # Absent for first half of the day (morning)
+        # Extract specific reason for being late
+        reason_patterns = [
+            r'ไป([ก-๙\s]+)',  # "ไปฟังผลตรวจ..."
+            r'เพราะ([ก-๙\s]+)',  # "เพราะ..."
+        ]
+        for pattern in reason_patterns:
+            reason_match = re.search(pattern, message_clean)
+            if reason_match:
+                result['reason'] = reason_match.group(1).strip()
+                break
+        if result['reason'] == 'ลากิจ':
+            result['reason'] = 'เข้าสาย'
+    else:
+        # Extract periods for regular leave
+        # Pattern: คาบ 1-3 or คาบ 1, 2, 3 or คาบ 1
+        period_match = re.search(r'คาบ\s*([0-9\-,\s]+)', message_clean)
+        if period_match:
+            period_text = period_match.group(1)
 
-    # Extract reason
-    if 'ป่วย' in message:
-        result['reason'] = 'ลาป่วย'
-    elif 'ธุระ' in message or 'กิจ' in message:
-        result['reason'] = 'ลากิจ'
+            # Handle range (1-3)
+            if '-' in period_text:
+                start, end = period_text.split('-')
+                result['periods'] = list(range(int(start), int(end) + 1))
+            # Handle list (1, 2, 3)
+            elif ',' in period_text:
+                result['periods'] = [int(p.strip()) for p in period_text.split(',')]
+            # Single period
+            else:
+                result['periods'] = [int(period_text.strip())]
+
+        # Handle full day patterns
+        if any(pattern in message_clean for pattern in ['ทั้งวัน', 'เต็มวัน', '1 วัน', 'หนึ่งวัน']):
+            result['periods'] = list(range(1, 9))
+
+        # Extract reason for regular leave
+        if 'ป่วย' in message_clean:
+            result['reason'] = 'ลาป่วย'
+        elif 'ธุระ' in message_clean or 'กิจ' in message_clean:
+            result['reason'] = 'ลากิจ'
 
     # Validate
     if not all([result['teacher_name'], result['date'], result['periods']]):
@@ -284,10 +353,16 @@ def parse_leave_request_fallback(message: str) -> Optional[Dict]:
 def test_parser():
     """Test the parser with sample messages"""
     test_messages = [
+        # Original test messages
         "ครูสุกฤษฎิ์ ขอลาพรุ่งนี้ คาบ 1-3",
         "ครูอำพร ลาป่วยวันนี้ คาบ 2, 4, 6",
         "ครูกฤตชยากร ขอลาวันจันทร์ ทั้งวัน เพราะมีธุระ",
         "ครูพิมล ขอลาพรุ่งนี้คาบ 5",
+        # Real LINE messages from teachers
+        "เรียนท่าน ผอ.วันนี้ครูวิยะดาขออนุญาตลากิจ 1 วันค่ะ",
+        "เรียนท่าน ผอ วันนี้ครูจุฑารัตน์ขออนุญาตเข้าสายไปฟังผลตรวจสามีค่ะ",
+        # Late arrival without specific reason
+        "เรียนท่าน ผอ. วันนี้ครูสมชายขออนุญาตเข้าสายค่ะ",
     ]
 
     print("="*60)

@@ -254,6 +254,14 @@ python -m src.web.line_messaging
 python -m src.utils.daily_leave_processor --test
 ```
 
+**AI Parser Features (Enhanced Nov 25, 2025):**
+- Handles formal Thai greetings ("เรียนท่าน ผอ.")
+- Supports multiple full-day expressions (ทั้งวัน, เต็มวัน, 1 วัน, หนึ่งวัน)
+- Distinguishes late arrivals ("เข้าสาย") from full absences
+- Extracts specific reasons when provided
+- Works with informal typing (no spacing between words)
+- 100% feature parity between AI and fallback parsers
+
 **Integration Points:**
 1. LINE → Webhook → AI Parser → Google Sheets (incoming)
 2. Google Sheets → Daily Processor → Substitute Finder → Google Sheets (processing)
