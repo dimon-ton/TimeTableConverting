@@ -1,0 +1,7 @@
+{
+  "name": "Specialist Teacher Shortage",
+  "description": "Specialized subject teachers absent, testing fallback to non-qualified teachers",
+  "absent_teachers": ["T003", "T007", "T013"],
+  "day": "Wed",
+  "notes": "Tests algorithm's ability to assign substitutes even when no qualified teachers available for specialized subjects"
+}

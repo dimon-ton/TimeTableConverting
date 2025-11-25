@@ -1,0 +1,7 @@
+{
+  "name": "Monday Busy Day",
+  "description": "High-demand scenario with multiple Math and English teachers absent on the busiest day of the week",
+  "absent_teachers": ["T001", "T004", "T011"],
+  "day": "Mon",
+  "notes": "Tests high-demand subject coverage when multiple teachers are absent simultaneously"
+}
