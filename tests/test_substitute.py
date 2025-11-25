@@ -281,7 +281,7 @@ class TestAssignSubstitutesForDay(unittest.TestCase):
 
         # All substitutes should be different from absent teacher
         for sub in result:
-            self.assertNotEqual(sub["teacher_id"], "T001")
+            self.assertNotEqual(sub["substitute_teacher_id"], "T001")
 
     def test_assign_substitutes_multiple_absent(self):
         """Test assigning substitutes when multiple teachers are absent"""
@@ -302,7 +302,7 @@ class TestAssignSubstitutesForDay(unittest.TestCase):
 
         # Check that no substitute is assigned to an absent teacher
         for sub in result:
-            self.assertNotIn(sub["teacher_id"], ["T001", "T002"])
+            self.assertNotIn(sub["substitute_teacher_id"], ["T001", "T002"])
 
     def test_no_double_booking(self):
         """Test that substitutes are not double-booked"""
@@ -320,7 +320,7 @@ class TestAssignSubstitutesForDay(unittest.TestCase):
 
         # Check for double-booking at period 1
         period_1_subs = [s for s in result if s["period_id"] == 1]
-        teachers_at_period_1 = [s["teacher_id"] for s in period_1_subs]
+        teachers_at_period_1 = [s["substitute_teacher_id"] for s in period_1_subs]
 
         # Should not have duplicate teachers at same period
         self.assertEqual(len(teachers_at_period_1), len(set(teachers_at_period_1)))

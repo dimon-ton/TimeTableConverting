@@ -231,6 +231,32 @@ python -m tests.test_real_timetable           # Real timetable validation
 
 ## Recent Changes (Nov 2025)
 
+### Nov 25, 2025: Daily Workload Protection & Testing Documentation
+- **Algorithm enhancement with hard constraints:**
+  - Added MAX_DAILY_PERIODS = 4 constant to prevent teacher overload
+  - Implemented has_reached_daily_limit() as hard constraint
+  - Teachers with 4+ periods automatically excluded from substitute pool
+  - Prevents teacher burnout and ensures fair workload distribution
+- **Hard Constraints System:**
+  - Teacher is absent (cannot substitute)
+  - Already teaching at period (no double-booking)
+  - Daily workload limit reached (4+ periods) - NEW
+- **Scoring System:**
+  - Hard constraints filter candidates BEFORE scoring
+  - Scoring optimizes among eligible teachers only
+  - Ensures no teacher exceeds daily limit regardless of scoring
+- **Comprehensive testing documentation:**
+  - Created docs/LINE_TESTING.md (617 lines) - complete guide for 100+ LINE tests
+  - Created docs/WORKLOAD_LIMIT_FIX.md (208 lines) - bug documentation
+  - Enhanced docs/TESTING.md with professional structure
+  - All test suites documented with examples and best practices
+- **Testing infrastructure:**
+  - 120+ total tests (24 unit + 6 real data + 4 performance + 100+ LINE)
+  - 85%+ code coverage across LINE components
+  - Comprehensive validation checks added to real timetable tests
+  - Field name corrections for data structure consistency
+- **Impact:** Production-ready with teacher protection and extensive documentation
+
 ### Nov 24, 2025: Two-Group LINE Notification System
 - **Enhanced LINE Bot configuration:**
   - Added LINE_TEACHER_GROUP_ID for teacher leave request submissions

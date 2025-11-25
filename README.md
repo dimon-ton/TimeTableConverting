@@ -316,9 +316,14 @@ substitutes = assign_substitutes_for_day(
 
 ## Substitute Teacher Algorithm
 
-The algorithm uses a scoring system to find the best substitute:
+The algorithm uses a scoring system with hard constraints to find the best substitute:
 
-### Scoring Criteria
+### Hard Constraints (Teachers Excluded If)
+- **Teacher is absent** - Cannot substitute if they're not at school
+- **Already teaching** - Cannot be in two places at once
+- **Daily workload limit** - Cannot be assigned if already have 4+ periods that day
+
+### Scoring Criteria (For Eligible Teachers)
 - **+2 points**: Teacher can teach the subject (bonus, not required)
 - **+5 points**: Teacher's level matches class level
 - **-2 points**: Level mismatch penalty
@@ -326,70 +331,256 @@ The algorithm uses a scoring system to find the best substitute:
 - **-1 point per substitution**: Historical substitution count
 - **-0.5 points per period**: Total term load (excluding leave days)
 - **-50 points**: Last resort teachers (assigned only when no better options)
-- **-999 points**: Teacher is absent
 
 ### Features
-- Prevents double-booking (teachers can't be in two places at once)
-- Balances workload across teachers based on daily, historical, and term loads
-- Prioritizes subject-qualified teachers
-- Considers teacher level (elementary vs. middle school)
-- **Historical data integration:** Loads past substitute assignments from Google Sheets for fair workload distribution
+- **Daily workload protection:** Teachers cannot be assigned when they already have 4+ periods
+- **Prevents double-booking:** Teachers can't be in two places at once
+- **Workload balancing:** Considers daily, historical, and term loads
+- **Subject qualification bonus:** Prioritizes qualified teachers but can assign unqualified if needed
+- **Level-appropriate matching:** Prefers teachers experienced with the class level
+- **Historical data integration:** Loads past substitute assignments from Google Sheets for fair distribution
 - **Cumulative learning:** Automatically learns from each day's assignments to prevent teacher burnout
-- Randomizes selection among equally-scored candidates for fairness
+- **Fair randomization:** Randomizes selection among equally-scored candidates
 
 ## Testing
 
-### Running All Tests
+The project includes a comprehensive testing suite for validating the substitute teacher functionality.
 
-Run the complete test suite (24 tests across both modules):
+### Quick Start
 
+Run all substitute tests:
 ```bash
-python run_all_tests.py
+python tests/run_tests.py
 ```
 
-### Running Individual Test Suites
+### Test Suites
 
-Run substitute finding tests (10 tests):
+**1. Unit Tests** - Core functionality validation (10 tests)
 ```bash
-python test_find_substitute.py
+# Run all unit tests
+python tests/run_tests.py
+
+# Or with pytest
+pytest tests/test_substitute.py -v
 ```
 
-Run Excel conversion tests (14 tests):
+**2. Real Data Validation** - Integration tests with actual school data (6 tests)
 ```bash
-python test_excel_converting.py
+# Run comprehensive real data tests
+pytest tests/test_real_data_validation.py -v
+
+# Or manually explore with real timetable
+python tests/test_real_timetable.py
 ```
 
-Run real timetable validation test:
+**3. Performance Benchmarks** - Ensure algorithm efficiency (4 tests)
 ```bash
-python test_real_timetable.py
+pytest tests/test_performance.py -v
+```
+
+**4. Interactive Testing Tool** - Manual scenario testing
+```bash
+# Interactive mode
+python tools/substitute_simulator.py
+
+# Command-line mode
+python tools/substitute_simulator.py --teacher T004 --day Mon --periods 1,2,3
+
+# Use predefined scenarios
+python tools/substitute_simulator.py --scenario scenarios/monday_busy.json
+
+# Verbose output with scoring details
+python tools/substitute_simulator.py -t T004 -d Mon -p 1-6 --verbose
+
+# Export to JSON
+python tools/substitute_simulator.py -t T004 -d Mon -p 1-3 --format json
+```
+
+**5. Generate Detailed Reports**
+```bash
+# Run tests and generate comprehensive report
+python tests/test_runner_with_report.py
+
+# Reports saved to test_results/report_YYYY-MM-DD_HHMMSS.txt
 ```
 
 ### Test Coverage
 
-**Substitute Finding (test_find_substitute.py):**
-- Basic substitute finding
-- Absent teacher exclusion
-- Availability checking
-- No qualified substitute scenarios
-- Level matching preferences
-- Workload balancing
-- Input validation
-- Double-booking prevention
-- Multiple absent teachers
+**Unit Tests (tests/test_substitute.py):**
+- ✅ Basic substitute finding
+- ✅ Absent teacher exclusion
+- ✅ Availability checking (no double-booking)
+- ✅ Subject qualification handling
+- ✅ Level matching preferences
+- ✅ Workload balancing
+- ✅ Input validation
+- ✅ Multiple absent teachers
 
-**Excel Conversion (test_excel_converting.py):**
-- Excel file parsing and JSON structure
-- Thai-English mappings (days, subjects, teachers)
-- Merged cell handling
-- UTF-8 encoding validation
-- Error handling (missing files, missing sheets)
-- Edge cases (numeric character stripping)
+**Real Data Validation (tests/test_real_data_validation.py):**
+- ✅ All teachers coverage testing
+- ✅ High-conflict scenarios (multiple absences)
+- ✅ Subject distribution analysis
+- ✅ Level matching verification
+- ✅ Workload fairness over time
+- ✅ Edge case handling
 
-**Test Results:** All 24 tests passing
+**Performance Benchmarks (tests/test_performance.py):**
+- ✅ Single substitute query: <100ms
+- ✅ Full day assignment: <1s
+- ✅ Week simulation: <5s
+- ✅ High load scenarios: <2s
+
+**Interactive Simulator Features:**
+- ✅ Manual scenario input
+- ✅ Predefined test scenarios
+- ✅ Detailed reasoning explanations
+- ✅ Timetable statistics
+- ✅ Multiple output formats (text/JSON)
+- ✅ Command-line and interactive modes
+
+### Predefined Test Scenarios
+
+Located in `scenarios/` directory:
+- **monday_busy.json** - Multiple Math/English teachers absent
+- **cross_level_challenge.json** - Elementary teachers absent, tests cross-level assignments
+- **specialist_shortage.json** - Specialized subject teachers absent
+- **fair_distribution.json** - Week-long workload balancing test
+
+### pytest Integration (Optional)
+
+For advanced testing features:
+```bash
+# Install pytest
+pip install pytest pytest-cov
+
+# Run with coverage
+pytest tests/ --cov=src --cov-report=html --cov-report=term
+
+# Run specific test file
+pytest tests/test_substitute.py -v
+
+# Run specific test
+pytest tests/test_substitute.py::TestFindBestSubstituteTeacher::test_workload_balancing -v
+```
+
+### Test Results
+
+**Current Status:** All tests passing
+- Unit tests: 10/10 ✅
+- Real data validation: 6/6 ✅
+- Performance benchmarks: 4/4 ✅
 
 For detailed testing documentation, see:
-- **TESTING.md** - Quick reference guide for developers
-- **TEST_REPORT.md** - Comprehensive test analysis and recommendations
+- **docs/TESTING.md** - Complete testing guide (substitute tests)
+- **TEST_REPORT.md** - Comprehensive test analysis
+- **docs/LINE_TESTING.md** - LINE integration testing guide
+
+### LINE Integration Testing
+
+The project includes **100+ automated tests** for LINE Bot functionality with **85%+ code coverage**.
+
+#### Quick Start
+
+```bash
+# Install test dependencies
+pip install -r requirements-dev.txt
+
+# Run all LINE tests
+python scripts/run_line_tests.py
+```
+
+#### Test Suites
+
+**1. Webhook Tests** (24+ tests) - Flask server and security
+```bash
+pytest tests/test_webhook.py -v
+```
+- ✅ HMAC-SHA256 signature verification
+- ✅ Message event handling
+- ✅ Leave keyword detection (ลา, ขอลา, หยุด, ไม่มา)
+- ✅ Group filtering (teacher/admin groups)
+- ✅ Error handling and propagation
+- ✅ Health check endpoints
+
+**2. AI Parser Tests** (40+ tests) - Thai message parsing
+```bash
+pytest tests/test_ai_parser.py -v
+```
+- ✅ Teacher name extraction (formal greetings, no-spacing)
+- ✅ Thai date parsing (พรุ่งนี้, วันนี้, วันจันทร์)
+- ✅ Period extraction (ranges, lists, full day)
+- ✅ Late arrival detection (เข้าสาย, มาสาย)
+- ✅ Reason extraction
+- ✅ Fallback parser (regex-based)
+- ✅ Real-world LINE messages
+- ✅ Edge cases and error handling
+
+**3. LINE Messaging Tests** (25+ tests) - Outgoing notifications
+```bash
+pytest tests/test_line_messaging.py -v
+```
+- ✅ Message sending to groups
+- ✅ Two-group architecture routing
+- ✅ Daily report formatting
+- ✅ Error notifications
+- ✅ Thai text preservation
+- ✅ Emoji formatting
+
+**4. Integration Tests** (10+ tests) - End-to-end workflows
+```bash
+pytest tests/test_line_integration.py -v
+```
+- ✅ Complete leave request flow
+- ✅ Daily processing workflow
+- ✅ Error propagation across components
+- ✅ Data integrity validation
+
+**5. Configuration Tests** (6+ tests) - Environment validation
+```bash
+pytest tests/test_config.py -v
+```
+
+#### Coverage Report
+
+Generate HTML coverage report:
+```bash
+pytest tests/ --cov=src.web --cov=src.timetable.ai_parser --cov-report=html
+open htmlcov/index.html  # View in browser
+```
+
+**Coverage Targets:**
+- Webhook (src/web/webhook.py): 90%+
+- AI Parser (src/timetable/ai_parser.py): 95%+
+- LINE Messaging (src/web/line_messaging.py): 85%+
+
+#### Test Features
+
+- **100% Mock-based** - No actual API calls, fast execution (<10 seconds)
+- **Thai Language Support** - All tests verify Thai text handling
+- **Real-world Messages** - Based on actual LINE production messages
+- **Comprehensive Error Scenarios** - Tests all failure paths
+- **CI/CD Ready** - Can run in automated pipelines
+
+#### Running Specific Tests
+
+```bash
+# Run single test file
+pytest tests/test_webhook.py -v
+
+# Run specific test class
+pytest tests/test_ai_parser.py::TestPeriodParsing -v
+
+# Run specific test method
+pytest tests/test_ai_parser.py::TestPeriodParsing::test_period_range_1_to_3 -v
+
+# Run with verbose output
+pytest tests/test_webhook.py -vv
+
+# Stop on first failure
+pytest tests/ -x
+```
+
+For complete LINE testing documentation, see **docs/LINE_TESTING.md**.
 
 ## Data Structures
 

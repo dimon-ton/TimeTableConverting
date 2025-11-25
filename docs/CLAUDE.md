@@ -102,24 +102,37 @@ Parses Excel worksheets with hardcoded Thai-to-English mappings for days, subjec
 - Intelligently skips invalid entries (lunch break text, empty cells)
 
 ### src/timetable/substitute.py
-Scoring-based algorithm that balances subject qualification, level matching, and workload distribution.
+Scoring-based algorithm that balances subject qualification, level matching, and workload distribution with hard constraints for teacher protection.
+
+**Hard Constraints (Teachers Excluded If):**
+1. **Teacher is absent** - Cannot substitute if not at school
+2. **Already teaching at that period** - Cannot be in two places at once
+3. **Daily workload limit reached** - Cannot be assigned if already have 4+ periods that day (MAX_DAILY_PERIODS = 4, added Nov 25, 2025)
 
 **Core algorithm (find_best_substitute_teacher):**
-1. Filter available teachers (not teaching at that period)
-2. Score each candidate:
+1. Filter available teachers:
+   - Exclude teachers who are absent
+   - Exclude teachers already teaching at that period
+   - Exclude teachers who have reached daily workload limit (4+ periods) - NEW Nov 25, 2025
+2. Score each eligible candidate:
    - +2: Can teach subject (bonus, not required - changed Nov 19, 2025)
    - +5: Teacher's level matches class level
    - -2: Level mismatch penalty
-   - -2 per period: Daily load on same day
+   - -2 per period: Daily load on same day (below limit)
    - -1 per entry: Historical substitution count
    - -0.5 per period: Total term load (excluding leave days)
    - -50: Last resort teachers (T006, T010, T018 - added Nov 19, 2025)
-   - -999: Teacher is absent
 3. Select randomly among top-scored candidates (handles ties)
 
-**Note:** As of Nov 19, 2025, subject qualification is a bonus rather than requirement, allowing flexible assignment when no qualified teachers available.
+**Key Functions:**
+- `has_reached_daily_limit(teacher_id)` - Returns True if teacher has 4+ periods scheduled (added Nov 25, 2025)
+- `find_best_substitute_teacher(...)` - Main algorithm with hard constraints and scoring
+- `assign_substitutes_for_day(...)` - Batch processing for full day, includes newly assigned substitutes in constraint checking
 
-**assign_substitutes_for_day:** Iterates through all absent teachers' slots for a day, calling find_best_substitute_teacher for each. Includes newly assigned substitutes in constraint checking to avoid double-booking.
+**Notes:**
+- Subject qualification is a bonus rather than requirement (Nov 19, 2025)
+- Daily workload limit (MAX_DAILY_PERIODS = 4) is configurable constant (Nov 25, 2025)
+- Hard constraints provide absolute protection, scoring optimizes among eligible teachers
 
 ### LINE Bot System (Nov 2025)
 

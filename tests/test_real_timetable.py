@@ -230,8 +230,94 @@ def main():
 
     print(f"\nBatch function assigned {len(assignments)} substitutes:")
     for assignment in assignments:
-        print(f"  {assignment['teacher_id']:8s} -> Period {assignment['period_id']}: "
+        sub_teacher = assignment.get('substitute_teacher_id', 'None')
+        print(f"  {sub_teacher:8s} -> Period {assignment['period_id']}: "
               f"{assignment['subject_id']:15s} for {assignment['class_id']}")
+
+    # VALIDATION CHECKS
+    print(f"\n{'='*70}")
+    print("VALIDATION CHECKS")
+    print(f"{'='*70}")
+
+    # Check 1: No double-booking
+    print("\n[Check 1] Verifying no double-booking...")
+    substitute_counts = {}
+    for assignment in assignments:
+        sub_id = assignment.get('substitute_teacher_id')
+        if sub_id:  # Only check if substitute was found
+            period = assignment['period_id']
+            key = (sub_id, period)
+            substitute_counts[key] = substitute_counts.get(key, 0) + 1
+
+    double_booked = [(teacher, period) for (teacher, period), count in substitute_counts.items() if count > 1]
+    if double_booked:
+        print(f"  [FAIL] Double-booking detected: {double_booked}")
+    else:
+        print("  [PASS] No double-booking detected")
+
+    # Check 2: Absent teachers not selected
+    print("\n[Check 2] Verifying absent teachers not selected as substitutes...")
+    invalid_subs = [a for a in assignments if a.get('substitute_teacher_id') in [absent_teacher]]
+    if invalid_subs:
+        print(f"  [FAIL] Absent teacher selected as substitute: {invalid_subs}")
+    else:
+        print("  [PASS] No absent teachers selected as substitutes")
+
+    # Check 3: Subject qualification rate
+    print("\n[Check 3] Calculating subject qualification rate...")
+    qualified_count = 0
+    total_with_sub = 0
+    for assignment in assignments:
+        sub_id = assignment.get('substitute_teacher_id')
+        if sub_id:
+            total_with_sub += 1
+            subject = assignment['subject_id']
+            if subject in teacher_subjects.get(sub_id, []):
+                qualified_count += 1
+
+    if total_with_sub > 0:
+        qual_rate = (qualified_count / total_with_sub) * 100
+        print(f"  Subject qualification rate: {qual_rate:.1f}% ({qualified_count}/{total_with_sub})")
+    else:
+        print("  No substitutes assigned")
+
+    # Check 4: Level matching rate
+    print("\n[Check 4] Calculating level matching rate...")
+    level_match_count = 0
+    for assignment in assignments:
+        sub_id = assignment.get('substitute_teacher_id')
+        if sub_id:
+            class_id = assignment['class_id']
+            class_level = class_levels.get(class_id)
+            teacher_levels_list = teacher_levels.get(sub_id, [])
+            if class_level in teacher_levels_list:
+                level_match_count += 1
+
+    if total_with_sub > 0:
+        level_rate = (level_match_count / total_with_sub) * 100
+        print(f"  Level matching rate: {level_rate:.1f}% ({level_match_count}/{total_with_sub})")
+    else:
+        print("  No substitutes assigned")
+
+    # Check 5: Workload distribution
+    print("\n[Check 5] Analyzing workload distribution...")
+    workload = {}
+    for assignment in assignments:
+        sub_id = assignment.get('substitute_teacher_id')
+        if sub_id:
+            workload[sub_id] = workload.get(sub_id, 0) + 1
+
+    if workload:
+        print(f"  Substitutes assigned to {len(workload)} different teachers")
+        print(f"  Workload distribution:")
+        for teacher_id, count in sorted(workload.items(), key=lambda x: x[1], reverse=True):
+            print(f"    {teacher_id}: {count} period(s)")
+    else:
+        print("  No substitutes assigned")
+
+    print(f"\n{'='*70}")
+    print("VALIDATION COMPLETE")
+    print(f"{'='*70}")
 
 
 if __name__ == '__main__':

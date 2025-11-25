@@ -1,6 +1,9 @@
 import random
 from typing import Dict, List, Optional, Set
 
+# Maximum periods a teacher should have in one day (including substitutions)
+MAX_DAILY_PERIODS = 4
+
 def find_best_substitute_teacher(
     subject_id: str,
     day_id: str,
@@ -18,7 +21,12 @@ def find_best_substitute_teacher(
     """
     Find the best substitute teacher for a given period based on scoring algorithm.
 
-    Scoring criteria:
+    Hard constraints (teachers are excluded if):
+        - Teacher is absent
+        - Teacher already teaching at that period
+        - Teacher already has MAX_DAILY_PERIODS (4) or more periods that day
+
+    Scoring criteria (for eligible teachers):
         +2 points: Teacher can teach the subject (bonus, not required)
         +5 points: Teacher's level matches class level
         -2 points: Level mismatch penalty
@@ -26,7 +34,7 @@ def find_best_substitute_teacher(
         -1 point per substitution: Historical substitution count
         -0.5 points per period: Total term load (excluding leave days)
         -50 points: Last resort teachers (T006, T010, T018)
-        -999 points: Teacher is absent
+        -999 points: Teacher is absent (excluded)
 
     Args:
         subject_id: Subject that needs to be taught
@@ -80,6 +88,28 @@ def find_best_substitute_teacher(
                 return False
 
         return True
+
+    def has_reached_daily_limit(teacher_id: str) -> bool:
+        """
+        Check if teacher has reached maximum daily workload.
+
+        Returns:
+            True if teacher already has MAX_DAILY_PERIODS or more periods on this day
+        """
+        # Count regular timetable periods for this day
+        daily_load = sum(
+            1
+            for row in timetables
+            if row["teacher_id"] == teacher_id and row["day_id"] == day_id
+        )
+        # Add substitute assignments already made for this day
+        daily_load += sum(
+            1
+            for row in substitute_logs
+            if row.get("substitute_teacher_id") == teacher_id and row["day_id"] == day_id
+        )
+
+        return daily_load >= MAX_DAILY_PERIODS
 
     def calculate_score(teacher_id: str) -> float:
         """
@@ -149,10 +179,17 @@ def find_best_substitute_teacher(
     # Collect candidates
     candidates = []
     for teacher_id in all_teacher_ids:
-        if is_available(teacher_id):
-            score = calculate_score(teacher_id)
-            if score > -999:
-                candidates.append({"teacher_id": teacher_id, "score": score})
+        # Skip teachers who are not available at this period
+        if not is_available(teacher_id):
+            continue
+
+        # Skip teachers who have reached their daily workload limit
+        if has_reached_daily_limit(teacher_id):
+            continue
+
+        score = calculate_score(teacher_id)
+        if score > -999:
+            candidates.append({"teacher_id": teacher_id, "score": score})
 
     if not candidates:
         return None
