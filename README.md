@@ -139,21 +139,48 @@ The bot automatically:
 2. Logs to Google Sheets "Leave_Requests" tab
 3. Sends confirmation to the group
 
-**Daily Processing:**
+**Daily Processing with Admin Verification:**
+
+The system uses a two-stage workflow for improved accountability:
+
+1. **Automated Processing (8:55 AM):**
+   - System finds substitutes for today's leave requests
+   - Writes assignments to "Pending_Assignments" worksheet
+   - Generates report with `[REPORT] YYYY-MM-DD` prefix
+   - Sends report to admin LINE group
+
+2. **Admin Verification (Manual):**
+   - Admin reviews substitute assignments in report
+   - Admin can edit message to adjust assignments if needed
+   - Admin copies entire message (including `[REPORT]` prefix)
+   - Admin sends to teacher LINE group
+
+3. **System Finalization (Automatic):**
+   - System detects `[REPORT]` prefix in teacher group
+   - Validates date (rejects future dates, warns if >7 days old)
+   - Finalizes assignments to "Leave_Logs" worksheet
+   - Records who verified (LINE User ID) and when
+   - Sends confirmation to admin group
 
 Run manually for testing:
 ```bash
-# Process today's leaves
+# Process today's leaves (writes to Pending_Assignments)
 python -m src.utils.daily_leave_processor
 
 # Process specific date
 python -m src.utils.daily_leave_processor 2025-11-21
 
-# Send report to LINE
+# Send report to LINE admin group
 python -m src.utils.daily_leave_processor --send-line
 
 # Test mode (no Sheets updates)
 python -m src.utils.daily_leave_processor --test
+```
+
+Set up database for verification workflow:
+```bash
+# Create Pending_Assignments worksheet and add verification columns
+python scripts/create_pending_sheet.py
 ```
 
 Or set up cron job (runs at 8:55 AM Monday-Friday):

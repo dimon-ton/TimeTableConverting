@@ -35,7 +35,7 @@ from linebot.v3.webhooks import MessageEvent, TextMessageContent
 
 from src.config import config
 from src.timetable.ai_parser import parse_leave_request, parse_leave_request_fallback
-from src.utils.sheet_utils import log_request_to_sheet
+from src.utils.sheet_utils import log_request_to_sheet, finalize_pending_assignment
 
 
 # Initialize Flask app
@@ -82,6 +82,154 @@ def verify_signature(body: bytes, signature: str) -> bool:
     expected_signature = base64.b64encode(hash_digest).decode('utf-8')
 
     return hmac.compare_digest(signature, expected_signature)
+
+
+def is_substitution_report(text: str) -> bool:
+    """
+    Check if message is a substitution report.
+
+    Args:
+        text: Message text
+
+    Returns:
+        True if message starts with REPORT_PREFIX
+    """
+    return text.strip().startswith(config.REPORT_PREFIX)
+
+
+def parse_report_date(text: str) -> str:
+    """
+    Extract date from report message.
+
+    Expected format: [REPORT] YYYY-MM-DD (with optional additional text on following lines)
+
+    Args:
+        text: Report message (can be multi-line)
+
+    Returns:
+        Date string in YYYY-MM-DD format, or None if invalid
+    """
+    import re
+
+    # Get the first line only
+    first_line = text.strip().split('\n')[0].strip()
+
+    if not first_line.startswith(config.REPORT_PREFIX):
+        return None
+
+    # Extract everything after the prefix on the first line
+    date_part = first_line[len(config.REPORT_PREFIX):].strip()
+
+    # Validate YYYY-MM-DD format
+    date_pattern = r'^\d{4}-\d{2}-\d{2}$'
+    if re.match(date_pattern, date_part):
+        return date_part
+
+    return None
+
+
+def process_substitution_report(text: str, group_id: str, user_id: str):
+    """
+    Process admin substitution report and finalize pending assignments.
+
+    Args:
+        text: Report message text
+        group_id: LINE group ID where message was sent
+        user_id: LINE user ID of sender (admin)
+    """
+    # Only accept reports from teacher group (admins send to teacher group)
+    teacher_group = config.LINE_TEACHER_GROUP_ID or config.LINE_GROUP_ID
+    if teacher_group and group_id != teacher_group:
+        print(f"Ignoring report from non-teacher group: {group_id}")
+        return
+
+    try:
+        # Parse date from message
+        target_date = parse_report_date(text)
+
+        if not target_date:
+            print(f"Invalid report format: {text}")
+            send_to_admin(
+                "❌ รูปแบบวันที่ไม่ถูกต้อง\n\n"
+                "บรรทัดแรกต้องเป็น: [REPORT] YYYY-MM-DD\n"
+                f"ตัวอย่าง:\n"
+                f"[REPORT] 2025-11-28\n"
+                f"รายงานการสอนแทน..."
+            )
+            return
+
+        print(f"Processing substitution report for date: {target_date}")
+        print(f"Verified by admin user: {user_id}")
+
+        # Validate date is not in the future
+        from datetime import datetime as dt
+        try:
+            report_date = dt.strptime(target_date, '%Y-%m-%d').date()
+            today = dt.now().date()
+
+            if report_date > today:
+                send_to_admin(
+                    f"❌ ไม่สามารถยืนยันวันที่ในอนาคต\n\n"
+                    f"วันที่ในรายงาน: {target_date}\n"
+                    f"วันนี้: {today}\n\n"
+                    f"กรุณาตรวจสอบวันที่ในรายงาน"
+                )
+                print(f"ERROR: Report date {target_date} is in the future")
+                return
+
+            # Check if date is too old (more than 7 days)
+            days_diff = (today - report_date).days
+            if days_diff > config.PENDING_EXPIRATION_DAYS:
+                send_to_admin(
+                    f"⚠️ วันที่ในรายงานเก่าเกินไป\n\n"
+                    f"วันที่ในรายงาน: {target_date}\n"
+                    f"เก่ากว่าวันนี้: {days_diff} วัน\n\n"
+                    f"ข้อมูลอาจถูกลบหรือหมดอายุแล้ว (เกิน {config.PENDING_EXPIRATION_DAYS} วัน)"
+                )
+                print(f"WARNING: Report date {target_date} is {days_diff} days old")
+
+        except ValueError:
+            send_to_admin(
+                f"❌ รูปแบบวันที่ไม่ถูกต้อง\n\n"
+                f"วันที่: {target_date}\n\n"
+                f"กรุณาใช้รูปแบบ YYYY-MM-DD"
+            )
+            return
+
+        # Finalize pending assignments
+        finalized_count = finalize_pending_assignment(target_date, verified_by=user_id)
+
+        if finalized_count > 0:
+            # Send confirmation to admin group
+            send_to_admin(
+                f"✅ ยืนยันการสอนแทนสำเร็จ\n\n"
+                f"วันที่: {target_date}\n"
+                f"จำนวน: {finalized_count} คาบ\n\n"
+                f"ข้อมูลถูกบันทึกลงใน Leave_Logs เรียบร้อยแล้ว"
+            )
+            print(f"Successfully finalized {finalized_count} assignments for {target_date}")
+        else:
+            # No pending assignments found
+            send_to_admin(
+                f"ℹ️ ไม่พบข้อมูลการสอนแทนที่รอการยืนยัน\n\n"
+                f"วันที่: {target_date}\n\n"
+                f"อาจเป็นเพราะ:\n"
+                f"- ไม่มีข้อมูลสำหรับวันที่นี้\n"
+                f"- ข้อมูลถูกยืนยันไปแล้ว\n"
+                f"- ข้อมูลหมดอายุ (เกิน {config.PENDING_EXPIRATION_DAYS} วัน)"
+            )
+            print(f"No pending assignments found for {target_date}")
+
+    except Exception as e:
+        print(f"ERROR processing substitution report: {e}")
+        import traceback
+        traceback.print_exc()
+
+        send_to_admin(
+            f"⚠️ เกิดข้อผิดพลาดในการประมวลผล\n\n"
+            f"ข้อความ: {text}\n\n"
+            f"Error: {str(e)}"
+        )
 
 
 @app.route("/callback", methods=['POST'])
@@ -183,7 +331,12 @@ def handle_text_message(event):
             print(f"\nNOTE: Add admin group to your .env file:")
             print(f"LINE_ADMIN_GROUP_ID={group_id}\n")
 
-    # Process leave request
+    # Check for substitution report FIRST
+    if is_substitution_report(text):
+        process_substitution_report(text, group_id, user_id)
+        return
+
+    # Otherwise, process as leave request
     process_leave_request_message(text, group_id, reply_token)
 
 

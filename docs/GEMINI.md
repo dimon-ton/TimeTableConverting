@@ -231,6 +231,49 @@ python -m tests.test_real_timetable           # Real timetable validation
 
 ## Recent Changes (Nov 2025)
 
+### Nov 28, 2025: Admin-Verified Substitution Workflow Implementation
+- **Two-stage verification workflow for accountability:**
+  - Daily processor writes to Pending_Assignments worksheet (staging area)
+  - Admin receives report with [REPORT] YYYY-MM-DD prefix in admin group
+  - Admin reviews, edits if needed, and forwards to teacher group
+  - System detects [REPORT] prefix and finalizes to Leave_Logs
+  - Tracks who verified (LINE User ID) and when (timestamp)
+- **New database components:**
+  - Pending_Assignments worksheet (11 columns) for staging
+  - Verified_By and Verified_At columns added to Leave_Logs
+  - scripts/create_pending_sheet.py - Database setup script
+  - src/utils/expire_pending.py - Cleanup script for old entries
+- **Enhanced functions (8 new, 1 modified):**
+  - add_pending_assignment() - Write to staging area
+  - load_pending_assignments(date) - Read pending for specific date
+  - delete_pending_assignments(date) - Clear after finalization
+  - expire_old_pending_assignments() - Mark old entries as expired
+  - finalize_pending_assignment(date, verified_by) - Move to Leave_Logs with tracking
+  - is_substitution_report(text) - Detect [REPORT] prefix
+  - parse_report_date(text) - Extract date from [REPORT] YYYY-MM-DD
+  - process_substitution_report(message_text, user_id) - Handle verification
+  - add_absence() - Modified to accept optional verification parameters
+- **Report message handling:**
+  - Daily processor generates reports with [REPORT] YYYY-MM-DD prefix
+  - Clear labels: (ลา) for absent teacher, (สอนแทน) for substitute
+  - Date validation: rejects future dates, warns if >7 days old
+  - Admin instructions included in report
+- **Configuration additions:**
+  - PENDING_ASSIGNMENTS_WORKSHEET = "Pending_Assignments"
+  - REPORT_PREFIX = "[REPORT]"
+  - PENDING_EXPIRATION_DAYS = 7
+- **Comprehensive documentation:**
+  - docs/REPORT_MESSAGE_EXAMPLE.txt (138 lines) with Thai instructions
+  - Example report message format and workflow guide
+  - Validation rules and error scenarios
+- **Benefits:**
+  - Human-in-the-loop verification before finalization
+  - Accountability tracking (who verified, when)
+  - Manual corrections possible before commitment
+  - Clear audit trail for compliance
+  - Safer production deployment
+- **Impact:** 3 files created, 4 modified, ~700 lines added, 8 new functions
+
 ### Nov 26, 2025: LINE Integration Testing and Verification
 - **Comprehensive production readiness validation:**
   - Installed all dependencies and configured complete test environment

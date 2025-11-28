@@ -249,7 +249,9 @@ def add_absence(
     class_id: str,
     subject: str = "",
     substitute_teacher: str = "",
-    notes: str = ""
+    notes: str = "",
+    verified_by: str = "",
+    verified_at: str = ""
 ) -> bool:
     """
     Add a teacher absence entry to the 'Leave_Logs' Google Sheet.
@@ -263,6 +265,8 @@ def add_absence(
         subject: Subject name (optional)
         substitute_teacher: Substitute teacher ID (optional)
         notes: Additional notes (optional)
+        verified_by: LINE User ID of admin who verified (optional)
+        verified_at: Timestamp of verification (optional)
 
     Returns:
         bool: True if successful, False otherwise
@@ -273,7 +277,7 @@ def add_absence(
         spreadsheet = client.open_by_key(config.SPREADSHEET_ID)
         worksheet = spreadsheet.worksheet(config.LEAVE_LOGS_WORKSHEET)
 
-        # Prepare row data
+        # Prepare row data (now includes verified_by and verified_at)
         row = [
             date,
             absent_teacher,
@@ -282,7 +286,9 @@ def add_absence(
             class_id,
             subject,
             substitute_teacher,
-            notes
+            notes,
+            verified_by,
+            verified_at
         ]
 
         # Append the row
@@ -294,3 +300,274 @@ def add_absence(
     except Exception as e:
         print(f"ERROR: Failed to add absence to '{config.LEAVE_LOGS_WORKSHEET}': {e}")
         return False
+
+
+# ==================== Pending Assignments Functions ====================
+
+def add_pending_assignment(
+    date: str,
+    absent_teacher: str,
+    day: str,
+    period: int,
+    class_id: str,
+    subject: str = "",
+    substitute_teacher: str = "",
+    notes: str = "",
+    processed_at: str = ""
+) -> bool:
+    """
+    Add a substitute assignment to the 'Pending_Assignments' sheet (not yet verified).
+
+    Args:
+        date: Date of absence (YYYY-MM-DD format)
+        absent_teacher: Teacher ID (e.g., "T001")
+        day: Day of week (e.g., "Mon", "Tue", etc.)
+        period: Period number
+        class_id: Class ID (e.g., "ป.4", "ม.1")
+        subject: Subject name (optional)
+        substitute_teacher: Substitute teacher ID or "Not Found" (optional)
+        notes: Additional notes (optional)
+        processed_at: Timestamp when daily processing completed (optional)
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        # Get authenticated client
+        client = get_sheets_client()
+        spreadsheet = client.open_by_key(config.SPREADSHEET_ID)
+
+        # Get or create the Pending_Assignments worksheet
+        try:
+            worksheet = spreadsheet.worksheet(config.PENDING_ASSIGNMENTS_WORKSHEET)
+        except Exception:
+            print(f"Worksheet '{config.PENDING_ASSIGNMENTS_WORKSHEET}' not found. Creating it...")
+            worksheet = spreadsheet.add_worksheet(
+                title=config.PENDING_ASSIGNMENTS_WORKSHEET, rows=100, cols=11
+            )
+            # Add headers
+            headers = [
+                "Date", "Absent_Teacher", "Day", "Period", "Class_ID",
+                "Subject", "Substitute_Teacher", "Notes", "Created_At",
+                "Processed_At", "Status"
+            ]
+            worksheet.append_row(headers, value_input_option='USER_ENTERED')
+            print(f"OK - Created '{config.PENDING_ASSIGNMENTS_WORKSHEET}' worksheet")
+
+        # Prepare row data
+        created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        row = [
+            date,
+            absent_teacher,
+            day,
+            str(period),
+            class_id,
+            subject,
+            substitute_teacher,
+            notes,
+            created_at,
+            processed_at,
+            "pending"
+        ]
+
+        # Append the row
+        worksheet.append_row(row, value_input_option='USER_ENTERED')
+
+        print(f"OK - Added pending assignment to '{config.PENDING_ASSIGNMENTS_WORKSHEET}' for {absent_teacher} on {date}")
+        return True
+
+    except Exception as e:
+        print(f"ERROR: Failed to add pending assignment: {e}")
+        return False
+
+
+def load_pending_assignments(target_date: str) -> List[Dict]:
+    """
+    Load all pending assignments for a specific date.
+
+    Args:
+        target_date: Date in YYYY-MM-DD format
+
+    Returns:
+        List of dictionaries with assignment details
+    """
+    try:
+        client = get_sheets_client()
+        spreadsheet = client.open_by_key(config.SPREADSHEET_ID)
+
+        try:
+            worksheet = spreadsheet.worksheet(config.PENDING_ASSIGNMENTS_WORKSHEET)
+        except Exception:
+            print(f"Worksheet '{config.PENDING_ASSIGNMENTS_WORKSHEET}' not found")
+            return []
+
+        # Get all rows
+        all_rows = worksheet.get_all_records()
+
+        # Filter for target date and pending status
+        pending_assignments = [
+            row for row in all_rows
+            if row.get('Date') == target_date and row.get('Status') == 'pending'
+        ]
+
+        print(f"Loaded {len(pending_assignments)} pending assignments for {target_date}")
+        return pending_assignments
+
+    except Exception as e:
+        print(f"ERROR: Failed to load pending assignments: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+
+def delete_pending_assignments(target_date: str) -> int:
+    """
+    Delete pending assignments after they've been finalized.
+
+    Args:
+        target_date: Date in YYYY-MM-DD format
+
+    Returns:
+        Number of rows deleted
+    """
+    try:
+        client = get_sheets_client()
+        spreadsheet = client.open_by_key(config.SPREADSHEET_ID)
+
+        try:
+            worksheet = spreadsheet.worksheet(config.PENDING_ASSIGNMENTS_WORKSHEET)
+        except Exception:
+            print(f"Worksheet '{config.PENDING_ASSIGNMENTS_WORKSHEET}' not found")
+            return 0
+
+        # Get all rows
+        all_rows = worksheet.get_all_values()
+
+        # Find rows to delete (skip header)
+        rows_to_delete = []
+        for idx, row in enumerate(all_rows[1:], start=2):  # Start from row 2 (1-indexed)
+            if len(row) >= 11:  # Ensure row has enough columns
+                date_val = row[0]  # Date column
+                status_val = row[10]  # Status column
+                if date_val == target_date and status_val == 'pending':
+                    rows_to_delete.append(idx)
+
+        # Delete rows in reverse order to maintain indices
+        deleted_count = 0
+        for row_idx in reversed(rows_to_delete):
+            worksheet.delete_rows(row_idx)
+            deleted_count += 1
+
+        print(f"Deleted {deleted_count} pending assignments for {target_date}")
+        return deleted_count
+
+    except Exception as e:
+        print(f"ERROR: Failed to delete pending assignments: {e}")
+        import traceback
+        traceback.print_exc()
+        return 0
+
+
+def expire_old_pending_assignments() -> int:
+    """
+    Expire pending assignments older than PENDING_EXPIRATION_DAYS.
+    Changes Status from "pending" to "expired" for audit trail.
+
+    Returns:
+        Number of assignments expired
+    """
+    try:
+        from datetime import timedelta
+
+        client = get_sheets_client()
+        spreadsheet = client.open_by_key(config.SPREADSHEET_ID)
+
+        try:
+            worksheet = spreadsheet.worksheet(config.PENDING_ASSIGNMENTS_WORKSHEET)
+        except Exception:
+            print(f"Worksheet '{config.PENDING_ASSIGNMENTS_WORKSHEET}' not found")
+            return 0
+
+        # Calculate cutoff date
+        cutoff_date = datetime.now() - timedelta(days=config.PENDING_EXPIRATION_DAYS)
+        cutoff_str = cutoff_date.strftime("%Y-%m-%d %H:%M:%S")
+
+        # Get all rows
+        all_rows = worksheet.get_all_values()
+
+        # Find rows to expire
+        expired_count = 0
+        for idx, row in enumerate(all_rows[1:], start=2):  # Start from row 2 (1-indexed)
+            if len(row) >= 11:
+                created_at = row[8]  # Created_At column
+                status = row[10]  # Status column
+
+                # Check if pending and older than cutoff
+                if status == 'pending' and created_at < cutoff_str:
+                    # Update status to "expired"
+                    worksheet.update_cell(idx, 11, "expired")  # Column 11 is Status
+                    expired_count += 1
+
+        print(f"Expired {expired_count} old pending assignments (older than {config.PENDING_EXPIRATION_DAYS} days)")
+        return expired_count
+
+    except Exception as e:
+        print(f"ERROR: Failed to expire old pending assignments: {e}")
+        import traceback
+        traceback.print_exc()
+        return 0
+
+
+def finalize_pending_assignment(target_date: str, verified_by: str) -> int:
+    """
+    Move pending assignments to Leave_Logs after admin verification.
+
+    Args:
+        target_date: Date in YYYY-MM-DD format
+        verified_by: LINE User ID of admin who verified
+
+    Returns:
+        Number of assignments finalized
+    """
+    try:
+        # Load pending assignments
+        pending_assignments = load_pending_assignments(target_date)
+
+        if not pending_assignments:
+            print(f"No pending assignments found for {target_date}")
+            return 0
+
+        # Current timestamp for verification
+        verified_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # Finalize each assignment
+        finalized_count = 0
+        for assignment in pending_assignments:
+            success = add_absence(
+                date=assignment.get('Date', ''),
+                absent_teacher=assignment.get('Absent_Teacher', ''),
+                day=assignment.get('Day', ''),
+                period=int(assignment.get('Period', 0)),
+                class_id=assignment.get('Class_ID', ''),
+                subject=assignment.get('Subject', ''),
+                substitute_teacher=assignment.get('Substitute_Teacher', ''),
+                notes=assignment.get('Notes', ''),
+                verified_by=verified_by,
+                verified_at=verified_at
+            )
+
+            if success:
+                finalized_count += 1
+
+        # Delete pending assignments after successful finalization
+        if finalized_count > 0:
+            delete_pending_assignments(target_date)
+
+        print(f"Finalized {finalized_count}/{len(pending_assignments)} pending assignments for {target_date}")
+        return finalized_count
+
+    except Exception as e:
+        print(f"ERROR: Failed to finalize pending assignments: {e}")
+        import traceback
+        traceback.print_exc()
+        return 0

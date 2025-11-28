@@ -1,16 +1,62 @@
 # Next Steps for TimeTableConverting Project
 
-**Generated:** 2025-11-26
-**Current Status:** Production-ready and fully tested - LINE integration verified with live APIs
-**Last Session:** Nov 26, 2025 - LINE Integration Testing and Verification
+**Generated:** 2025-11-28
+**Current Status:** Production-ready with admin verification workflow
+**Last Session:** Nov 28, 2025 - Admin-Verified Substitution Workflow Implementation
 
 ---
 
 ## Current Stopping Point
 
-The project is now in a **PRODUCTION-READY (VERIFIED A++) state** with complete automation, teacher workload protection, cloud integration, intelligent workload distribution, two-group notification system, comprehensive testing documentation, natural Thai language processing, and VALIDATED real-world functionality:
+The project is now in a **PRODUCTION-READY (VERIFIED A++) state** with complete automation, teacher workload protection, cloud integration, intelligent workload distribution, two-group notification system, comprehensive testing documentation, natural Thai language processing, VALIDATED real-world functionality, and NEW admin verification workflow for improved accountability:
 
-### Completed in Latest Session (Nov 26, 2025)
+### Completed in Latest Session (Nov 28, 2025)
+1. **Admin-Verified Substitution Workflow:**
+   - Implemented two-stage workflow: Pending → Admin Review → Finalized
+   - Created Pending_Assignments worksheet for staging assignments
+   - Added verification tracking (Verified_By, Verified_At) to Leave_Logs
+   - Admin receives report with [REPORT] prefix in admin group
+   - Admin forwards to teacher group to finalize assignments
+   - System automatically processes [REPORT] messages and finalizes
+
+2. **Database Schema Enhancements:**
+   - New worksheet: Pending_Assignments (11 columns)
+   - Modified worksheet: Leave_Logs (+2 columns for verification tracking)
+   - Created setup script: scripts/create_pending_sheet.py
+   - Created cleanup script: src/utils/expire_pending.py
+
+3. **Report Message Handling:**
+   - Daily processor generates reports with [REPORT] YYYY-MM-DD prefix
+   - Webhook detects and processes report messages
+   - Date validation (rejects future, warns if >7 days old)
+   - Verification tracking with LINE User ID
+   - Clear labels: (ลา) for absent, (สอนแทน) for substitute
+
+4. **New Functions Added (8 total):**
+   - add_pending_assignment() - Write to Pending_Assignments
+   - load_pending_assignments(date) - Read pending for specific date
+   - delete_pending_assignments(date) - Clear after finalization
+   - expire_old_pending_assignments() - Mark expired entries
+   - finalize_pending_assignment(date, verified_by) - Move to Leave_Logs
+   - is_substitution_report(text) - Detect [REPORT] prefix
+   - parse_report_date(text) - Extract date from [REPORT]
+   - process_substitution_report(message_text, user_id) - Handle verification
+
+5. **Documentation:**
+   - Created docs/REPORT_MESSAGE_EXAMPLE.txt with comprehensive instructions
+   - Example report message format in Thai
+   - Step-by-step workflow guide
+   - Validation rules and error scenarios
+   - Database schema documentation
+
+6. **Benefits:**
+   - Human-in-the-loop verification before finalization
+   - Accountability tracking (who verified what and when)
+   - Allows manual corrections before commitment
+   - Clear audit trail
+   - Safer production deployment
+
+### Completed in Previous Session (Nov 26, 2025)
 1. **LINE Integration Testing and Validation:**
    - Installed all dependencies from requirements.txt and requirements-dev.txt
    - Ran comprehensive test suite: 113 LINE integration tests

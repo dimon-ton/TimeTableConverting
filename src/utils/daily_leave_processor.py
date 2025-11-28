@@ -16,7 +16,7 @@ from typing import Dict, List, Tuple
 from collections import defaultdict
 
 from src.config import config
-from src.utils.sheet_utils import get_sheets_client, load_requests_from_sheet, add_absence, load_substitute_logs_from_sheet
+from src.utils.sheet_utils import get_sheets_client, load_requests_from_sheet, add_absence, load_substitute_logs_from_sheet, add_pending_assignment
 from src.timetable.substitute import assign_substitutes_for_day
 
 
@@ -121,20 +121,24 @@ def group_leaves_by_day(leaves: List[Dict]) -> Dict[str, List[str]]:
     return {day: list(teachers) for day, teachers in absent_by_day.items()}
 
 
-def log_assignments_to_leave_logs(substitutes: List[Dict], target_date: str, test_mode: bool = False):
+def log_assignments_to_pending(substitutes: List[Dict], target_date: str, test_mode: bool = False):
     """
-    Appends the final substitute assignments to the 'Leave_Logs' sheet.
+    Appends the substitute assignments to the 'Pending_Assignments' sheet.
+    These will be finalized to Leave_Logs after admin verification.
     """
     if test_mode:
-        print("\nTEST MODE: Skipping final logging to 'Leave_Logs' sheet.")
+        print("\nTEST MODE: Skipping logging to 'Pending_Assignments' sheet.")
         return
 
     if not substitutes:
         print("\nNo assignments to log.")
         return
 
-    print(f"\nLogging {len(substitutes)} final assignments to '{config.LEAVE_LOGS_WORKSHEET}' sheet...")
-    
+    print(f"\nLogging {len(substitutes)} assignments to '{config.PENDING_ASSIGNMENTS_WORKSHEET}' sheet (pending verification)...")
+
+    # Current timestamp for processed_at
+    processed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     logged_count = 0
     for sub_assignment in substitutes:
         # Extract substitute teacher ID, handling None case
@@ -142,7 +146,7 @@ def log_assignments_to_leave_logs(substitutes: List[Dict], target_date: str, tes
         if sub_teacher is None:
             sub_teacher = 'Not Found'
 
-        success = add_absence(
+        success = add_pending_assignment(
             date=target_date,
             absent_teacher=sub_assignment['absent_teacher_id'],
             day=sub_assignment['day_id'],
@@ -150,12 +154,13 @@ def log_assignments_to_leave_logs(substitutes: List[Dict], target_date: str, tes
             class_id=sub_assignment['class_id'],
             subject=sub_assignment['subject_id'],
             substitute_teacher=sub_teacher,
-            notes=sub_assignment.get('reason', 'ลากิจ')
+            notes=sub_assignment.get('reason', 'ลากิจ'),
+            processed_at=processed_at
         )
         if success:
             logged_count += 1
-            
-    print(f"  OK - Successfully logged {logged_count}/{len(substitutes)} assignments.")
+
+    print(f"  OK - Successfully logged {logged_count}/{len(substitutes)} pending assignments.")
 
 
 def generate_report(
@@ -181,6 +186,8 @@ def generate_report(
         thai_date_str = target_date
 
     report_lines = []
+    report_lines.append(f"[REPORT] {target_date}")
+    report_lines.append("")
     report_lines.append("📝 รายงานผลการจัดหาครูสอนแทน 📝")
     report_lines.append(f"ประจำวันที่ {thai_date_str}")
     report_lines.append("="*30)
@@ -221,11 +228,17 @@ def generate_report(
                 class_name = sub['class_id']
                 if sub_teacher_id:
                     sub_name = teacher_full_names.get(sub_teacher_id, sub_teacher_id)
-                    report_lines.append(f"    - วิชา{subject_thai} ({class_name}): {absent_name} ➡️ {sub_name}")
+                    report_lines.append(f"    - วิชา{subject_thai} ({class_name}): {absent_name} (ลา) ➡️ {sub_name} (สอนแทน)")
                 else:
-                    report_lines.append(f"    - วิชา{subject_thai} ({class_name}): {absent_name} ➡️ ❌ ไม่พบครูสอนแทน")
+                    report_lines.append(f"    - วิชา{subject_thai} ({class_name}): {absent_name} (ลา) ➡️ ❌ ไม่พบครูสอนแทน")
 
     report_lines.append("\n" + "="*30)
+    report_lines.append("⏳ รอการยืนยันจากแอดมิน")
+    report_lines.append("\n📋 คำแนะนำสำหรับแอดมิน:")
+    report_lines.append("1. ตรวจสอบรายการสอนแทนข้างต้น")
+    report_lines.append("2. คัดลอกข้อความนี้ทั้งหมด (รวม [REPORT] ที่ด้านบน)")
+    report_lines.append("3. ส่งไปยังกลุ่มครูเพื่อยืนยันและแจ้งครู")
+    report_lines.append("="*30)
     return "\n".join(report_lines)
 
 
@@ -284,8 +297,8 @@ def process_leaves(target_date: str, test_mode: bool = False, send_line: bool = 
         print(f"  Found {len(substitutes)} substitute assignments for {day_id}")
         all_substitutes.extend(substitutes)
 
-    # Log the final assignments to the 'Leave_Logs' sheet
-    log_assignments_to_leave_logs(all_substitutes, target_date, test_mode)
+    # Log the assignments to 'Pending_Assignments' sheet (awaiting admin verification)
+    log_assignments_to_pending(all_substitutes, target_date, test_mode)
 
     report = generate_report(target_date, leaves, all_substitutes, absent_by_day, teacher_full_names)
     try:

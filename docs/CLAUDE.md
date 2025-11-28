@@ -442,6 +442,66 @@ See TESTING.md for quick reference or TEST_REPORT.md for comprehensive analysis.
 
 ## Recent Changes
 
+### Nov 28, 2025: Admin-Verified Substitution Workflow Implementation
+- **Complete admin verification system for substitute assignments:**
+  - Implemented two-stage workflow: Pending Assignments → Admin Review → Finalized Logs
+  - Created Pending_Assignments worksheet (11 columns) for staging assignments
+  - Added Verified_By and Verified_At columns to Leave_Logs for accountability tracking
+  - Daily processor writes to Pending_Assignments instead of Leave_Logs directly
+  - Admin receives report with [REPORT] YYYY-MM-DD prefix
+  - Admin forwards report to teacher group to finalize
+  - System detects [REPORT] prefix and automatically finalizes assignments
+- **New database setup script:**
+  - scripts/create_pending_sheet.py - Sets up Pending_Assignments worksheet
+  - Interactive mode with overwrite protection
+  - Adds verification columns to Leave_Logs
+  - Formats headers and sets column widths
+- **New cleanup script:**
+  - src/utils/expire_pending.py - Expires old pending assignments (>7 days)
+  - Updates status to "expired" instead of deleting (preserves audit trail)
+  - Configurable expiration period via PENDING_EXPIRATION_DAYS constant
+- **Enhanced sheet_utils.py with 5 new functions:**
+  - add_pending_assignment() - Write substitute assignment to Pending_Assignments
+  - load_pending_assignments(date) - Read pending assignments for specific date
+  - delete_pending_assignments(date) - Clear pending assignments after finalization
+  - expire_old_pending_assignments() - Mark old entries as expired
+  - finalize_pending_assignment(date, verified_by) - Move to Leave_Logs with verification tracking
+  - Modified add_absence() to accept optional verified_by and verified_at parameters
+- **Enhanced webhook.py with report message processing:**
+  - is_substitution_report(text) - Detects [REPORT] prefix in messages
+  - parse_report_date(text) - Extracts date from [REPORT] YYYY-MM-DD format
+  - process_substitution_report(message_text, user_id) - Handles verification workflow
+  - Date validation: rejects future dates, warns if >7 days old
+  - Tracks who verified (LINE User ID) and when (timestamp)
+- **Enhanced daily_leave_processor.py:**
+  - Renamed function: log_assignments_to_sheets() → log_assignments_to_pending()
+  - Writes to Pending_Assignments instead of Leave_Logs
+  - Report includes [REPORT] YYYY-MM-DD prefix for validation
+  - Clear labels: (ลา) for absent teacher, (สอนแทน) for substitute
+  - Admin instructions included in report
+- **Configuration additions:**
+  - PENDING_ASSIGNMENTS_WORKSHEET constant in config.py
+  - REPORT_PREFIX = "[REPORT]" constant
+  - PENDING_EXPIRATION_DAYS = 7 constant
+- **Comprehensive documentation:**
+  - docs/REPORT_MESSAGE_EXAMPLE.txt (138 lines) with Thai instructions
+  - Example report message format
+  - Step-by-step workflow guide
+  - Validation rules and error scenarios
+  - Database schema documentation
+- **Benefits:**
+  - Human-in-the-loop verification before finalization
+  - Accountability tracking (who verified, when)
+  - Manual corrections possible before commitment
+  - Clear audit trail for compliance
+  - Safer production deployment
+- **Impact:**
+  - 3 files created (create_pending_sheet.py, expire_pending.py, REPORT_MESSAGE_EXAMPLE.txt)
+  - 4 files modified (config.py, sheet_utils.py, daily_leave_processor.py, webhook.py)
+  - ~700 lines added
+  - 8 new functions
+  - 1 new worksheet, 2 new columns in Leave_Logs
+
 ### Nov 26, 2025: LINE Integration Testing and Verification
 - **Comprehensive testing session to validate production readiness:**
   - Installed all dependencies (requirements.txt + requirements-dev.txt)

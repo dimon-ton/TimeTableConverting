@@ -30,6 +30,11 @@ class Config:
     )
     LEAVE_LOGS_WORKSHEET = "Leave_Logs"
     LEAVE_REQUESTS_WORKSHEET = "Leave_Requests"
+    PENDING_ASSIGNMENTS_WORKSHEET = "Pending_Assignments"
+
+    # Admin verification settings
+    REPORT_PREFIX = "[REPORT]"  # Prefix for admin substitution reports
+    PENDING_EXPIRATION_DAYS = 7  # Auto-expire pending assignments after N days
 
     # ==================== File Paths ====================
     CREDENTIALS_FILE = str(PROJECT_ROOT / "credentials.json")
