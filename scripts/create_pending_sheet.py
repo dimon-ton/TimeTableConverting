@@ -120,17 +120,24 @@ def setup_pending_assignments_sheet():
 
             # Set column widths
             print("Adjusting column widths...")
-            pending_ws.set_column_width('A', 120)   # Date
-            pending_ws.set_column_width('B', 150)   # Absent_Teacher
-            pending_ws.set_column_width('C', 80)    # Day
-            pending_ws.set_column_width('D', 80)    # Period
-            pending_ws.set_column_width('E', 100)   # Class_ID
-            pending_ws.set_column_width('F', 120)   # Subject
-            pending_ws.set_column_width('G', 150)   # Substitute_Teacher
-            pending_ws.set_column_width('H', 200)   # Notes
-            pending_ws.set_column_width('I', 160)   # Created_At
-            pending_ws.set_column_width('J', 160)   # Processed_At
-            pending_ws.set_column_width('K', 100)   # Status
+            requests = []
+            widths = [120, 150, 80, 80, 100, 120, 150, 200, 160, 160, 100]
+            for i, width in enumerate(widths):
+                requests.append({
+                    "updateDimensionProperties": {
+                        "range": {
+                            "sheetId": pending_ws.worksheet_id,
+                            "dimension": "COLUMNS",
+                            "startIndex": i,
+                            "endIndex": i + 1
+                        },
+                        "properties": {
+                            "pixelSize": width
+                        },
+                        "fields": "pixelSize"
+                    }
+                })
+            spreadsheet.batch_update({"requests": requests})
 
             print("✓ Pending_Assignments worksheet setup complete")
 
@@ -194,8 +201,36 @@ def setup_pending_assignments_sheet():
             })
 
             # Set column widths
-            leave_logs_ws.set_column_width(col_letter_by, 200)  # Verified_By
-            leave_logs_ws.set_column_width(col_letter_at, 160)  # Verified_At
+            requests = []
+            requests.append({
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": leave_logs_ws.worksheet_id,
+                        "dimension": "COLUMNS",
+                        "startIndex": col_index_verified_by - 1,
+                        "endIndex": col_index_verified_by
+                    },
+                    "properties": {
+                        "pixelSize": 200
+                    },
+                    "fields": "pixelSize"
+                }
+            })
+            requests.append({
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": leave_logs_ws.worksheet_id,
+                        "dimension": "COLUMNS",
+                        "startIndex": col_index_verified_at - 1,
+                        "endIndex": col_index_verified_at
+                    },
+                    "properties": {
+                        "pixelSize": 160
+                    },
+                    "fields": "pixelSize"
+                }
+            })
+            spreadsheet.batch_update({"requests": requests})
 
             print(f"✓ Added columns {col_letter_by} (Verified_By) and {col_letter_at} (Verified_At)")
 

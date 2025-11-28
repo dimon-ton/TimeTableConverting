@@ -1,16 +1,42 @@
 # Next Steps for TimeTableConverting Project
 
 **Generated:** 2025-11-28
-**Current Status:** Production-ready with admin verification workflow
-**Last Session:** Nov 28, 2025 - Admin-Verified Substitution Workflow Implementation
+**Current Status:** Production-ready with admin verification workflow and two-balloon LINE messages
+**Last Session:** Nov 28, 2025 (Evening) - Two-Balloon LINE Message System and Period Counting Verification
 
 ---
 
 ## Current Stopping Point
 
-The project is now in a **PRODUCTION-READY (VERIFIED A++) state** with complete automation, teacher workload protection, cloud integration, intelligent workload distribution, two-group notification system, comprehensive testing documentation, natural Thai language processing, VALIDATED real-world functionality, and NEW admin verification workflow for improved accountability:
+The project is now in a **PRODUCTION-READY (VERIFIED A++) state** with complete automation, teacher workload protection, cloud integration, intelligent workload distribution, two-group notification system, comprehensive testing documentation, natural Thai language processing, VALIDATED real-world functionality, admin verification workflow, and NEW two-balloon LINE message format for improved readability:
 
-### Completed in Latest Session (Nov 28, 2025)
+### Completed in Latest Session (Nov 28, 2025 Evening)
+1. **Two-Balloon LINE Message System:**
+   - Split substitute teacher reports into two separate message bubbles
+   - Balloon 1: Main report with [REPORT] prefix, statistics, and assignments
+   - Balloon 2: Admin instructions for verification workflow
+   - Improved readability and user experience
+   - Matches format documented in REPORT_MESSAGE_EXAMPLE.txt
+
+2. **Modified Functions:**
+   - src/utils/daily_leave_processor.py: generate_report() now returns Tuple[str, str]
+   - src/web/line_messaging.py: send_daily_report() accepts two parameters
+   - Sequential message sending with 0.5s delay to prevent rate limiting
+   - Backward compatibility maintained for console output
+
+3. **Period Counting Verification:**
+   - Verified system counts exact teaching periods (not requested periods)
+   - Data enrichment architecture ensures accuracy
+   - Added documentation comments explaining the logic
+   - Confirmed consistency across entire workflow
+
+4. **Benefits:**
+   - Better user experience with separate message bubbles
+   - Clear visual separation of data vs instructions
+   - Easier to read and process information
+   - Matches documented format exactly
+
+### Completed in Earlier Session (Nov 28, 2025 Morning)
 1. **Admin-Verified Substitution Workflow:**
    - Implemented two-stage workflow: Pending → Admin Review → Finalized
    - Created Pending_Assignments worksheet for staging assignments
@@ -737,5 +763,5 @@ python diagnose_excel.py
 
 ---
 
-**Last Updated:** 2025-11-25
-**Status:** Production-ready with natural Thai language processing, late arrival detection, two-group notifications, historical learning, and comprehensive fallback
+**Last Updated:** 2025-11-28
+**Status:** Production-ready with two-balloon LINE messages, admin verification workflow, natural Thai language processing, late arrival detection, two-group notifications, historical learning, and comprehensive fallback

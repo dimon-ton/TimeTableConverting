@@ -442,7 +442,31 @@ See TESTING.md for quick reference or TEST_REPORT.md for comprehensive analysis.
 
 ## Recent Changes
 
-### Nov 28, 2025: Admin-Verified Substitution Workflow Implementation
+### Nov 28, 2025 (Evening): Two-Balloon LINE Message System
+- **Enhanced LINE messaging UX with two separate message bubbles:**
+  - Split substitute teacher reports into two sequential LINE messages for improved readability
+  - **Balloon 1:** Main report with [REPORT] prefix, statistics, and detailed substitute assignments
+  - **Balloon 2:** Admin instructions for verification workflow process
+  - Matches format documented in docs/REPORT_MESSAGE_EXAMPLE.txt
+- **Modified src/utils/daily_leave_processor.py:**
+  - Changed `generate_report()` return type from `str` to `Tuple[str, str]` (lines 169-258)
+  - Returns tuple of (balloon1, balloon2) for two-message sending
+  - Maintains backward compatibility by returning combined string for console output
+- **Modified src/web/line_messaging.py:**
+  - Updated `send_daily_report()` to accept two parameters: balloon1 and balloon2
+  - Sends two separate LINE messages sequentially with 0.5s delay
+  - Returns True only if both messages send successfully
+- **Period counting verification:**
+  - Confirmed system counts exact teaching periods (not requested periods)
+  - Added documentation explaining data enrichment architecture ensures accuracy
+  - Verified consistency across entire workflow (report → pending → finalization)
+- **Benefits:**
+  - Better visual separation of assignment data vs admin instructions
+  - Easier to read and scan information
+  - Prevents rate limiting with message delay
+  - No breaking changes to existing functionality
+
+### Nov 28, 2025 (Morning): Admin-Verified Substitution Workflow Implementation
 - **Complete admin verification system for substitute assignments:**
   - Implemented two-stage workflow: Pending Assignments → Admin Review → Finalized Logs
   - Created Pending_Assignments worksheet (11 columns) for staging assignments

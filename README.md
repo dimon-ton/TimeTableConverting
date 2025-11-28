@@ -147,7 +147,9 @@ The system uses a two-stage workflow for improved accountability:
    - System finds substitutes for today's leave requests
    - Writes assignments to "Pending_Assignments" worksheet
    - Generates report with `[REPORT] YYYY-MM-DD` prefix
-   - Sends report to admin LINE group
+   - Sends two-balloon message to admin LINE group:
+     - Balloon 1: Substitute assignment report with statistics
+     - Balloon 2: Admin instructions for verification workflow
 
 2. **Admin Verification (Manual):**
    - Admin reviews substitute assignments in report

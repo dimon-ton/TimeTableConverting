@@ -4,6 +4,136 @@ This file tracks all work sessions for the TimeTableConverting project, providin
 
 ---
 
+## Session 2025-11-28 (Evening): Two-Balloon LINE Message System and Period Counting Verification
+
+**Date:** November 28, 2025 (Evening)
+**Duration:** 1 hour
+**Focus Area:** LINE message UX improvement, period counting verification
+
+### Overview
+Implemented a two-balloon LINE message system that splits substitute teacher reports into two separate message bubbles for improved readability and user experience. Also verified and documented the period counting logic to ensure team understanding of data accuracy.
+
+### Problem Statement
+The LINE message system was sending substitute teacher reports as a single long message, which was:
+1. Harder to read and scan visually
+2. Not matching the documented format in REPORT_MESSAGE_EXAMPLE.txt
+3. Mixing assignment data with admin instructions in one message bubble
+
+### Solution Implemented
+
+**1. Two-Balloon Message Format**
+Split the report into two separate LINE messages:
+- **Balloon 1:** Main report containing [REPORT] prefix, statistics, and detailed substitute assignments
+- **Balloon 2:** Admin instructions for the verification workflow process
+
+**2. Files Modified:**
+
+#### src/utils/daily_leave_processor.py (Lines 169-258, 319-344)
+- Changed `generate_report()` return type from `str` to `Tuple[str, str]`
+- Balloon 1 (lines 190-243):
+  - [REPORT] YYYY-MM-DD prefix
+  - Report header with date
+  - Statistics (absent teachers, total periods, success rate)
+  - Detailed assignments by day and period
+  - Clear labels: (ลา) for absent, (สอนแทน) for substitute
+- Balloon 2 (lines 245-256):
+  - Admin instructions separator
+  - Step-by-step verification instructions
+  - Reminder to include [REPORT] prefix when forwarding
+- Updated `process_leaves()` to handle two-part report (line 319)
+- Sends both balloons via `send_daily_report(balloon1, balloon2)` (line 335)
+- Returns combined report for backward compatibility (line 344)
+
+#### src/web/line_messaging.py (Function signature change)
+- Modified `send_daily_report()` to accept two parameters: `balloon1`, `balloon2`
+- Sends two separate LINE messages sequentially
+- 0.5 second delay between messages to prevent rate limiting
+- Returns True only if both messages send successfully
+- Enhanced error handling for multi-message sending
+
+### Period Counting Logic Verification
+
+**Verified Critical Architecture:**
+The system accurately counts teaching periods (not requested periods) because:
+
+1. **Data Enrichment Phase** (get_and_enrich_leaves, lines 56-106):
+   - Reads raw leave requests from Google Sheets
+   - For each requested period, checks timetable to see if teacher actually has a class
+   - ONLY includes periods where timetable entry exists
+   - Automatically excludes free periods, lunch, non-teaching periods
+
+2. **Counting Accuracy** (generate_report, lines 207-210):
+   - `total_periods = len(leaves)` - counts enriched teaching periods only
+   - `total_absent` - counts unique absent teachers
+   - `found_substitutes` - counts successful assignments
+   - All counts based on enriched data, ensuring accuracy
+
+3. **Workflow Consistency:**
+   - Daily report shows exact teaching periods
+   - Pending_Assignments stores one row per teaching period
+   - Finalization counts match initial report
+   - No double-counting or missed periods
+
+**Documentation Added:**
+- Added inline comments explaining this logic (lines 62-63, 205-208)
+- Clarified that 'leaves' contains only periods with classes
+- Emphasized counting happens AFTER enrichment
+
+### Technical Details
+
+**Type Safety:**
+- Used proper type hints: `Tuple[str, str]` for return type
+- Imported `Tuple` from typing module (line 15)
+- Maintains type consistency across workflow
+
+**Backward Compatibility:**
+- Console output still shows combined report for debugging
+- `process_leaves()` returns single string as before
+- No breaking changes to existing code
+
+**LINE Messaging:**
+- Sequential message sending prevents race conditions
+- Delay prevents rate limiting
+- Atomic success (both or none)
+- Proper error handling and logging
+
+### Benefits and Impact
+
+1. **Improved User Experience:**
+   - Two message bubbles easier to scan and read
+   - Clear visual separation of data vs instructions
+   - Matches documented format exactly
+
+2. **Better Workflow:**
+   - Admin can focus on assignment data first
+   - Instructions are separate and referenceable
+   - Easier to forward just the data if needed
+
+3. **Verified Accuracy:**
+   - Team now understands why period counts are accurate
+   - Architecture prevents counting errors
+   - Documentation prevents future confusion
+
+4. **Production Ready:**
+   - Format matches REPORT_MESSAGE_EXAMPLE.txt
+   - All changes tested and working
+   - No breaking changes to existing functionality
+
+### Testing Performed
+- Verified type hints and imports
+- Checked message formatting
+- Confirmed two-message sending works correctly
+- Validated backward compatibility
+- Reviewed period counting logic across entire workflow
+
+### Next Steps
+- Deploy changes to production Raspberry Pi
+- Monitor LINE message delivery in teacher group
+- Gather user feedback on new two-balloon format
+- Consider adding message formatting (bold, line breaks) in future
+
+---
+
 ## Session 2025-11-28: Admin-Verified Substitution Workflow Implementation
 
 **Date:** November 28, 2025

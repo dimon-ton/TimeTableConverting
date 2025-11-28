@@ -231,7 +231,24 @@ python -m tests.test_real_timetable           # Real timetable validation
 
 ## Recent Changes (Nov 2025)
 
-### Nov 28, 2025: Admin-Verified Substitution Workflow Implementation
+### Nov 28, 2025 (Evening): Two-Balloon LINE Message System
+- **Enhanced LINE messaging UX:**
+  - Split substitute teacher reports into two separate message bubbles for improved readability
+  - **Balloon 1:** Main report with [REPORT] prefix, statistics, and substitute assignments
+  - **Balloon 2:** Admin instructions for verification workflow
+  - Matches format in docs/REPORT_MESSAGE_EXAMPLE.txt
+- **Code changes:**
+  - src/utils/daily_leave_processor.py: `generate_report()` now returns `Tuple[str, str]`
+  - src/web/line_messaging.py: `send_daily_report()` accepts two parameters (balloon1, balloon2)
+  - Sequential sending with 0.5s delay to prevent rate limiting
+  - Backward compatible console output (combined string)
+- **Period counting verification:**
+  - Confirmed system counts exact teaching periods via data enrichment
+  - Added documentation explaining architecture ensures accuracy
+  - Verified consistency: report → pending → finalization
+- **Benefits:** Better UX, clear separation of data vs instructions, no breaking changes
+
+### Nov 28, 2025 (Morning): Admin-Verified Substitution Workflow Implementation
 - **Two-stage verification workflow for accountability:**
   - Daily processor writes to Pending_Assignments worksheet (staging area)
   - Admin receives report with [REPORT] YYYY-MM-DD prefix in admin group
