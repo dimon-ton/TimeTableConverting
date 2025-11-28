@@ -8,7 +8,7 @@ Google Sheet, including getting the client, logging requests, and reading data.
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Tuple
 import json
 
 from src.config import config
@@ -571,3 +571,104 @@ def finalize_pending_assignment(target_date: str, verified_by: str) -> int:
         import traceback
         traceback.print_exc()
         return 0
+
+
+def update_pending_assignments(target_date: str, changes: List[Dict]) -> Tuple[int, List[str]]:
+    """
+    Update Substitute_Teacher field in Pending_Assignments for changed assignments.
+
+    Args:
+        target_date: Date in YYYY-MM-DD format
+        changes: List of assignments with updated substitute_teacher from detect_assignment_changes()
+                Each dict should have: date, absent_teacher, day, period, new_substitute
+
+    Returns:
+        Tuple of (count_updated, error_messages)
+    """
+    try:
+        client = get_sheets_client()
+        worksheet = client.open(config.SPREADSHEET_NAME).worksheet(config.PENDING_ASSIGNMENTS_WORKSHEET)
+
+        # Load all rows
+        all_rows = worksheet.get_all_values()
+        if not all_rows:
+            return (0, ["No data in Pending_Assignments sheet"])
+
+        headers = all_rows[0]
+        data_rows = all_rows[1:]
+
+        # Find column indices
+        try:
+            date_col = headers.index('Date')
+            absent_col = headers.index('Absent_Teacher')
+            day_col = headers.index('Day')
+            period_col = headers.index('Period')
+            substitute_col = headers.index('Substitute_Teacher')
+        except ValueError as e:
+            return (0, [f"Missing required column: {e}"])
+
+        # Build update list for batch update
+        updates = []
+        error_messages = []
+
+        for change in changes:
+            change_key = (
+                change['date'],
+                change['absent_teacher'],
+                change['day'],
+                change['period']
+            )
+
+            # Find matching row
+            found = False
+            for row_idx, row in enumerate(data_rows):
+                if len(row) <= max(date_col, absent_col, day_col, period_col, substitute_col):
+                    continue
+
+                row_key = (
+                    row[date_col],
+                    row[absent_col],
+                    row[day_col],
+                    int(row[period_col]) if row[period_col].isdigit() else 0
+                )
+
+                if row_key == change_key:
+                    # Found matching row - prepare update
+                    # Row number in sheet (1-indexed, +2 for header and 0-based index)
+                    sheet_row = row_idx + 2
+                    sheet_col = substitute_col + 1  # Convert to 1-indexed
+
+                    new_value = change['new_substitute']
+
+                    updates.append({
+                        'range': f'{chr(64 + sheet_col)}{sheet_row}',  # Convert to A1 notation
+                        'values': [[new_value]]
+                    })
+
+                    found = True
+                    print(f"Prepared update for row {sheet_row}: {row[absent_col]} {row[day_col]} period {row[period_col]} -> {new_value}")
+                    break
+
+            if not found:
+                error_messages.append(
+                    f"Could not find pending assignment: {change['absent_teacher']} "
+                    f"{change['day']} period {change['period']}"
+                )
+
+        # Execute batch update
+        if updates:
+            # Use batch_update for efficiency
+            for update in updates:
+                worksheet.update(update['range'], update['values'])
+
+            print(f"Successfully updated {len(updates)} assignments in Pending_Assignments")
+            return (len(updates), error_messages)
+        else:
+            return (0, error_messages if error_messages else ["No updates to apply"])
+
+    except Exception as e:
+        error_msg = f"ERROR: Failed to update pending assignments: {e}"
+        print(error_msg)
+        import traceback
+        traceback.print_exc()
+        return (0, [error_msg])

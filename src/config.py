@@ -61,6 +61,10 @@ class Config:
     OPENROUTER_MODEL = os.getenv('OPENROUTER_MODEL', 'deepseek/deepseek-r1')  # DeepSeek R1 (paid model, configurable via .env)
     OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
+    # AI fuzzy matching settings
+    AI_MATCH_CONFIDENCE_THRESHOLD = float(os.getenv('AI_MATCH_CONFIDENCE_THRESHOLD', '0.85'))  # Auto-accept AI matches above this threshold
+    USE_AI_MATCHING = os.getenv('USE_AI_MATCHING', 'True').lower() == 'true'  # Enable/disable AI fuzzy matching
+
     # ==================== System Settings ====================
     TIMEZONE = "Asia/Bangkok"
     WORKING_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"]

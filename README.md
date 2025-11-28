@@ -190,6 +190,66 @@ Or set up cron job (runs at 8:55 AM Monday-Friday):
 55 8 * * 1-5 cd /path/to/project && python -m src.utils.daily_leave_processor --send-line
 ```
 
+#### Admin Edit Detection Feature (NEW - Nov 28, 2025)
+
+The system now supports admin message editing for substitute teacher assignments with automatic database synchronization:
+
+**How it works:**
+1. Daily processor sends report to admin LINE group
+2. Admin reviews and can edit substitute teacher names if needed
+3. Admin copies entire message (with [REPORT] prefix) and sends to teacher group
+4. System automatically:
+   - Parses edited message using regex patterns
+   - Matches teacher names using 4-tier system (exact, normalized, fuzzy, AI)
+   - Detects changes compared to Pending_Assignments database
+   - Updates database for high-confidence matches (≥85%)
+   - Sends confirmation message showing changes
+   - Finalizes with updated assignments
+
+**4-Tier Name Matching System:**
+- **Tier 1: Exact** - Direct lookup (100% confidence)
+- **Tier 2: Normalized** - Remove "ครู" prefix, trim spaces (95% confidence)
+- **Tier 3: Fuzzy** - String similarity matching (≥85% confidence)
+- **Tier 4: AI** - OpenRouter API for misspellings (configurable confidence)
+
+**Confidence-Based Handling:**
+- **≥85%**: Auto-accept and update database
+- **60-84%**: Flag in confirmation for manual review
+- **<60%**: Treat as "Not Found"
+
+**Example:**
+```
+Original: ป.1 คาบ 1: ครูอำพร (ลา) ➡️ ครูจรรยาภรณ์ (สอนแทน)
+Edited:   ป.1 คาบ 1: ครูอำพร (ลา) ➡️ ครูสุจิตร (สอนแทน)
+
+System response:
+✅ อัปเดตการสอนแทนสำเร็จ
+📝 การเปลี่ยนแปลง (1 คาบ):
+- วิชาคณิตศาสตร์ (ป.1) คาบ 1:
+  เปลี่ยนจาก ครูจรรยาภรณ์ เป็น ครูสุจิตร ✅
+```
+
+**Configuration (.env):**
+```env
+AI_MATCH_CONFIDENCE_THRESHOLD=0.85
+USE_AI_MATCHING=True
+OPENROUTER_API_KEY=your_api_key  # For AI fuzzy matching
+```
+
+**Testing:**
+```bash
+python scripts/test_admin_edit_detection.py
+```
+
+**Benefits:**
+- Edit assignments directly in LINE (no spreadsheet access needed)
+- Handles Thai name variations and misspellings automatically
+- Immediate confirmation with detailed before/after
+- Works with or without AI (graceful degradation)
+- 100% backward compatible
+
+For complete implementation details, see ADMIN_EDIT_DETECTION_SUMMARY.md.
+
 #### Running the Webhook Server
 
 **Development (with ngrok):**

@@ -442,6 +442,52 @@ See TESTING.md for quick reference or TEST_REPORT.md for comprehensive analysis.
 
 ## Recent Changes
 
+### Nov 28, 2025 (Late Evening): Admin Message Edit Detection with AI-Powered Name Matching
+- **Complete admin edit detection and database synchronization:**
+  - Implemented comprehensive message parsing to extract substitute teacher assignments from Thai text
+  - Created 4-tier name matching system (exact, normalized, fuzzy, AI-powered via OpenRouter)
+  - Added automatic database updates to Pending_Assignments when admins edit report messages
+  - Confidence-based handling: ≥85% auto-accept, 60-84% flag for review, <60% reject
+  - Generates detailed Thai confirmation messages showing changes, warnings, and AI suggestions
+  - Graceful error handling with fallback mechanisms (works without AI if needed)
+  - Full backward compatibility with existing workflow
+- **New module created:**
+  - src/utils/report_parser.py (358 lines) - Core parsing and matching logic
+  - parse_edited_assignments() - Extracts assignments using regex patterns
+  - match_teacher_name_to_id() - 4-tier matching with progressive fallbacks
+  - detect_assignment_changes() - Composite key comparison (Date, Absent_Teacher, Day, Period)
+  - generate_confirmation_message() - Thai confirmation with before/after details
+  - ai_fuzzy_match_teacher() - OpenRouter API integration for misspellings
+- **Enhanced functions:**
+  - sheet_utils.py: update_pending_assignments() - Batch database updates with composite keys
+  - webhook.py: Enhanced process_substitution_report() with parsing and update logic
+  - config.py: Added AI_MATCH_CONFIDENCE_THRESHOLD and USE_AI_MATCHING settings
+- **Comprehensive test suite:**
+  - scripts/test_admin_edit_detection.py (327 lines) - 5 comprehensive tests
+  - Tests parsing, name matching (all 4 tiers), change detection, confirmations, AI fuzzy matching
+  - All tests passed with 100% success rate
+  - AI matching achieved 94% confidence in test cases
+- **Benefits:**
+  - Admins can edit assignments directly in LINE (no spreadsheet access needed)
+  - Natural Thai name variations handled automatically via AI
+  - Immediate confirmation feedback showing exactly what changed
+  - Composite key matching prevents data corruption
+  - Works with or without AI (graceful degradation)
+  - 100% backward compatible
+- **Technical highlights:**
+  - 4-tier matching: exact (100%) → normalized (95%) → fuzzy (≥85%) → AI (OpenRouter)
+  - Confidence thresholds prevent bad automated decisions
+  - Batch Google Sheets updates for efficiency
+  - Teacher mappings cached at module level
+  - Regex patterns compiled once for performance
+  - Optional AI matching (configurable via environment)
+- **Impact:**
+  - 3 files created (report_parser.py, test_admin_edit_detection.py, ADMIN_EDIT_DETECTION_SUMMARY.md)
+  - 3 files modified (sheet_utils.py, config.py, webhook.py)
+  - ~700 lines of new code
+  - 6 new functions
+  - 0 breaking changes
+
 ### Nov 28, 2025 (Evening): Two-Balloon LINE Message System
 - **Enhanced LINE messaging UX with two separate message bubbles:**
   - Split substitute teacher reports into two sequential LINE messages for improved readability

@@ -35,7 +35,19 @@ from linebot.v3.webhooks import MessageEvent, TextMessageContent
 
 from src.config import config
 from src.timetable.ai_parser import parse_leave_request, parse_leave_request_fallback
-from src.utils.sheet_utils import log_request_to_sheet, finalize_pending_assignment
+from src.utils.sheet_utils import (
+    log_request_to_sheet,
+    finalize_pending_assignment,
+    load_pending_assignments,
+    update_pending_assignments
+)
+from src.utils.report_parser import (
+    parse_edited_assignments,
+    detect_assignment_changes,
+    generate_confirmation_message,
+    load_teacher_name_map,
+    load_teacher_full_names
+)
 
 
 # Initialize Flask app
@@ -196,15 +208,89 @@ def process_substitution_report(text: str, group_id: str, user_id: str):
             )
             return
 
-        # Finalize pending assignments
+        # === NEW: Parse admin edits and update database ===
+
+        # Load teacher mappings
+        print("Loading teacher mappings...")
+        teacher_name_map = load_teacher_name_map()
+        teacher_full_names = load_teacher_full_names()
+
+        # Parse assignments from message
+        print("Parsing assignments from edited message...")
+        parsed_assignments = parse_edited_assignments(text)
+        print(f"Parsed {len(parsed_assignments)} assignments from message")
+
+        # Load pending assignments
+        print(f"Loading pending assignments for {target_date}...")
+        pending_assignments = load_pending_assignments(target_date)
+
+        if not pending_assignments:
+            send_to_admin(
+                f"ℹ️ ไม่พบข้อมูลการสอนแทนที่รอการยืนยัน\n\n"
+                f"วันที่: {target_date}\n\n"
+                f"อาจเป็นเพราะ:\n"
+                f"- ไม่มีข้อมูลสำหรับวันที่นี้\n"
+                f"- ข้อมูลถูกยืนยันไปแล้ว\n"
+                f"- ข้อมูลหมดอายุ (เกิน {config.PENDING_EXPIRATION_DAYS} วัน)"
+            )
+            print(f"No pending assignments found for {target_date}")
+            return
+
+        print(f"Found {len(pending_assignments)} pending assignments")
+
+        # Detect changes
+        print("Detecting changes between parsed and pending assignments...")
+        changes = detect_assignment_changes(
+            target_date,
+            parsed_assignments,
+            pending_assignments,
+            teacher_name_map,
+            teacher_full_names,
+            use_ai=config.USE_AI_MATCHING,
+            api_key=config.OPENROUTER_API_KEY,
+            ai_threshold=config.AI_MATCH_CONFIDENCE_THRESHOLD
+        )
+
+        print(f"Detected {len(changes['updated'])} updated assignments")
+        print(f"Detected {len(changes['ai_suggestions'])} AI suggestions")
+        print(f"Detected {len(changes['unchanged'])} unchanged assignments")
+        print(f"Detected {len(changes['match_errors'])} match errors")
+
+        # Update if changes detected
+        update_summary = ""
+        if changes['updated']:
+            print(f"Updating {len(changes['updated'])} assignments in Pending_Assignments...")
+            update_count, errors = update_pending_assignments(target_date, changes['updated'])
+
+            if errors:
+                print(f"Errors during update: {errors}")
+
+            # Send confirmation message showing all changes
+            print("Generating confirmation message...")
+            confirmation = generate_confirmation_message(
+                target_date,
+                changes,
+                teacher_full_names
+            )
+            send_to_admin(confirmation)
+
+            update_summary = f"\n📝 อัปเดตครูสอนแทน: {len(changes['updated'])} คาบ\n"
+            print(f"Successfully updated {update_count} assignments")
+        else:
+            print("No changes detected - proceeding with original assignments")
+
+        # === END NEW SECTION ===
+
+        # Finalize pending assignments (existing code)
         finalized_count = finalize_pending_assignment(target_date, verified_by=user_id)
 
         if finalized_count > 0:
-            # Send confirmation to admin group
+            # Send confirmation to admin group (updated to include edit summary)
             send_to_admin(
                 f"✅ ยืนยันการสอนแทนสำเร็จ\n\n"
                 f"วันที่: {target_date}\n"
-                f"จำนวน: {finalized_count} คาบ\n\n"
+                f"จำนวน: {finalized_count} คาบ"
+                f"{update_summary}\n"
                 f"ข้อมูลถูกบันทึกลงใน Leave_Logs เรียบร้อยแล้ว"
             )
             print(f"Successfully finalized {finalized_count} assignments for {target_date}")
