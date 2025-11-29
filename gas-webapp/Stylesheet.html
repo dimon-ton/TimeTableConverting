@@ -1,0 +1,452 @@
+<style>
+/**
+ * Stylesheet.html - Custom CSS for Teacher Hours Tracking Web App
+ *
+ * Provides custom styling, responsive design enhancements, and UI polish
+ */
+
+/* === Global Styles === */
+:root {
+  --primary-color: #0d6efd;
+  --success-color: #198754;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #0dcaf0;
+  --light-gray: #f8f9fa;
+  --border-radius: 8px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --transition-speed: 0.3s;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Sarabun', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f2f5;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* === Typography === */
+.page-title {
+  font-weight: 700;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+h5 {
+  font-weight: 600;
+}
+
+.fw-bold {
+  font-weight: 600 !important;
+}
+
+/* === Cards === */
+.card {
+  border: none;
+  border-radius: var(--border-radius);
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+  border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
+  padding: 1rem 1.25rem;
+}
+
+.card-footer {
+  border-top: 2px solid rgba(0, 0, 0, 0.05);
+  background-color: var(--light-gray);
+  border-radius: 0 0 var(--border-radius) var(--border-radius) !important;
+  padding: 1rem 1.25rem;
+}
+
+/* === Navbar === */
+.navbar {
+  box-shadow: var(--box-shadow);
+}
+
+.navbar-brand {
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+/* === Buttons === */
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+  padding: 0.5rem 1.25rem;
+  transition: all var(--transition-speed);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+/* === Badges === */
+.badge {
+  font-weight: 500;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.badge.fs-6 {
+  font-size: 1rem !important;
+  padding: 0.5rem 1rem;
+}
+
+/* === Tables === */
+.table {
+  font-size: 0.95rem;
+}
+
+.table thead th {
+  background-color: var(--light-gray);
+  font-weight: 600;
+  border-bottom: 2px solid #dee2e6;
+  padding: 0.85rem;
+  vertical-align: middle;
+}
+
+.table tbody tr {
+  transition: background-color var(--transition-speed);
+}
+
+.table tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.05);
+  cursor: default;
+}
+
+.table tbody td {
+  padding: 0.85rem;
+  vertical-align: middle;
+}
+
+.table-responsive {
+  border-radius: var(--border-radius);
+  box-shadow: none;
+}
+
+/* Sticky table header */
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* === Form Controls === */
+.form-control,
+.form-select {
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  padding: 0.6rem 0.85rem;
+  transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+/* === Loading Spinner === */
+#loadingSpinner {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+}
+
+/* === Alerts === */
+.alert {
+  border-radius: var(--border-radius);
+  border: none;
+  box-shadow: var(--box-shadow);
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* === Summary Cards === */
+.card.border-primary {
+  border-left: 4px solid var(--primary-color) !important;
+}
+
+.card.border-info {
+  border-left: 4px solid var(--info-color) !important;
+}
+
+.card.border-success {
+  border-left: 4px solid var(--success-color) !important;
+}
+
+.card.border-danger {
+  border-left: 4px solid var(--danger-color) !important;
+}
+
+/* === Mobile Teacher Cards === */
+.teacher-card {
+  transition: all var(--transition-speed);
+  border-left: 4px solid var(--primary-color);
+}
+
+.teacher-card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* === Workload Category Badges === */
+.badge.bg-danger {
+  background-color: var(--danger-color) !important;
+}
+
+.badge.bg-warning {
+  background-color: var(--warning-color) !important;
+}
+
+.badge.bg-success {
+  background-color: var(--success-color) !important;
+}
+
+.badge.bg-info {
+  background-color: var(--info-color) !important;
+}
+
+.badge.bg-secondary {
+  background-color: #6c757d !important;
+}
+
+/* === Footer === */
+footer {
+  border-top: 1px solid #dee2e6;
+  margin-top: 3rem;
+}
+
+/* === Responsive Design === */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .navbar-brand {
+    font-size: 1.1rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .table {
+    font-size: 0.85rem;
+  }
+
+  .btn {
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* Make summary cards full width on mobile */
+  .col-xl-3.col-md-6 {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .container-fluid {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .page-title {
+    font-size: 1.3rem;
+  }
+
+  h5 {
+    font-size: 1.1rem;
+  }
+}
+
+/* === Utilities === */
+.shadow-sm {
+  box-shadow: var(--box-shadow) !important;
+}
+
+.text-muted {
+  color: #6c757d !important;
+}
+
+/* === Animations === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* === Custom Scrollbar === */
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* === Print Styles === */
+@media print {
+  .navbar,
+  .btn,
+  #filterForm,
+  footer {
+    display: none !important;
+  }
+
+  .card {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #dee2e6 !important;
+  }
+
+  body {
+    background-color: white;
+  }
+}
+
+/* === Dark Mode Support (Optional) === */
+@media (prefers-color-scheme: dark) {
+  /* Uncomment to enable dark mode */
+  /*
+  body {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+  }
+
+  .card {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+  }
+
+  .table {
+    color: #e0e0e0;
+  }
+
+  .table thead th {
+    background-color: #3d3d3d;
+    border-color: #4d4d4d;
+  }
+
+  .table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .form-control,
+  .form-select {
+    background-color: #3d3d3d;
+    color: #e0e0e0;
+    border-color: #4d4d4d;
+  }
+  */
+}
+
+/* === Accessibility === */
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* === Performance Optimizations === */
+.card,
+.btn,
+.table tbody tr {
+  will-change: transform;
+}
+
+/* === Custom Classes for Dynamic Content === */
+.rank-1 {
+  font-size: 1.2rem;
+  color: gold;
+}
+
+.rank-2 {
+  font-size: 1.1rem;
+  color: silver;
+}
+
+.rank-3 {
+  font-size: 1.05rem;
+  color: #cd7f32;
+}
+
+/* === Empty State Styling === */
+.bi-inbox {
+  opacity: 0.3;
+}
+
+/* === Loading State === */
+.placeholder-glow .placeholder {
+  animation: placeholder-glow 2s ease-in-out infinite;
+}
+
+@keyframes placeholder-glow {
+  50% {
+    opacity: 0.2;
+  }
+}
+</style>

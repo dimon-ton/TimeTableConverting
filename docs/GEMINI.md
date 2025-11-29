@@ -1,18 +1,31 @@
 # TimeTable Converting - Google Gemini Context File
 
-Last Updated: 2025-11-29
+Last Updated: 2025-11-29 (Evening Session)
 
 ## Project Overview
 
-Welcome to the TimeTable Converting project! This is a production-ready Python application that helps Thai schools manage teacher absences and substitute assignments through intelligent automation and LINE Bot integration.
+Welcome to the TimeTable Converting project! This consists of two integrated components:
+
+1. **TimeTableConverting System (PRODUCTION-READY)** - Python application that helps Thai schools manage teacher absences and substitute assignments through intelligent automation and LINE Bot integration.
+
+2. **Teacher Working Hours Dashboard (IN DEVELOPMENT)** - Google Apps Script web application that visualizes teacher workload metrics in a responsive dashboard.
 
 ## What This System Does
 
-The TimeTable Converting system automates three core workflows:
+### TimeTableConverting System (Production-Ready)
+The main system automates three core workflows:
 
 1. **Excel to JSON Conversion** - Converts Thai school timetables from Excel (.xlsm) format to structured JSON
 2. **Intelligent Substitute Assignment** - Uses a 6-factor scoring algorithm to find the best substitute teacher for any absence
 3. **Automated Leave Management** - Teachers send leave requests via LINE message, system assigns substitutes, and notifies everyone automatically
+
+### Google Apps Script Webapp (In Development)
+The webapp provides visual analytics:
+
+1. **Teacher Hours Tracking** - Displays regular periods, substitute periods, and absences
+2. **Leaderboard Rankings** - Shows teacher workload distribution
+3. **Interactive Dashboard** - Filter and sort capabilities with responsive design
+4. **Real-time Data** - Integrates with Google Sheets for live updates
 
 ## Quick Start for Gemini
 

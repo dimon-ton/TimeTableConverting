@@ -1,0 +1,139 @@
+<!-- Leaderboard Component -->
+<div class="row">
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="bi bi-trophy"></i>
+            ตารางอันดับภาระงานสอน
+          </h5>
+          <span class="badge bg-light text-dark" id="teacherCount">
+            <i class="bi bi-people"></i> 0 คน
+          </span>
+        </div>
+      </div>
+      <div class="card-body p-0">
+
+        <!-- Desktop Table View -->
+        <div class="table-responsive d-none d-md-block">
+          <table class="table table-hover table-striped mb-0" id="leaderboardTable">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th class="text-center" style="width: 60px;">
+                  <i class="bi bi-hash"></i> อันดับ
+                </th>
+                <th>
+                  <i class="bi bi-person-badge"></i> ชื่อครู
+                </th>
+                <th class="text-center">
+                  <i class="bi bi-calendar-week"></i> วัน
+                </th>
+                <th class="text-end">
+                  <i class="bi bi-book"></i> ชั่วโมงปกติวันนี้
+                </th>
+                <th class="text-end">
+                  <i class="bi bi-arrow-up-circle"></i> ทดแทนสะสม
+                </th>
+                <th class="text-end">
+                  <i class="bi bi-arrow-down-circle"></i> ลาสะสม
+                </th>
+                <th class="text-end">
+                  <i class="bi bi-bar-chart-fill"></i> ภาระงานรวม
+                </th>
+                <th class="text-center" style="width: 100px;">
+                  สถานะ
+                </th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardTableBody">
+              <!-- Rows will be populated dynamically -->
+              <tr>
+                <td colspan="8" class="text-center py-5 text-muted">
+                  <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                  <p class="mt-2">ไม่มีข้อมูล</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="d-md-none p-3" id="mobileLeaderboard">
+          <!-- Cards will be populated dynamically -->
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+            <p class="mt-2">ไม่มีข้อมูล</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Table Footer with Statistics -->
+      <div class="card-footer bg-light">
+        <div class="row text-center small">
+          <div class="col-md-3 col-6 mb-2 mb-md-0">
+            <div class="text-muted">ค่าเฉลี่ยภาระงาน</div>
+            <div class="fw-bold text-primary" id="avgBurden">-</div>
+          </div>
+          <div class="col-md-3 col-6 mb-2 mb-md-0">
+            <div class="text-muted">สูงสุด</div>
+            <div class="fw-bold text-danger" id="maxBurden">-</div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="text-muted">ต่ำสุด</div>
+            <div class="fw-bold text-success" id="minBurden">-</div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="text-muted">ช่วง</div>
+            <div class="fw-bold text-info" id="rangeBurden">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Card Template (hidden, cloned by JavaScript) -->
+<template id="mobileCardTemplate">
+  <div class="card mb-3 teacher-card" data-teacher-id="">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <span class="badge bg-secondary rank-badge">อันดับ #</span>
+          <h6 class="mt-2 mb-1 teacher-name">ชื่อครู</h6>
+          <small class="text-muted teacher-id">Teacher ID</small>
+        </div>
+        <span class="badge workload-badge">สถานะ</span>
+      </div>
+
+      <hr class="my-2">
+
+      <div class="row g-2 small">
+        <div class="col-6">
+          <div class="text-muted">วัน</div>
+          <div class="fw-bold day-of-week">-</div>
+        </div>
+        <div class="col-6">
+          <div class="text-muted">ชั่วโมงปกติวันนี้</div>
+          <div class="fw-bold regular-periods">0</div>
+        </div>
+        <div class="col-6">
+          <div class="text-muted">ทดแทนสะสม</div>
+          <div class="fw-bold text-success substitute-periods">0</div>
+        </div>
+        <div class="col-6">
+          <div class="text-muted">ลาสะสม</div>
+          <div class="fw-bold text-danger absence-periods">0</div>
+        </div>
+      </div>
+
+      <hr class="my-2">
+
+      <div class="d-flex justify-content-between align-items-center">
+        <strong>ภาระงานรวม:</strong>
+        <span class="badge bg-primary net-total-burden">0</span>
+      </div>
+    </div>
+  </div>
+</template>

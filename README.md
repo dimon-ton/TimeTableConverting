@@ -4,15 +4,27 @@ A Python-based timetable management system for schools that handles Excel-to-JSO
 
 ## Features
 
+### Core Timetable System
 - ✅ Convert Excel timetables (.xlsm) to structured JSON format
 - ✅ Intelligent substitute teacher assignment algorithm
 - ✅ Workload balancing across teachers
 - ✅ Level-based matching (elementary/middle school)
 - ✅ Subject qualification validation
-- ✅ Comprehensive test suite
+- ✅ Comprehensive test suite (120+ tests, 85%+ coverage)
+
+### Cloud Integration
 - ✅ **Google Sheets integration for cloud-based leave log management**
 - ✅ **LINE Bot integration for automated leave requests and notifications**
 - ✅ **AI-powered message parsing (OpenRouter/Gemini)**
+- ✅ **Admin verification workflow with edit detection**
+- ✅ **Two-group notification system (teacher/admin)**
+
+### Google Apps Script Webapp (NEW - In Development)
+- 🚧 **Teacher Working Hours Dashboard**
+- 🚧 **Visual analytics for teaching workload**
+- 🚧 **Leaderboard and statistics**
+- 🚧 **Responsive web interface (mobile/tablet/desktop)**
+- 🚧 **Real-time data from Google Sheets**
 
 ## Installation
 
@@ -715,7 +727,7 @@ TimeTableConverting/
 ├── create_sheets_template.py     # Google Sheets setup helper
 ├── fix_sheet_headers.py          # Google Sheets header fix utility
 │
-├── LINE Bot System (NEW!)
+├── LINE Bot System (Production-Ready)
 ├── config.py                     # Centralized configuration management
 ├── webhook.py                    # Flask server for LINE webhooks
 ├── ai_parser.py                  # AI-powered message parsing (OpenRouter/Gemini)
@@ -724,6 +736,19 @@ TimeTableConverting/
 ├── build_teacher_data.py         # Generate required data files
 ├── .env.example                  # Environment variables template
 ├── LINE_BOT_SETUP.md            # Complete LINE Bot setup guide
+│
+├── Google Apps Script Webapp (NEW - In Development)
+├── gas-webapp/
+│   ├── Code.js                   # Backend server code (10.8 KB)
+│   ├── DataConstants.js          # Hardcoded timetable/teacher data (20.2 KB)
+│   ├── Calculations.js           # Business logic (11.3 KB)
+│   ├── Index.html                # Main page template (4.5 KB)
+│   ├── Filters.html              # Filter UI component (3 KB)
+│   ├── Leaderboard.html          # Leaderboard UI (5.4 KB)
+│   ├── JavaScript.html           # Client-side JavaScript (15.3 KB)
+│   ├── Stylesheet.html           # CSS styles (7.7 KB)
+│   ├── appsscript.json           # Apps Script manifest
+│   └── .clasp.json               # Clasp configuration
 │
 ├── Testing
 ├── test_excel_converting.py      # Excel conversion tests (14 tests)
@@ -751,15 +776,19 @@ TimeTableConverting/
 ├── .env                          # Environment variables (from .env.example)
 │
 ├── Documentation
+├── docs/
+│   ├── CLAUDE.md                 # Claude Code context (synchronized)
+│   ├── GEMINI.md                 # Google Gemini context (synchronized)
+│   ├── GAS_WEBAPP_PLAN.md        # GAS webapp implementation plan (NEW)
+│   ├── LINE_BOT_SETUP.md         # LINE Bot setup guide
+│   ├── LINE_TESTING.md           # LINE integration testing guide
+│   ├── TESTING.md                # Quick testing guide
+│   ├── TEST_REPORT.md            # Comprehensive test documentation
+│   ├── SESSION_SUMMARY.md        # Work session history
+│   └── NEXT_STEPS.md             # Recommended next actions
 ├── requirements.txt              # Python dependencies
-├── README.md                     # This file
-├── CLAUDE.md                     # Claude Code instructions
-├── GEMINI.md                     # Google Gemini instructions
-├── LINE_BOT_SETUP.md            # LINE Bot setup guide
-├── TESTING.md                    # Quick testing guide
-├── TEST_REPORT.md                # Comprehensive test documentation
-├── SESSION_SUMMARY.md            # Work session history
-├── NEXT_STEPS.md                 # Recommended next actions
+├── requirements-dev.txt          # Development/testing dependencies
+└── README.md                     # This file
 │
 └── venv/                         # Virtual environment (created by you)
 ```

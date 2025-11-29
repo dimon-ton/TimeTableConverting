@@ -1,16 +1,55 @@
 # Next Steps for TimeTableConverting Project
 
-**Generated:** 2025-11-29
-**Current Status:** Production-ready with cron job tested, Windows automation validated, and complete deployment readiness
-**Last Session:** Nov 29, 2025 - Cron Job Testing and Production Readiness Validation
+**Generated:** 2025-11-29 (Evening Update)
+**Current Status:** Production-ready system + GAS webapp project recovered and documented
+**Last Session:** Nov 29, 2025 (Evening) - Context Sync, GAS Planning & Recovery
 
 ---
 
 ## Current Stopping Point
 
-The project is now in a **PRODUCTION-READY (DEPLOYMENT-READY A++) state** with complete automation, teacher workload protection, cloud integration, intelligent workload distribution, two-group notification system, comprehensive testing documentation, natural Thai language processing, VALIDATED real-world functionality, admin verification workflow, two-balloon LINE message format, AI-powered admin edit detection with automatic database synchronization, and NEW fully tested cron job functionality with Windows testing infrastructure:
+The project consists of two components:
 
-### Completed in Latest Session (Nov 29, 2025)
+**1. TimeTableConverting System (PRODUCTION-READY A++)**
+Complete automation with teacher workload protection, cloud integration, intelligent workload distribution, two-group notification system, comprehensive testing documentation, natural Thai language processing, VALIDATED real-world functionality, admin verification workflow, two-balloon LINE message format, AI-powered admin edit detection with automatic database synchronization, and fully tested cron job functionality with Windows testing infrastructure.
+
+**2. GAS Teacher Working Hours Dashboard (PARTIALLY IMPLEMENTED)**
+Google Apps Script web application recovered from cloud with 9 existing files (89 KB code). Implementation plan documented. Ready for Phase 0 (Database Setup).
+
+### Completed in Latest Session (Nov 29, 2025 - Evening)
+1. **AI Context Synchronization (via context-sync-github-pusher agent):**
+   - Synchronized CLAUDE.md and GEMINI.md with comprehensive project documentation
+   - CLAUDE.md: 19,238 characters (complete technical architecture)
+   - GEMINI.md: 20,435 characters (Thai language parsing focus)
+   - Successfully pushed to GitHub: https://github.com/dimon-ton/TimeTableConverting
+
+2. **GAS Webapp Plan Documentation:**
+   - Located existing plan in C:\Users\Phontan-Chang\.claude\plans\crispy-drifting-swing.md
+   - Saved to project: docs/GAS_WEBAPP_PLAN.md (23 KB, 663 lines)
+   - Plan describes: Teacher Working Hours Dashboard web application
+   - 6-phase implementation (Phase 0-5, total 8.5 hours estimated)
+
+3. **Google Apps Script Project Recovery:**
+   - User had created GAS project but lost local copy after moving
+   - Successfully recovered from Google servers using clasp
+   - Script ID: 1Klu0qRavxHVZyHXu_W9JyVIN-CUzFKdDnjL7_E5qEobWOBbTm-7lgu2b
+   - Cloned to: C:\Users\Phontan-Chang\Documents\TimeTableConverting\gas-webapp/
+   - Recovered 9 files (89 KB total):
+     - Backend: Code.js, DataConstants.js, Calculations.js, appsscript.json
+     - Frontend: Index.html, Filters.html, Leaderboard.html, JavaScript.html, Stylesheet.html
+
+4. **Files Created:**
+   - docs/GAS_WEBAPP_PLAN.md (23 KB) - Complete implementation plan
+   - gas-webapp/ directory with 9 GAS project files
+
+5. **Benefits:**
+   - All AI assistants have consistent project understanding
+   - GAS webapp roadmap documented with time estimates
+   - Successfully recovered lost work (no data loss)
+   - Ready to continue GAS webapp development
+   - Clasp integration confirmed working
+
+### Completed in Earlier Session (Nov 29, 2025 - Morning)
 1. **Cron Job CLI Completion:**
    - Completed main() function in src/utils/daily_leave_processor.py (lines 347-411)
    - Implemented argparse-based command-line interface
@@ -478,7 +517,45 @@ The project is now in a **PRODUCTION-READY (DEPLOYMENT-READY A++) state** with c
 
 ## Immediate Next Steps (Recommended Priority Order)
 
-### 1. Raspberry Pi Deployment (HIGHEST PRIORITY - READY TO EXECUTE)
+### 1. GAS Webapp Phase 0: Database Setup (NEW - HIGHEST PRIORITY - 30 min)
+**Why:** GAS webapp project recovered and documented. Next logical step is database setup for tracking teacher hours.
+
+**Tasks:**
+- [ ] Create Teacher_Hours_Tracking worksheet in Google Sheets
+- [ ] Define schema:
+  - Date (YYYY-MM-DD)
+  - Teacher_ID (T001, T002, etc.)
+  - Regular_Periods (count from timetable for that day)
+  - Substitute_Periods (cumulative from school year start)
+  - Absence_Periods (cumulative from school year start)
+  - Net_Total (Regular + Substitute - Absence)
+  - Last_Updated (timestamp)
+- [ ] Modify Python daily_leave_processor.py to write snapshots
+- [ ] Add write_teacher_hours_snapshot() function
+- [ ] Integrate with existing 8:55 AM cron job
+
+**Implementation Guidance:**
+```python
+# In src/utils/daily_leave_processor.py
+def write_teacher_hours_snapshot(date, all_teacher_ids):
+    # Calculate regular periods for today from timetable
+    # Load cumulative substitutes from Leave_Logs
+    # Load cumulative absences from Leave_Logs
+    # Calculate net totals
+    # Write to Teacher_Hours_Tracking worksheet
+    pass
+```
+
+**Estimated Effort:** 30 minutes
+**Dependencies:** Google Sheets access (already configured)
+**Success Criteria:**
+- Teacher_Hours_Tracking worksheet created
+- Daily snapshots recorded automatically
+- Data ready for GAS webapp frontend
+
+---
+
+### 2. Raspberry Pi Deployment (HIGH PRIORITY - READY TO EXECUTE)
 **Why:** System is complete and production-ready. Deploy to Raspberry Pi for 24/7 operation.
 
 **Prerequisites (verify these are ready):**

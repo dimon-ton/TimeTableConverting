@@ -1,0 +1,556 @@
+<script>
+/**
+ * JavaScript.html - Client-side logic for Teacher Hours Tracking Web App
+ *
+ * Handles data loading, filtering, rendering, and user interactions
+ */
+
+// Global variables
+let allTeacherData = [];
+let currentFilters = {
+  teacherId: 'all',
+  dateFrom: null,
+  dateTo: null,
+  sortBy: 'net_total_burden',
+  sortOrder: 'desc'
+};
+let metricsData = null;
+
+/**
+ * Initialize app on page load
+ */
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Initializing Teacher Hours Tracking Dashboard...');
+
+  // Load initial data
+  loadData();
+
+  // Load filter options
+  loadFilterOptions();
+
+  // Set up event listeners
+  setupEventListeners();
+});
+
+/**
+ * Set up event listeners for interactive elements
+ */
+function setupEventListeners() {
+  // Filter form change detection
+  document.getElementById('filterTeacher').addEventListener('change', applyFilters);
+  document.getElementById('filterSortBy').addEventListener('change', applyFilters);
+
+  // Date filters - apply on blur to avoid excessive calls
+  document.getElementById('filterDateFrom').addEventListener('change', applyFilters);
+  document.getElementById('filterDateTo').addEventListener('change', applyFilters);
+}
+
+/**
+ * Load teacher hours data from backend
+ */
+function loadData() {
+  console.log('Loading teacher hours data...');
+  showLoading(true);
+  hideError();
+
+  // Call backend function to get metrics
+  google.script.run
+    .withSuccessHandler(handleDataSuccess)
+    .withFailureHandler(handleDataError)
+    .getTeacherMetrics(currentFilters);
+}
+
+/**
+ * Handle successful data load
+ */
+function handleDataSuccess(result) {
+  console.log('Data loaded successfully:', result);
+
+  if (!result.success) {
+    handleDataError(result.message || 'ไม่สามารถโหลดข้อมูลได้');
+    return;
+  }
+
+  // Store data globally
+  metricsData = result;
+  allTeacherData = result.data || [];
+
+  // Hide loading, show content
+  showLoading(false);
+  document.getElementById('mainContent').classList.remove('d-none');
+
+  // Render all components
+  renderSummaryCards(result.summary);
+  renderLeaderboard(allTeacherData);
+  updateLastUpdatedDate(result.summary.latest_date);
+
+  console.log(`Rendered ${allTeacherData.length} teacher records`);
+}
+
+/**
+ * Handle data load error
+ */
+function handleDataError(error) {
+  console.error('Error loading data:', error);
+  showLoading(false);
+  showError(error.message || error.toString());
+}
+
+/**
+ * Load filter options (teachers, subjects, classes)
+ */
+function loadFilterOptions() {
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.success && result.teachers) {
+        populateTeacherFilter(result.teachers);
+      }
+    })
+    .withFailureHandler(function(error) {
+      console.error('Error loading filter options:', error);
+    })
+    .getFilterOptions();
+}
+
+/**
+ * Populate teacher filter dropdown
+ */
+function populateTeacherFilter(teachers) {
+  const select = document.getElementById('filterTeacher');
+
+  // Keep "ทั้งหมด" option
+  select.innerHTML = '<option value="all">ทั้งหมด</option>';
+
+  // Add teacher options
+  teachers.forEach(teacher => {
+    const option = document.createElement('option');
+    option.value = teacher.id;
+    option.textContent = `${teacher.id} - ${teacher.name}`;
+    select.appendChild(option);
+  });
+}
+
+/**
+ * Apply filters and reload data
+ */
+function applyFilters() {
+  console.log('Applying filters...');
+
+  // Read filter values
+  currentFilters.teacherId = document.getElementById('filterTeacher').value;
+  currentFilters.dateFrom = document.getElementById('filterDateFrom').value || null;
+  currentFilters.dateTo = document.getElementById('filterDateTo').value || null;
+
+  // Parse sort option
+  const sortBy = document.getElementById('filterSortBy').value;
+  if (sortBy === 'net_total_burden_asc') {
+    currentFilters.sortBy = 'net_total_burden';
+    currentFilters.sortOrder = 'asc';
+  } else {
+    currentFilters.sortBy = sortBy;
+    currentFilters.sortOrder = 'desc';
+  }
+
+  // Reload data with new filters
+  loadData();
+}
+
+/**
+ * Reset filters to default
+ */
+function resetFilters() {
+  document.getElementById('filterTeacher').value = 'all';
+  document.getElementById('filterDateFrom').value = '';
+  document.getElementById('filterDateTo').value = '';
+  document.getElementById('filterSortBy').value = 'net_total_burden';
+
+  currentFilters = {
+    teacherId: 'all',
+    dateFrom: null,
+    dateTo: null,
+    sortBy: 'net_total_burden',
+    sortOrder: 'desc'
+  };
+
+  loadData();
+}
+
+/**
+ * Refresh data (clear cache and reload)
+ */
+function refreshData() {
+  console.log('Refreshing data...');
+  showLoading(true);
+
+  // Clear cache on backend, then reload
+  google.script.run
+    .withSuccessHandler(function() {
+      loadData();
+    })
+    .withFailureHandler(function(error) {
+      console.error('Error clearing cache:', error);
+      loadData(); // Load anyway
+    })
+    .clearCache();
+}
+
+/**
+ * Render summary statistics cards
+ */
+function renderSummaryCards(summary) {
+  const container = document.getElementById('summaryCards');
+
+  const cards = [
+    {
+      title: 'จำนวนครูทั้งหมด',
+      value: summary.total_teachers || 0,
+      icon: 'bi-people-fill',
+      color: 'primary',
+      suffix: 'คน'
+    },
+    {
+      title: 'ค่าเฉลี่ยภาระงาน',
+      value: (summary.average_net_burden || 0).toFixed(1),
+      icon: 'bi-bar-chart-fill',
+      color: 'info',
+      suffix: 'คาบ'
+    },
+    {
+      title: 'ทดแทนรวมทั้งหมด',
+      value: summary.total_substitute_periods || 0,
+      icon: 'bi-arrow-up-circle-fill',
+      color: 'success',
+      suffix: 'คาบ'
+    },
+    {
+      title: 'ลารวมทั้งหมด',
+      value: summary.total_absence_periods || 0,
+      icon: 'bi-arrow-down-circle-fill',
+      color: 'danger',
+      suffix: 'คาบ'
+    }
+  ];
+
+  container.innerHTML = cards.map(card => `
+    <div class="col-xl-3 col-md-6 mb-3">
+      <div class="card border-${card.color} shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-muted small mb-1">${card.title}</div>
+              <div class="h3 mb-0 text-${card.color}">
+                ${formatNumber(card.value)}
+                <small class="text-muted">${card.suffix}</small>
+              </div>
+            </div>
+            <div class="text-${card.color}" style="font-size: 2.5rem; opacity: 0.3;">
+              <i class="bi ${card.icon}"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/**
+ * Render leaderboard table and cards
+ */
+function renderLeaderboard(data) {
+  if (!data || data.length === 0) {
+    renderEmptyState();
+    return;
+  }
+
+  // Sort data
+  const sorted = sortTeacherData(data);
+
+  // Render desktop table
+  renderDesktopTable(sorted);
+
+  // Render mobile cards
+  renderMobileCards(sorted);
+
+  // Update teacher count
+  document.getElementById('teacherCount').innerHTML =
+    `<i class="bi bi-people"></i> ${data.length} คน`;
+
+  // Update footer statistics
+  updateFooterStats(data);
+}
+
+/**
+ * Sort teacher data based on current filters
+ */
+function sortTeacherData(data) {
+  const sorted = [...data];
+  const sortBy = currentFilters.sortBy;
+  const order = currentFilters.sortOrder;
+
+  sorted.sort((a, b) => {
+    let aVal, bVal;
+
+    if (sortBy === 'teacher_name') {
+      aVal = a.teacher_name || '';
+      bVal = b.teacher_name || '';
+      return aVal.localeCompare(bVal, 'th');
+    } else {
+      aVal = a[sortBy] || 0;
+      bVal = b[sortBy] || 0;
+
+      if (order === 'desc') {
+        return bVal - aVal;
+      } else {
+        return aVal - bVal;
+      }
+    }
+  });
+
+  return sorted;
+}
+
+/**
+ * Render desktop table view
+ */
+function renderDesktopTable(data) {
+  const tbody = document.getElementById('leaderboardTableBody');
+
+  tbody.innerHTML = data.map((teacher, index) => {
+    const rank = index + 1;
+    const badgeClass = getWorkloadBadge(teacher.net_total_burden);
+    const categoryText = getWorkloadCategoryText(teacher.net_total_burden);
+
+    return `
+      <tr>
+        <td class="text-center fw-bold">${rank}</td>
+        <td>
+          <div class="fw-bold">${teacher.teacher_name}</div>
+          <small class="text-muted">${teacher.teacher_id}</small>
+        </td>
+        <td class="text-center">
+          <span class="badge bg-light text-dark">${teacher.day_of_week}</span>
+        </td>
+        <td class="text-end">${teacher.regular_periods_today}</td>
+        <td class="text-end text-success fw-bold">${teacher.cumulative_substitute}</td>
+        <td class="text-end text-danger fw-bold">${teacher.cumulative_absence}</td>
+        <td class="text-end">
+          <span class="badge bg-primary fs-6">${teacher.net_total_burden}</span>
+        </td>
+        <td class="text-center">
+          <span class="${badgeClass}">${categoryText}</span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/**
+ * Render mobile card view
+ */
+function renderMobileCards(data) {
+  const container = document.getElementById('mobileLeaderboard');
+  const template = document.getElementById('mobileCardTemplate');
+
+  container.innerHTML = '';
+
+  data.forEach((teacher, index) => {
+    const rank = index + 1;
+    const card = template.content.cloneNode(true);
+
+    // Set data
+    card.querySelector('.teacher-card').dataset.teacherId = teacher.teacher_id;
+    card.querySelector('.rank-badge').textContent = `อันดับ ${rank}`;
+    card.querySelector('.teacher-name').textContent = teacher.teacher_name;
+    card.querySelector('.teacher-id').textContent = teacher.teacher_id;
+    card.querySelector('.day-of-week').textContent = teacher.day_of_week;
+    card.querySelector('.regular-periods').textContent = teacher.regular_periods_today;
+    card.querySelector('.substitute-periods').textContent = teacher.cumulative_substitute;
+    card.querySelector('.absence-periods').textContent = teacher.cumulative_absence;
+    card.querySelector('.net-total-burden').textContent = teacher.net_total_burden;
+
+    // Set workload badge
+    const badgeClass = getWorkloadBadge(teacher.net_total_burden);
+    const categoryText = getWorkloadCategoryText(teacher.net_total_burden);
+    const workloadBadge = card.querySelector('.workload-badge');
+    workloadBadge.className = badgeClass;
+    workloadBadge.textContent = categoryText;
+
+    container.appendChild(card);
+  });
+}
+
+/**
+ * Render empty state when no data
+ */
+function renderEmptyState() {
+  const tbody = document.getElementById('leaderboardTableBody');
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="8" class="text-center py-5 text-muted">
+        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+        <p class="mt-2">ไม่มีข้อมูล</p>
+      </td>
+    </tr>
+  `;
+
+  const mobileContainer = document.getElementById('mobileLeaderboard');
+  mobileContainer.innerHTML = `
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+      <p class="mt-2">ไม่มีข้อมูล</p>
+    </div>
+  `;
+
+  document.getElementById('teacherCount').innerHTML = '<i class="bi bi-people"></i> 0 คน';
+}
+
+/**
+ * Update footer statistics
+ */
+function updateFooterStats(data) {
+  if (!data || data.length === 0) {
+    document.getElementById('avgBurden').textContent = '-';
+    document.getElementById('maxBurden').textContent = '-';
+    document.getElementById('minBurden').textContent = '-';
+    document.getElementById('rangeBurden').textContent = '-';
+    return;
+  }
+
+  const burdens = data.map(t => t.net_total_burden);
+  const avg = burdens.reduce((sum, val) => sum + val, 0) / burdens.length;
+  const max = Math.max(...burdens);
+  const min = Math.min(...burdens);
+  const range = max - min;
+
+  document.getElementById('avgBurden').textContent = avg.toFixed(1) + ' คาบ';
+  document.getElementById('maxBurden').textContent = max + ' คาบ';
+  document.getElementById('minBurden').textContent = min + ' คาบ';
+  document.getElementById('rangeBurden').textContent = range + ' คาบ';
+}
+
+/**
+ * Update last updated date display
+ */
+function updateLastUpdatedDate(dateStr) {
+  const elem = document.getElementById('lastUpdatedDate');
+  if (dateStr) {
+    elem.textContent = formatThaiDate(dateStr);
+  } else {
+    elem.textContent = '-';
+  }
+}
+
+/**
+ * Get workload category badge class
+ */
+function getWorkloadBadge(burden) {
+  if (!metricsData || !metricsData.summary) {
+    return 'badge bg-secondary';
+  }
+
+  const avg = metricsData.summary.average_net_burden;
+  const deviation = burden - avg;
+
+  // Calculate simple standard deviation threshold (10% of average)
+  const threshold = avg * 0.15;
+
+  if (deviation > threshold * 1.5) {
+    return 'badge bg-danger';
+  } else if (deviation > threshold * 0.5) {
+    return 'badge bg-warning text-dark';
+  } else if (deviation < -threshold * 1.5) {
+    return 'badge bg-secondary';
+  } else if (deviation < -threshold * 0.5) {
+    return 'badge bg-info text-dark';
+  } else {
+    return 'badge bg-success';
+  }
+}
+
+/**
+ * Get workload category text
+ */
+function getWorkloadCategoryText(burden) {
+  if (!metricsData || !metricsData.summary) {
+    return 'ปกติ';
+  }
+
+  const avg = metricsData.summary.average_net_burden;
+  const deviation = burden - avg;
+  const threshold = avg * 0.15;
+
+  if (deviation > threshold * 1.5) {
+    return 'สูงมาก';
+  } else if (deviation > threshold * 0.5) {
+    return 'สูง';
+  } else if (deviation < -threshold * 1.5) {
+    return 'ต่ำมาก';
+  } else if (deviation < -threshold * 0.5) {
+    return 'ต่ำ';
+  } else {
+    return 'ปกติ';
+  }
+}
+
+/**
+ * Format number with thousand separator
+ */
+function formatNumber(num) {
+  if (num === null || num === undefined || isNaN(num)) {
+    return '-';
+  }
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/**
+ * Format date to Thai format
+ */
+function formatThaiDate(dateStr) {
+  if (!dateStr) return '-';
+
+  const date = new Date(dateStr);
+  if (isNaN(date)) return dateStr;
+
+  const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+                      'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+  const day = date.getDate();
+  const month = thaiMonths[date.getMonth()];
+  const year = date.getFullYear() + 543;
+
+  return `${day} ${month} ${year}`;
+}
+
+/**
+ * Show/hide loading spinner
+ */
+function showLoading(show) {
+  const spinner = document.getElementById('loadingSpinner');
+  if (show) {
+    spinner.classList.remove('d-none');
+  } else {
+    spinner.classList.add('d-none');
+  }
+}
+
+/**
+ * Show error message
+ */
+function showError(message) {
+  const alert = document.getElementById('errorAlert');
+  const messageElem = document.getElementById('errorMessage');
+
+  messageElem.textContent = message;
+  alert.classList.remove('d-none');
+}
+
+/**
+ * Hide error message
+ */
+function hideError() {
+  const alert = document.getElementById('errorAlert');
+  alert.classList.add('d-none');
+}
+
+console.log('JavaScript loaded successfully');
+</script>

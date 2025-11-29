@@ -1,13 +1,18 @@
 # TimeTable Converting - Claude Code Context File
 
-Last Updated: 2025-11-29
+Last Updated: 2025-11-29 (Evening Session)
 
 ## Project Overview
 
-The TimeTable Converting project is a production-ready Python-based timetable management system for schools that handles Excel-to-JSON conversion, intelligent substitute teacher assignment, and automated leave management through LINE Bot integration.
+The TimeTable Converting project consists of two integrated components:
+
+1. **TimeTableConverting System (PRODUCTION-READY)** - Python-based timetable management system for schools that handles Excel-to-JSON conversion, intelligent substitute teacher assignment, and automated leave management through LINE Bot integration.
+
+2. **Teacher Working Hours Dashboard (IN DEVELOPMENT)** - Google Apps Script web application that visualizes teacher workload metrics including regular teaching periods, substitute assignments, and absences in a responsive dashboard interface.
 
 ## Core Features
 
+### TimeTableConverting System (Production-Ready)
 - Excel timetable (.xlsm) to structured JSON conversion with Thai language support
 - Intelligent substitute teacher assignment with 6-factor scoring algorithm
 - Historical data integration for fair workload distribution
@@ -16,6 +21,15 @@ The TimeTable Converting project is a production-ready Python-based timetable ma
 - AI-powered Thai language message parsing (OpenRouter/Gemini)
 - Real-time notifications and daily automated processing
 - Admin edit detection with 4-tier name matching system
+- Cron job automation with Windows testing infrastructure
+
+### Google Apps Script Webapp (In Development)
+- Teacher working hours accumulation tracking
+- Visual analytics dashboard with leaderboard
+- Real-time data integration from Google Sheets
+- Responsive Bootstrap design (mobile/tablet/desktop)
+- Filter and sort capabilities
+- Daily snapshot recording (integrated with Python processor)
 
 ## Project Structure
 
@@ -39,9 +53,23 @@ TimeTableConverting/
 │   ├── README.md                    # Main project documentation
 │   ├── CLAUDE.md                    # This file - Claude Code context
 │   ├── GEMINI.md                    # Google Gemini context
+│   ├── GAS_WEBAPP_PLAN.md           # Google Apps Script webapp plan (NEW - Nov 29)
 │   ├── ADMIN_EDIT_DETECTION_SUMMARY.md  # Admin edit feature docs
 │   ├── SESSION_CLOSEOUT_2025-11-23.md   # Session history (Nov 23)
 │   └── SESSION_CLOSEOUT_2025-11-25.md   # Session history (Nov 25)
+│
+├── Google Apps Script Webapp (NEW - Nov 29, 2025)
+│   └── gas-webapp/
+│       ├── Code.js                  # Backend server code (10.8 KB)
+│       ├── DataConstants.js         # Hardcoded timetable/teacher data (20.2 KB)
+│       ├── Calculations.js          # Business logic (11.3 KB)
+│       ├── Index.html               # Main page template (4.5 KB)
+│       ├── Filters.html             # Filter UI component (3 KB)
+│       ├── Leaderboard.html         # Leaderboard UI (5.4 KB)
+│       ├── JavaScript.html          # Client-side JavaScript (15.3 KB)
+│       ├── Stylesheet.html          # CSS styles (7.7 KB)
+│       ├── appsscript.json          # Apps Script manifest
+│       └── .clasp.json              # Clasp configuration
 │
 ├── Data Files
 │   ├── credentials.json             # Google API service account credentials
@@ -59,6 +87,41 @@ NOTE: The README.md mentions a `src/` directory structure with modules like `src
 1. A flat structure with all modules at root level, OR
 2. These directories may need to be created, OR
 3. The README documentation may be ahead of the actual implementation
+
+## Google Apps Script Webapp (NEW - Nov 29, 2025)
+
+### Overview
+Teacher Working Hours Dashboard - a responsive web application that visualizes teacher workload metrics including regular teaching periods, substitute assignments, and absences.
+
+### Status
+- **Current State:** Partially implemented (code exists in gas-webapp/)
+- **Recovery:** Successfully recovered from Google servers using clasp (Nov 29, 2025)
+- **Script ID:** 1Klu0qRavxHVZyHXu_W9JyVIN-CUzFKdDnjL7_E5qEobWOBbTm-7lgu2b
+- **Documentation:** Complete implementation plan in docs/GAS_WEBAPP_PLAN.md
+
+### Implementation Plan
+- **Phase 0:** Database Setup (30 min) - Create Teacher_Hours_Tracking worksheet
+- **Phase 1:** Backend Data Layer (1.5 hours) - Data fetching and calculations
+- **Phase 2:** Frontend UI Foundation (2 hours) - HTML structure and Bootstrap
+- **Phase 3:** Leaderboard Implementation (1.5 hours) - Ranking table
+- **Phase 4:** Filter System (1.5 hours) - Interactive filtering
+- **Phase 5:** Polish & Testing (1.5 hours) - Final touches
+- **Total Estimated Effort:** 8.5 hours
+
+### Integration with Python System
+The GAS webapp integrates with the existing Python TimeTableConverting system:
+- **Data Source:** Google Sheets (Leave_Logs, Teacher_Hours_Tracking)
+- **Data Writer:** Python daily_leave_processor.py writes daily snapshots at 8:55 AM
+- **Metrics Tracked:**
+  - Regular periods scheduled (from timetable for current day)
+  - Cumulative substitute periods taught (from Leave_Logs)
+  - Cumulative absence periods (from Leave_Logs)
+  - Net total teaching burden: Regular + Substitute - Absence
+
+### Next Steps
+1. Implement Phase 0: Create Teacher_Hours_Tracking worksheet in Google Sheets
+2. Modify Python daily_leave_processor.py to write daily snapshots
+3. Continue through remaining phases of implementation plan
 
 ## Key Technologies
 
