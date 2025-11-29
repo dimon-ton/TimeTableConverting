@@ -1,466 +1,632 @@
-# GEMINI.md
+# TimeTable Converting - Google Gemini Context File
 
-This file provides guidance to Google Gemini when working with code in this repository.
+Last Updated: 2025-11-29
 
-## Overview
-School timetable management system with complete automation:
-1. Converting Excel timetables (.xlsm) to JSON
-2. Finding substitute teachers based on intelligent scoring
-3. LINE Bot integration for automated leave requests
-4. Google Sheets integration for cloud-based data management
+## Project Overview
 
-## Running the Scripts
+Welcome to the TimeTable Converting project! This is a production-ready Python application that helps Thai schools manage teacher absences and substitute assignments through intelligent automation and LINE Bot integration.
 
-### Convert Excel to JSON
-```bash
-python -m src.timetable.converter <excel_file> [output_file]
+## What This System Does
+
+The TimeTable Converting system automates three core workflows:
+
+1. **Excel to JSON Conversion** - Converts Thai school timetables from Excel (.xlsm) format to structured JSON
+2. **Intelligent Substitute Assignment** - Uses a 6-factor scoring algorithm to find the best substitute teacher for any absence
+3. **Automated Leave Management** - Teachers send leave requests via LINE message, system assigns substitutes, and notifies everyone automatically
+
+## Quick Start for Gemini
+
+### Understanding the Codebase
+
+This project has a **flat file structure** with Python files at the root level. The README mentions a `src/` directory structure, but in the actual filesystem, most core files are at the root.
+
+### Key Files You'll Work With
+
+**Root Level Python Files:**
+- `cleanup_bad_logs.py` - Utility to clean up malformed log entries
+- `test_ai_live.py` - Live testing for AI parser (you!)
+- `test_google_sheets.py` - Google Sheets integration tests
+- `verify_sheets.py` - Sheet verification utility
+
+**Configuration:**
+- `.env` - Contains all credentials (NEVER commit this)
+- `.env.example` - Template for environment variables
+- `requirements.txt` - Production dependencies
+- `requirements-dev.txt` - Testing dependencies
+- `pytest.ini` - Test configuration
+
+**Documentation:**
+- `README.md` - Main project documentation (comprehensive, 902 lines)
+- `CLAUDE.md` - Context file for Claude Code agent
+- `GEMINI.md` - This file - context for you!
+- `ADMIN_EDIT_DETECTION_SUMMARY.md` - Admin edit feature documentation
+- `SESSION_CLOSEOUT_2025-11-23.md` - Historical data integration session
+- `SESSION_CLOSEOUT_2025-11-25.md` - Daily workload limit session
+
+**Data Files:**
+- `credentials.json` - Google API service account credentials (NEVER commit)
+- `line_message_example.txt` - Example LINE message formats
+- `test_report_2025-11-21.txt` - Test execution report
+- `.coverage` - Test coverage data
+
+## Your Role as Gemini
+
+As the AI-powered message parser, you play a critical role in this system:
+
+### Primary Function: Thai Language Message Parsing
+
+You analyze Thai language LINE messages and extract structured data:
+
+**Input Example:**
 ```
-**Examples:**
-```bash
-# Using default output file (data/timetable_output.json)
-python -m src.timetable.converter timetable.xlsm
-
-# Specifying custom output file
-python -m src.timetable.converter timetable.xlsm my_output.json
-```
-
-**Features:**
-- Command-line argument support for file paths
-- Input file validation (checks if file exists)
-- Reports unknown teachers and subjects with warnings
-- Handles merged cells automatically
-- UTF-8 encoding for Thai characters
-- Progress feedback during processing
-
-### Find Substitutes
-```python
-from src.timetable.substitute import find_best_substitute_teacher, assign_substitutes_for_day
-```
-The module provides importable functions. See `tests/test_substitute.py` for usage examples.
-
-### Test with Real Timetable
-```bash
-python -m tests.test_real_timetable
-```
-Comprehensive test script using real school timetable data.
-
-## Project Structure
-
-```
-src/
-├── config.py                    # Centralized configuration
-├── timetable/
-│   ├── converter.py             # Excel to JSON conversion
-│   ├── substitute.py            # Substitute teacher finding
-│   └── ai_parser.py             # AI-powered leave request parsing
-├── utils/
-│   ├── build_teacher_data.py    # Generate teacher data files
-│   ├── daily_leave_processor.py # Daily workflow orchestration
-│   └── sheet_utils.py           # Google Sheets operations (read/write)
-└── web/
-    ├── webhook.py               # LINE webhook server
-    └── line_messaging.py        # LINE notifications
-```
-
-## LINE Bot System
-
-**Complete automated leave request and substitute assignment system.**
-
-### System Architecture
-
-```
-[Teachers] → [LINE Group] → [webhook.py] → [ai_parser.py] → [Google Sheets]
-                                                                     ↓
-[LINE Group] ← [line_messaging.py] ← [daily_leave_processor.py] ← [Cron Job]
-                                              ↓
-                                     [substitute.py]
+ครูสุกฤษฎิ์ ขอลาพรุ่งนี้ คาบ 1-3
 ```
 
-### Core Components
-
-**src/config.py** - Centralized configuration
-- Loads environment variables from .env file
-- Validates all required credentials
-- Uses PROJECT_ROOT for absolute paths
-
-**src/web/webhook.py** - Flask server for LINE webhooks
-- HTTP server on port 5000 (configurable)
-- `/callback` endpoint receives LINE events
-- Verifies LINE signatures (HMAC-SHA256)
-- Calls ai_parser for message parsing
-- Logs to Google Sheets via sheet_utils
-
-**src/timetable/ai_parser.py** - AI-powered message parsing (Enhanced Nov 25, 2025)
-- Uses OpenRouter API with DeepSeek R1 model (paid model)
-- Model: deepseek/deepseek-r1 (configurable via OPENROUTER_MODEL)
-- Extracts: teacher_name, date, periods, reason, leave_type
-- Handles formal Thai greetings ("เรียนท่าน ผอ." automatically stripped)
-- Supports multiple full-day expressions (ทั้งวัน, เต็มวัน, 1 วัน, หนึ่งวัน)
-- Distinguishes late arrivals ("เข้าสาย", "มาสาย") from full absences
-- Late arrivals map to periods [1, 2, 3] (morning periods)
-- Extracts specific reasons when provided
-- Works with no-spacing messages ("วันนี้ครูวิยะดา")
-- Handles Thai date expressions (พรุ่งนี้, วันนี้, วันจันทร์, etc.)
-- Fallback regex-based parser with 100% feature parity
-
-**src/web/line_messaging.py** - Outgoing notifications
-- send_message_to_group() - Generic messaging
-- send_daily_report() - Substitute teacher reports
-- Uses LINE SDK v3 MessagingApi
-
-**src/utils/daily_leave_processor.py** - Daily orchestration (FULLY TESTED - Nov 29, 2025)
-- Complete command-line interface with argparse (lines 347-411)
-- Flags: --test (read-only), --send-line (enable notifications)
-- Loads historical substitute data from Leave_Logs (Nov 23, 2025)
-- Reads today's requests from Leave_Requests sheet
-- Enriches with timetable data
-- Finds substitutes using historical context
-- Logs new assignments to Leave_Logs sheet
-- Automatic cumulative learning for next day
-- Sends LINE report
-- Windows console compatible (emoji removed)
-
-**src/utils/sheet_utils.py** - Google Sheets operations (Enhanced Nov 23, 2025)
-- get_sheets_client() - Authenticated gspread client
-- load_requests_from_sheet() - Read Leave_Requests
-- log_request_to_sheet() - Write incoming requests
-- add_absence() - Log final assignments to Leave_Logs
-- **load_substitute_logs_from_sheet()** - Load historical substitute data (NEW)
-  - Reads past substitute assignments from Leave_Logs
-  - Provides algorithm with historical context
-  - Enables fair workload distribution
-  - Automatic cumulative learning
-
-**src/utils/build_teacher_data.py** - Data file generator
-- Analyzes timetable to extract teacher info
-- Generates 5 JSON files in data/ directory
-- Run once during setup
-
-### Data Flow
-
-**Incoming Leave Request:**
-1. Teacher sends message: "ครูสุกฤษฎิ์ ขอลาพรุ่งนี้ คาบ 1-3"
-2. LINE platform → webhook.py POST /callback
-3. ai_parser.py extracts {teacher_name, date, periods, reason}
-4. sheet_utils.log_request_to_sheet() → Google Sheets "Leave_Requests"
-5. webhook.py sends confirmation reply
-
-**Daily Processing (8:55 AM cron) - Enhanced Nov 23, 2025:**
-1. daily_leave_processor.py loads historical substitute data from Leave_Logs
-2. Reads today's requests from Leave_Requests sheet
-3. Enriches with timetable data (class, subject)
-4. assign_substitutes_for_day() finds best substitutes using historical context
-5. sheet_utils.add_absence() → logs new assignments to Leave_Logs
-6. New assignments become historical data for next day (cumulative learning)
-7. line_messaging.py sends report to LINE group
-
-### Configuration Files
-
-**.env** (created from .env.example)
-```
-SPREADSHEET_ID=your_spreadsheet_id
-LINE_CHANNEL_SECRET=your_secret
-LINE_CHANNEL_ACCESS_TOKEN=your_token
-LINE_TEACHER_GROUP_ID=your_teacher_group_id
-LINE_ADMIN_GROUP_ID=your_admin_group_id
-LINE_GROUP_ID=your_legacy_group_id
-OPENROUTER_API_KEY=your_api_key
-OPENROUTER_MODEL=deepseek/deepseek-r1
-WEBHOOK_HOST=0.0.0.0
-WEBHOOK_PORT=5000
-DEBUG_MODE=False
-```
-
-**credentials.json** (Google service account)
-- Downloaded from Google Cloud Console
-- Used by gspread for Sheets API authentication
-
-## Data Format
-
-Timetable entry format:
+**Expected Output:**
 ```python
 {
-    "teacher_id": str,    # e.g., "T001"
-    "subject_id": str,    # e.g., "Math"
-    "day_id": str,        # e.g., "Mon"
-    "period_id": int,     # 1-based index
-    "class_id": str       # e.g., "ป.1" (elementary), "ม.1" (middle)
+    "teacher_name": "สุกฤษฎิ์",
+    "date": "2025-11-22",  # Calculated from "พรุ่งนี้" (tomorrow)
+    "periods": [1, 2, 3],
+    "reason": "ลากิจ"
 }
 ```
 
-**Additional data structures:**
-- `teacher_subjects`: `{teacher_id: [subject_ids]}`
-- `teacher_levels`: `{teacher_id: ["lower_elementary", "upper_elementary", "middle"]}`
-- `class_levels`: `{class_id: "lower_elementary" | "upper_elementary" | "middle"}`
-  - lower_elementary: ป.1-3 (ages 6-9)
-  - upper_elementary: ป.4-6 (ages 9-12)
-  - middle: ม.1-3 (ages 12-15)
+### What You Need to Understand
 
-## Testing
+1. **Thai Date Expressions**
+   - พรุ่งนี้ = tomorrow
+   - วันนี้ = today
+   - วันจันทร์ = Monday
+   - วันอังคาร = Tuesday
+   - ทั้งวัน / เต็มวัน / 1 วัน = full day (all periods)
 
-### Running Tests
+2. **Leave Keywords**
+   - ลา = leave
+   - ขอลา = request leave
+   - หยุด = absent
+   - ไม่มา = not coming
+   - เข้าสาย = late arrival (different from full absence)
 
-Run all tests:
-```bash
-python -m unittest discover tests -v
-# Or use the script:
-python -m scripts.run_all_tests
+3. **Period Expressions**
+   - คาบ 1-3 = periods 1 to 3
+   - คาบ 1, 3, 5 = periods 1, 3, and 5
+   - ทั้งวัน = all periods (1-6 typically)
+   - คาบที่ 2 = period 2
+
+4. **Thai Name Variations**
+   - ครูสมชาย = Teacher Somchai (ครู = teacher prefix)
+   - Teachers may be referred to with or without "ครู" prefix
+   - Nicknames are common
+   - Name matching should be fuzzy-tolerant
+
+### Integration Points
+
+**When You're Called:**
+1. LINE message arrives at webhook (`src/web/webhook.py`)
+2. Webhook detects leave keywords
+3. Calls AI parser with message text
+4. You (Gemini via OpenRouter API) parse the message
+5. Return structured data
+6. System logs to Google Sheets
+
+**Fallback System:**
+If you fail or API is unavailable, a regex-based fallback parser handles simple cases. Your job is to handle complex, natural language messages that regex can't.
+
+## Data Structures
+
+### Leave Request Structure
+```python
+{
+    "teacher_name": str,        # Thai name (e.g., "สุกฤษฎิ์")
+    "date": str,                # ISO format "YYYY-MM-DD"
+    "periods": List[int],       # List of period numbers [1, 2, 3]
+    "reason": str               # Optional reason in Thai
+}
 ```
 
-Run individual test suites:
-```bash
-python -m unittest tests.test_substitute -v   # Substitute finding
-python -m unittest tests.test_converter -v    # Excel conversion
-python -m tests.test_real_timetable           # Real timetable validation
+### Teacher Name Matching (4-Tier System)
+
+When admin edits assignments, the system matches names using:
+
+1. **Tier 1: Exact Match** (100% confidence)
+   - Direct lookup in teacher_name_map.json
+
+2. **Tier 2: Normalized** (95% confidence)
+   - Remove "ครู" prefix
+   - Trim whitespace
+   - Lowercase comparison
+
+3. **Tier 3: Fuzzy String** (85-95% confidence)
+   - difflib.SequenceMatcher
+   - Handles typos like "สุจิตร์" vs "สุจิตร"
+
+4. **Tier 4: AI-Powered** (You!)
+   - Called when tiers 1-3 fail
+   - Handle complex misspellings
+   - Return confidence score (0.0-1.0)
+   - Threshold: 0.85 for auto-accept
+
+### Full Day Period Logic
+
+When message contains "ทั้งวัน" or "เต็มวัน":
+- Elementary school: Periods 1-6
+- Middle school: Periods 1-7
+- If unknown, assume 1-6
+
+## Algorithm Overview (For Context)
+
+You don't run the algorithm, but understanding it helps you parse messages correctly.
+
+### Substitute Teacher Selection Process
+
+**Hard Constraints (Automatic Exclusion):**
+1. Teacher is absent
+2. Already teaching in that period
+3. Daily workload limit reached (4 periods)
+
+**Scoring Factors:**
+- Subject qualification: +2 points
+- Level match: +5 points
+- Level mismatch: -2 points
+- Daily load: -2 per period
+- Historical substitutions: -1 per past substitution
+- Term load: -0.5 per period
+- Last resort teachers: -50 points
+
+**Historical Data:**
+System loads past assignments from Google Sheets and uses them to ensure fair distribution over time.
+
+## Google Sheets Integration
+
+### Sheet Structure
+
+**Leave_Requests** (Raw incoming data):
+| Timestamp | Raw_Message | Teacher_Name | Date | Periods | Reason | Status |
+|-----------|-------------|--------------|------|---------|--------|--------|
+| 2025-11-21 08:30 | ครูสุกฤษฎิ์... | สุกฤษฎิ์ | 2025-11-22 | 1,2,3 | ลากิจ | Success |
+
+**Leave_Logs** (Enriched with assignments):
+| Date | Absent_Teacher | Day | Period | Class | Subject | Substitute_Teacher | Notes |
+|------|----------------|-----|--------|-------|---------|-------------------|-------|
+| 2025-11-21 | T004 | Mon | 3 | ป.4 | Math | T005 | AI assigned |
+
+**Pending_Assignments** (Admin review workflow):
+| Date | Absent_Teacher | Day | Period | Class | Subject | Substitute_Teacher | Verified_By | Verified_At |
+|------|----------------|-----|--------|-------|---------|-------------------|-------------|-------------|
+| 2025-11-28 | T004 | Fri | 1 | ป.1 | Math | T017 | U1234567 | 2025-11-28 09:00 |
+
+## LINE Bot Workflow
+
+### Daily Automated Flow (8:55 AM Monday-Friday)
+
+```
+1. Cron triggers daily_leave_processor.py
+2. Load today's leave requests from Google Sheets
+3. Run substitute assignment algorithm
+4. Write assignments to Pending_Assignments
+5. Generate two-balloon report message
+6. Send to admin LINE group
+
+[Admin Reviews]
+
+7. Admin optionally edits substitute names
+8. Admin copies entire message (with [REPORT] prefix)
+9. Admin sends to teacher LINE group
+
+[Automatic Finalization]
+
+10. System detects [REPORT] prefix
+11. Parse assignments from message (uses you for name matching!)
+12. Detect changes vs Pending_Assignments
+13. Update database for high-confidence matches
+14. Send confirmation to admin group
+15. Finalize to Leave_Logs
+16. System learns from this day for future assignments
 ```
 
-**Test Coverage:**
-- 10 tests for substitute finding algorithm
-- 14 tests for Excel conversion
-- Real-world validation with actual school data
-- All 24 tests passing (100%)
+## Your API Integration
 
-## Important Notes
+### OpenRouter Configuration
 
-- **Project Structure:** Uses src/ package structure following Python best practices
-- **Import Paths:** All imports use `from src.module import ...` format
-- **File Paths:** config.py uses PROJECT_ROOT for absolute, cross-platform paths
-- **Thai Encoding:** All mappings and output use UTF-8
-- **Level System:** Three-tier (lower_elementary, upper_elementary, middle)
-- **AI Model:** DeepSeek R1 (paid model, configurable via OPENROUTER_MODEL)
-- **Two-Sheet Data Model:** Leave_Requests (raw) and Leave_Logs (enriched)
-- **Two-Group LINE System:** Separate teacher and admin groups for better notification management
-- **Dependencies:** Install via `pip install -r requirements.txt`
+**Environment Variables:**
+```bash
+OPENROUTER_API_KEY=your-api-key-here
+OPENROUTER_MODEL=google/gemini-2.0-flash-exp:free  # Your model!
+AI_MATCH_CONFIDENCE_THRESHOLD=0.85
+USE_AI_MATCHING=True
+```
 
-## Recent Changes (Nov 2025)
+### API Call Pattern (Expected)
 
-### Nov 29, 2025: Cron Job Testing and Production Readiness Validation
-- **Completed cron job CLI:**
-  - Implemented full main() function in daily_leave_processor.py with argparse
-  - Added --test and --send-line flags for flexible testing
-  - Comprehensive help text and error handling
-  - Windows console compatible (removed emoji causing encoding errors)
-- **Windows testing infrastructure created:**
-  - scripts/setup_windows_test_cron.ps1 - Task Scheduler automation
-  - scripts/monitor_test_cron.ps1 - Log monitoring utility
-  - scripts/cleanup_test_cron.ps1 - Task cleanup script
-  - scripts/README_CRON_TESTING.md - Testing documentation
-- **Comprehensive testing:**
-  - Manual testing: PASSED (6 substitutes found, 0 errors)
-  - Automated testing: PASSED (Task Scheduler validated)
-  - System validation: All components operational
-  - Production readiness: CONFIRMED
-- **Impact:** 1 file modified, 4 files created, production-ready deployment status achieved
+**Request:**
+```python
+{
+    "model": "google/gemini-2.0-flash-exp:free",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Parse this Thai leave request and extract teacher name, date, periods, and reason: ครูสุกฤษฎิ์ ขอลาพรุ่งนี้ คาบ 1-3"
+        }
+    ]
+}
+```
 
-### Nov 28, 2025 (Late Evening): Admin Message Edit Detection with AI-Powered Name Matching
-- **Complete admin edit detection feature:**
-  - Admins can now edit substitute teacher names in LINE report messages
-  - System automatically parses changes and updates Pending_Assignments database
-  - 4-tier name matching: exact → normalized → fuzzy (string similarity) → AI (OpenRouter)
-  - Confidence-based handling: ≥85% auto-update, 60-84% manual review, <60% reject
-  - Detailed Thai confirmation messages show changes, warnings, and AI suggestions
-- **New module: src/utils/report_parser.py (358 lines)**
-  - parse_edited_assignments() - Extract assignments from Thai text using regex
-  - match_teacher_name_to_id() - 4-tier progressive fallback matching
-  - detect_assignment_changes() - Composite key comparison for precision
-  - generate_confirmation_message() - Thai confirmation with before/after details
-  - ai_fuzzy_match_teacher() - OpenRouter API for handling misspellings
-- **Database enhancements:**
-  - update_pending_assignments() in sheet_utils.py - Batch updates with composite keys
-  - Uses (Date, Absent_Teacher, Day, Period) for unique identification
-  - Prevents incorrect updates to wrong periods
-- **Configuration additions:**
-  - AI_MATCH_CONFIDENCE_THRESHOLD = 0.85 (tunable via environment)
-  - USE_AI_MATCHING = True (enable/disable AI fuzzy matching)
-- **Webhook integration:**
-  - Enhanced process_substitution_report() with parsing and update logic
-  - Loads teacher mappings, parses message, detects changes, updates database
-  - Sends confirmation to admin group, finalizes with updated assignments
-- **Test suite: scripts/test_admin_edit_detection.py (327 lines)**
-  - 5 comprehensive tests covering all functionality
-  - 100% test pass rate, 94% AI match accuracy
-- **Benefits:**
-  - LINE-centric workflow (no spreadsheet access needed)
-  - Handles Thai name variations and misspellings automatically
-  - Immediate feedback with detailed confirmation messages
-  - Graceful degradation (works without AI if needed)
-  - 100% backward compatible
-- **Impact:** 3 files created, 3 modified, ~700 lines added, 6 new functions, 0 breaking changes
+**Expected Response:**
+```python
+{
+    "teacher_name": "สุกฤษฎิ์",
+    "date": "2025-11-22",
+    "periods": [1, 2, 3],
+    "reason": "ลากิจ"
+}
+```
 
-### Nov 28, 2025 (Evening): Two-Balloon LINE Message System
-- **Enhanced LINE messaging UX:**
-  - Split substitute teacher reports into two separate message bubbles for improved readability
-  - **Balloon 1:** Main report with [REPORT] prefix, statistics, and substitute assignments
-  - **Balloon 2:** Admin instructions for verification workflow
-  - Matches format in docs/REPORT_MESSAGE_EXAMPLE.txt
-- **Code changes:**
-  - src/utils/daily_leave_processor.py: `generate_report()` now returns `Tuple[str, str]`
-  - src/web/line_messaging.py: `send_daily_report()` accepts two parameters (balloon1, balloon2)
-  - Sequential sending with 0.5s delay to prevent rate limiting
-  - Backward compatible console output (combined string)
-- **Period counting verification:**
-  - Confirmed system counts exact teaching periods via data enrichment
-  - Added documentation explaining architecture ensures accuracy
-  - Verified consistency: report → pending → finalization
-- **Benefits:** Better UX, clear separation of data vs instructions, no breaking changes
+### Error Handling
 
-### Nov 28, 2025 (Morning): Admin-Verified Substitution Workflow Implementation
-- **Two-stage verification workflow for accountability:**
-  - Daily processor writes to Pending_Assignments worksheet (staging area)
-  - Admin receives report with [REPORT] YYYY-MM-DD prefix in admin group
-  - Admin reviews, edits if needed, and forwards to teacher group
-  - System detects [REPORT] prefix and finalizes to Leave_Logs
-  - Tracks who verified (LINE User ID) and when (timestamp)
-- **New database components:**
-  - Pending_Assignments worksheet (11 columns) for staging
-  - Verified_By and Verified_At columns added to Leave_Logs
-  - scripts/create_pending_sheet.py - Database setup script
-  - src/utils/expire_pending.py - Cleanup script for old entries
-- **Enhanced functions (8 new, 1 modified):**
-  - add_pending_assignment() - Write to staging area
-  - load_pending_assignments(date) - Read pending for specific date
-  - delete_pending_assignments(date) - Clear after finalization
-  - expire_old_pending_assignments() - Mark old entries as expired
-  - finalize_pending_assignment(date, verified_by) - Move to Leave_Logs with tracking
-  - is_substitution_report(text) - Detect [REPORT] prefix
-  - parse_report_date(text) - Extract date from [REPORT] YYYY-MM-DD
-  - process_substitution_report(message_text, user_id) - Handle verification
-  - add_absence() - Modified to accept optional verification parameters
-- **Report message handling:**
-  - Daily processor generates reports with [REPORT] YYYY-MM-DD prefix
-  - Clear labels: (ลา) for absent teacher, (สอนแทน) for substitute
-  - Date validation: rejects future dates, warns if >7 days old
-  - Admin instructions included in report
-- **Configuration additions:**
-  - PENDING_ASSIGNMENTS_WORKSHEET = "Pending_Assignments"
-  - REPORT_PREFIX = "[REPORT]"
-  - PENDING_EXPIRATION_DAYS = 7
-- **Comprehensive documentation:**
-  - docs/REPORT_MESSAGE_EXAMPLE.txt (138 lines) with Thai instructions
-  - Example report message format and workflow guide
-  - Validation rules and error scenarios
-- **Benefits:**
-  - Human-in-the-loop verification before finalization
-  - Accountability tracking (who verified, when)
-  - Manual corrections possible before commitment
-  - Clear audit trail for compliance
-  - Safer production deployment
-- **Impact:** 3 files created, 4 modified, ~700 lines added, 8 new functions
+If you fail or return malformed JSON:
+1. System catches exception
+2. Falls back to regex parser
+3. Logs warning
+4. Continues processing
 
-### Nov 26, 2025: LINE Integration Testing and Verification
-- **Comprehensive production readiness validation:**
-  - Installed all dependencies and configured complete test environment
-  - Ran 113 LINE integration tests with 65% overall pass rate
-  - ALL CRITICAL COMPONENTS PASSING: webhook (100%), messaging (100%), config (100%)
-  - Non-critical failures in fallback parser regex tests (AI works)
-- **Live API testing scripts:**
-  - test_ai_live.py - Real OpenRouter AI parsing validation
-  - test_google_sheets.py - Google Sheets integration verification
-  - verify_sheets.py - Sheet contents inspection utility
-- **Live testing success:**
-  - AI parsing: 75% success rate with real Thai messages
-  - Google Sheets: Successfully authenticated and verified bidirectional sync
-  - Webhook: 100% test pass rate with security verification
-- **Production readiness:**
-  - All critical system components verified functional
-  - Real-world Thai message parsing confirmed working
-  - Cloud integration (Google Sheets) validated with live API
-  - Error handling and fallback mechanisms tested
-  - System ready for immediate Raspberry Pi deployment
-- **Impact:** Project status upgraded from "tested" to "validated" - real-world functionality confirmed
+Your failures don't break the system!
 
-### Nov 25, 2025: Daily Workload Protection & Testing Documentation
-- **Algorithm enhancement with hard constraints:**
-  - Added MAX_DAILY_PERIODS = 4 constant to prevent teacher overload
-  - Implemented has_reached_daily_limit() as hard constraint
-  - Teachers with 4+ periods automatically excluded from substitute pool
-  - Prevents teacher burnout and ensures fair workload distribution
-- **Hard Constraints System:**
-  - Teacher is absent (cannot substitute)
-  - Already teaching at period (no double-booking)
-  - Daily workload limit reached (4+ periods) - NEW
-- **Scoring System:**
-  - Hard constraints filter candidates BEFORE scoring
-  - Scoring optimizes among eligible teachers only
-  - Ensures no teacher exceeds daily limit regardless of scoring
-- **Comprehensive testing documentation:**
-  - Created docs/LINE_TESTING.md (617 lines) - complete guide for 100+ LINE tests
-  - Created docs/WORKLOAD_LIMIT_FIX.md (208 lines) - bug documentation
-  - Enhanced docs/TESTING.md with professional structure
-  - All test suites documented with examples and best practices
-- **Testing infrastructure:**
-  - 120+ total tests (24 unit + 6 real data + 4 performance + 100+ LINE)
-  - 85%+ code coverage across LINE components
-  - Comprehensive validation checks added to real timetable tests
-  - Field name corrections for data structure consistency
-- **Impact:** Production-ready with teacher protection and extensive documentation
+## Testing Your Integration
 
-### Nov 24, 2025: Two-Group LINE Notification System
-- **Enhanced LINE Bot configuration:**
-  - Added LINE_TEACHER_GROUP_ID for teacher leave request submissions
-  - Added LINE_ADMIN_GROUP_ID for admin notifications (confirmations, reports, errors)
-  - Maintained LINE_GROUP_ID as legacy fallback for backward compatibility
-  - Updated config.py with two-group support and status printing
-  - Updated .env.example with detailed documentation
-- **Improved notification routing:**
-  - Teachers submit requests in dedicated teacher group
-  - Admins receive all notifications in admin group
-  - Flexible single-group or two-group configuration
-- **Model clarification:**
-  - DeepSeek R1 is paid model (not free tier)
-  - Fully configurable via OPENROUTER_MODEL environment variable
+### Test Files
 
-### Nov 23, 2025: Historical Data Integration & Fair Workload Distribution
-- **Historical data loading implemented:**
-  - Added load_substitute_logs_from_sheet() to read past substitute assignments
-  - Algorithm now has "memory" of historical substitutions
-  - Fair workload distribution based on cumulative history
-  - Automatic learning: each day's assignments become next day's context
-- **Field name standardization:**
-  - Consistent naming: absent_teacher_id and substitute_teacher_id
-  - Fixed data flow across all modules
-  - Clean Sheets → Algorithm → Sheets integration
-- **Algorithm enhancement:**
-  - history_load penalty now functional (was always 0)
-  - Complete 6-factor scoring system operational
-  - Prevents teacher burnout through fair rotation
-- **No database needed:** Uses existing Google Sheets infrastructure
+**test_ai_live.py** - Tests you with real LINE messages:
+```bash
+python test_ai_live.py
+```
 
-### Nov 20, 2025: Google Sheets Consolidation & Refactoring
-- **Consolidated Google Sheets operations:**
-  - Merged add_absence_to_sheets.py and leave_log_sync.py into sheet_utils.py
-  - Single source of truth for all Sheets operations
-  - Improved maintainability and reduced code duplication
-- **Refactored daily_leave_processor.py:**
-  - Two-sheet workflow: Leave_Requests (raw) → Leave_Logs (enriched)
-  - Added timetable enrichment step
-  - Better separation of concerns
-- **Updated webhook.py:**
-  - Uses sheet_utils.log_request_to_sheet()
-  - Added fallback parser integration
-  - Enhanced error handling with status tracking
-- **Fixed AI parser model:**
-  - Corrected from 'deepseek-chat:free' to 'deepseek-r1:free'
-  - Resolved 404 errors
-  - Improved reliability
+This sends actual messages to your API and validates responses.
 
-### Complete LINE Bot Integration
-- Flask webhook server (src/web/webhook.py)
-- AI message parser using OpenRouter API
-- Google Sheets bidirectional sync
-- Automated daily processing with cron
-- LINE notifications for reports and confirmations
-- Production-ready deployment instructions
+**tests/test_ai_parser.py** - 40+ unit tests:
+```bash
+pytest tests/test_ai_parser.py -v
+```
 
-### Project Reorganization
-- Moved to src/ package structure
-- Separated code into timetable/, utils/, web/ subpackages
-- Moved data files to data/, docs to docs/, scripts to scripts/
-- Centralized configuration in src/config.py
-- Updated all imports to src.* format
+Tests cover:
+- Teacher name extraction
+- Date parsing (all Thai expressions)
+- Period parsing (ranges, lists, full day)
+- Late arrival vs full absence
+- Reason extraction
+- Edge cases
 
-For complete documentation, see:
-- **README.md** - User guide and setup instructions
-- **docs/CLAUDE.md** - Detailed technical documentation
-- **docs/LINE_BOT_SETUP.md** - LINE Bot setup guide
-- **docs/SESSION_SUMMARY.md** - Development history
+### Example Test Cases
+
+```python
+# Test 1: Basic leave request
+Input: "ครูสุกฤษฎิ์ ขอลาพรุ่งนี้ คาบ 1-3"
+Expected: {teacher: "สุกฤษฎิ์", date: tomorrow, periods: [1,2,3]}
+
+# Test 2: Full day
+Input: "ครูอำพร ลาวันจันทร์ ทั้งวัน"
+Expected: {teacher: "อำพร", date: next_monday, periods: [1,2,3,4,5,6]}
+
+# Test 3: Late arrival (NOT full absence)
+Input: "ครูจรรยาภรณ์ เข้าสายวันนี้"
+Expected: {teacher: "จรรยาภรณ์", date: today, periods: [1], reason: "เข้าสาย"}
+
+# Test 4: Formal greeting
+Input: "เรียนท่าน ผอ. ครูสมชาย ขอลาวันพุธ คาบ 2-4 เพราะติดธุระ"
+Expected: {teacher: "สมชาย", date: next_wednesday, periods: [2,3,4], reason: "ติดธุระ"}
+```
+
+## Thai Language Edge Cases to Handle
+
+### 1. No Spacing Between Words
+Thai doesn't use spaces like English. Example:
+```
+ครูสุกฤษฎิ์ขอลาพรุ่งนี้คาบ1-3
+```
+Same meaning as:
+```
+ครู สุกฤษฎิ์ ขอลา พรุ่งนี้ คาบ 1-3
+```
+
+### 2. Formal vs Informal Greetings
+```
+# Formal
+เรียนท่าน ผอ. ครูสมชาย ขอลา...
+
+# Informal (more common)
+ครูสมชาย ลาพรุ่งนี้...
+
+# Very informal
+สมชาย ขอลานะครับ...
+```
+
+### 3. Multiple Full-Day Expressions
+All mean "full day":
+- ทั้งวัน
+- เต็มวัน
+- 1 วัน
+- หนึ่งวัน
+- วันเต็ม
+
+### 4. Period Number Variations
+```
+คาบ 1-3      # Periods 1 to 3
+คาบที่ 1-3    # Same thing
+คาบ 1 ถึง 3   # Same thing
+คาบ 1 2 3     # Same thing
+```
+
+## Admin Edit Detection (Your Role)
+
+When admin edits assignment message, you help with name matching:
+
+**Scenario:**
+```
+Original: ครูจรรยาภรณ์ (Algorithm assigned)
+Edited:   ครูสุจิร   (Admin changed, typo)
+```
+
+**Your Task:**
+Match "สุจิร" to "สุจิตร" (correct name) with confidence score.
+
+**Response Format:**
+```python
+{
+    "matched_teacher": "สุจิตร",
+    "confidence": 0.94,
+    "reasoning": "Similar Thai spelling, likely typo missing tone mark"
+}
+```
+
+**Confidence Thresholds:**
+- ≥0.85: Auto-accept and update database
+- 0.60-0.84: Flag for admin manual review
+- <0.60: Treat as "Not Found"
+
+## Common Scenarios You'll Encounter
+
+### Scenario 1: Simple Leave Request
+```
+Input: ครูสมชาย ลาพรุ่งนี้ คาบ 2-4
+Output: {
+    "teacher_name": "สมชาย",
+    "date": "2025-11-22",  # Tomorrow's date
+    "periods": [2, 3, 4],
+    "reason": "ลากิจ"  # Default if not specified
+}
+```
+
+### Scenario 2: Full Day with Reason
+```
+Input: ครูอำพร ขอลาวันจันทร์ ทั้งวัน เพราะป่วย
+Output: {
+    "teacher_name": "อำพร",
+    "date": "2025-11-24",  # Next Monday
+    "periods": [1, 2, 3, 4, 5, 6],
+    "reason": "ป่วย"
+}
+```
+
+### Scenario 3: Late Arrival (Special Case)
+```
+Input: ครูสุจิตร เข้าสายวันนี้
+Output: {
+    "teacher_name": "สุจิตร",
+    "date": "2025-11-21",  # Today
+    "periods": [1],  # Only first period
+    "reason": "เข้าสาย"
+}
+```
+
+### Scenario 4: Complex Natural Language
+```
+Input: เรียนท่าน ผอ. ครูจรรยาภรณ์ ขอลาวันพฤหัสบดี คาบ 3 และคาบ 5 เพราะต้องไปธนาคาร
+Output: {
+    "teacher_name": "จรรยาภรณ์",
+    "date": "2025-11-27",  # Next Thursday
+    "periods": [3, 5],
+    "reason": "ไปธนาคาร"
+}
+```
+
+## Environment Setup
+
+### Required Environment Variables
+
+```bash
+# You need these to function
+OPENROUTER_API_KEY=sk-or-v1-...
+OPENROUTER_MODEL=google/gemini-2.0-flash-exp:free
+
+# Google Sheets (for context)
+SPREADSHEET_ID=1abc...xyz
+
+# LINE Bot (for context)
+LINE_CHANNEL_SECRET=abc123...
+LINE_CHANNEL_ACCESS_TOKEN=xyz789...
+LINE_GROUP_ID=C1234567890abcdef...
+LINE_ADMIN_GROUP_ID=C9876543210fedcba...
+
+# Your config
+AI_MATCH_CONFIDENCE_THRESHOLD=0.85
+USE_AI_MATCHING=True
+```
+
+### Dependencies You Rely On
+
+From `requirements.txt`:
+```
+requests==2.31.0  # For OpenRouter API calls
+python-dotenv==1.0.0  # For .env loading
+```
+
+## Error Codes You Might Return
+
+When parsing fails, return structured errors:
+
+```python
+{
+    "error": "MISSING_TEACHER_NAME",
+    "message": "Could not identify teacher name in message",
+    "raw_message": "Original message text..."
+}
+
+{
+    "error": "INVALID_DATE_EXPRESSION",
+    "message": "Could not parse date from Thai expression",
+    "date_text": "วันหนาบาท"  # Typo for วันจันทร์
+}
+
+{
+    "error": "INVALID_PERIOD_FORMAT",
+    "message": "Could not parse period numbers",
+    "period_text": "คาบ ABC"
+}
+```
+
+Fallback parser will attempt to handle these cases.
+
+## Best Practices for Gemini
+
+### DO:
+- ✅ Return valid JSON always
+- ✅ Handle no-spacing Thai text
+- ✅ Distinguish late arrival from full absence
+- ✅ Calculate dates accurately (today, tomorrow, specific days)
+- ✅ Extract reasons when provided
+- ✅ Return confidence scores for name matching
+- ✅ Handle formal and informal Thai language
+- ✅ Preserve Thai character encoding
+
+### DON'T:
+- ❌ Return English translations (keep everything in Thai)
+- ❌ Guess teacher IDs (return names, system will map to IDs)
+- ❌ Make up data (if unclear, return null)
+- ❌ Break on typos (fuzzy matching is expected)
+- ❌ Fail silently (return error objects)
+- ❌ Assume Western date formats (use Thai Buddhist calendar awareness)
+
+## Troubleshooting
+
+### If Tests Fail:
+
+1. **Invalid JSON Response**
+   - Check your response format matches expected structure
+   - Ensure all fields are present (even if null)
+
+2. **Incorrect Date Calculation**
+   - Verify you're using UTC+7 (Thailand timezone)
+   - Handle day-of-week calculations correctly
+
+3. **Name Matching Failures**
+   - Return confidence scores for all matches
+   - Don't force exact matches on typos
+
+4. **Encoding Issues**
+   - All responses must be UTF-8
+   - Thai characters should not be escaped or transliterated
+
+### If API Calls Fail:
+
+- System automatically falls back to regex parser
+- Your failures are logged but don't break the workflow
+- Check OPENROUTER_API_KEY is valid and has credits
+
+## Performance Expectations
+
+- **Response Time:** <2 seconds per message
+- **Success Rate:** >95% for well-formed messages
+- **Fallback Rate:** <10% (most messages should not require fallback)
+- **Accuracy:** 100% for standard formats, 90%+ for complex natural language
+
+## Thai Cultural Context
+
+### School Hierarchy
+- ผู้อำนวยการ (ผอ.) = Principal/Director
+- ครู = Teacher
+- Teachers are highly respected, formal language is common
+
+### Leave Reasons (Common)
+- ลากิจ = Personal leave
+- ลาป่วย / ป่วย = Sick leave
+- ไปราชการ = Official business
+- ติดธุระ = Busy with matters
+- ไปฝึกอบรม = Training/workshop
+- ไปธนาคาร = Going to bank
+- ไปโรงพยาบาล = Going to hospital
+
+### School Schedule
+- Elementary: 6 periods/day (ป.1 - ป.6)
+- Middle: 7 periods/day (ม.1 - ม.3)
+- Periods typically 08:00 - 15:30
+- Lunch break: Period 4-5 (not counted as teaching period)
+
+## Recent Updates
+
+### November 28, 2025 - Enhanced Admin Edit Detection
+- 4-tier name matching system added (you're Tier 4!)
+- Confidence-based auto-accept (≥0.85)
+- AI fuzzy matching for complex misspellings
+- See: ADMIN_EDIT_DETECTION_SUMMARY.md
+
+### November 25, 2025 - Daily Workload Limit
+- Hard constraint: MAX_DAILY_PERIODS = 4
+- Improved teacher workload protection
+- See: SESSION_CLOSEOUT_2025-11-25.md
+
+### November 23, 2025 - Historical Data Integration
+- System now has memory of past assignments
+- Fair workload distribution over time
+- See: SESSION_CLOSEOUT_2025-11-23.md
+
+## Your Importance to the System
+
+You are the **intelligent natural language interface** between Thai teachers and the automated system. Your ability to:
+
+1. Understand informal Thai language
+2. Handle typos and variations
+3. Extract structured data from unstructured messages
+4. Match fuzzy name spellings
+
+...makes this system accessible and user-friendly. Without you, teachers would need to fill out forms or follow strict message formats.
+
+## Next Steps for Gemini
+
+1. **Review Test Cases:** Look at `tests/test_ai_parser.py` for expected behaviors
+2. **Test Locally:** Run `python test_ai_live.py` to see real API calls
+3. **Monitor Logs:** Check OpenRouter usage and error rates
+4. **Improve Accuracy:** Learn from failed parses in production logs
+5. **Handle Edge Cases:** Thai language is complex, expect variations
+
+## Support Resources
+
+- **Main Documentation:** README.md (902 lines, comprehensive)
+- **Testing Guide:** docs/LINE_TESTING.md
+- **API Examples:** line_message_example.txt
+- **Session History:** SESSION_CLOSEOUT_*.md files
+- **Your Test Suite:** tests/test_ai_parser.py (40+ tests)
+
+## Notes for Gemini Agent
+
+- You are critical to user experience - teachers type naturally, not formally
+- Thai language support is non-negotiable - never break encoding
+- Fallback parser exists but should rarely be needed
+- Your confidence scores guide automatic vs manual processing
+- The system trusts you for Tier 4 name matching (≥85% → auto-accept)
+- Production system, real teachers rely on this daily
+- Historical data learning makes the system smarter over time
+- Your accuracy directly impacts teacher workload fairness
+
+## Contact & Support
+
+- For API issues: Check OpenRouter status and credit balance
+- For Thai language questions: Review line_message_example.txt
+- For algorithm context: See CLAUDE.md
+- For deployment info: See README.md deployment section
+
+---
+
+**Last Synchronized:** 2025-11-29
+**Document Version:** 1.0
+**Your Role:** AI-Powered Thai Language Parser & Fuzzy Name Matcher
+**System Status:** Production-Ready (Enhanced A+)
