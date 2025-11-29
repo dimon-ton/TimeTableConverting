@@ -1,0 +1,13 @@
+{
+  "name": "Fair Workload Distribution Test",
+  "description": "Week-long rotation testing workload balancing across all substitute teachers",
+  "absent_teachers": ["T001"],
+  "day": "Mon",
+  "week_rotation": true,
+  "historical_substitutions": [
+    {"teacher_id": "T005", "count": 5},
+    {"teacher_id": "T009", "count": 2},
+    {"teacher_id": "T012", "count": 8}
+  ],
+  "notes": "Tests that the algorithm fairly distributes substitution work based on historical load. T012 has high historical count and should be deprioritized."
+}

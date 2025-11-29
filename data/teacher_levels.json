@@ -1,0 +1,58 @@
+{
+  "T002": [
+    "lower_elementary"
+  ],
+  "T004": [
+    "lower_elementary",
+    "upper_elementary"
+  ],
+  "T006": [
+    "lower_elementary",
+    "upper_elementary"
+  ],
+  "T007": [
+    "lower_elementary"
+  ],
+  "T005": [
+    "lower_elementary"
+  ],
+  "T003": [
+    "upper_elementary"
+  ],
+  "T017": [
+    "upper_elementary"
+  ],
+  "T001": [
+    "middle",
+    "upper_elementary"
+  ],
+  "T008": [
+    "middle",
+    "upper_elementary"
+  ],
+  "T010": [
+    "middle",
+    "upper_elementary"
+  ],
+  "T018": [
+    "middle",
+    "upper_elementary"
+  ],
+  "T012": [
+    "middle",
+    "upper_elementary"
+  ],
+  "T016": [
+    "middle",
+    "upper_elementary"
+  ],
+  "T015": [
+    "middle"
+  ],
+  "T013": [
+    "middle"
+  ],
+  "T011": [
+    "middle"
+  ]
+}

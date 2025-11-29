@@ -1,0 +1,7 @@
+{
+  "name": "Cross-Level Assignment Challenge",
+  "description": "Elementary teachers absent, testing if middle school teachers can cover elementary classes",
+  "absent_teachers": ["T002", "T008", "T012"],
+  "day": "Tue",
+  "notes": "Tests cross-level assignment logic when elementary teachers are unavailable"
+}
