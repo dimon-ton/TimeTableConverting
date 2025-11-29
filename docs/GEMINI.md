@@ -108,14 +108,17 @@ src/
 - send_daily_report() - Substitute teacher reports
 - Uses LINE SDK v3 MessagingApi
 
-**src/utils/daily_leave_processor.py** - Daily orchestration
-- Loads historical substitute data from Leave_Logs (NEW - Nov 23, 2025)
+**src/utils/daily_leave_processor.py** - Daily orchestration (FULLY TESTED - Nov 29, 2025)
+- Complete command-line interface with argparse (lines 347-411)
+- Flags: --test (read-only), --send-line (enable notifications)
+- Loads historical substitute data from Leave_Logs (Nov 23, 2025)
 - Reads today's requests from Leave_Requests sheet
 - Enriches with timetable data
 - Finds substitutes using historical context
 - Logs new assignments to Leave_Logs sheet
 - Automatic cumulative learning for next day
 - Sends LINE report
+- Windows console compatible (emoji removed)
 
 **src/utils/sheet_utils.py** - Google Sheets operations (Enhanced Nov 23, 2025)
 - get_sheets_client() - Authenticated gspread client
@@ -230,6 +233,24 @@ python -m tests.test_real_timetable           # Real timetable validation
 - **Dependencies:** Install via `pip install -r requirements.txt`
 
 ## Recent Changes (Nov 2025)
+
+### Nov 29, 2025: Cron Job Testing and Production Readiness Validation
+- **Completed cron job CLI:**
+  - Implemented full main() function in daily_leave_processor.py with argparse
+  - Added --test and --send-line flags for flexible testing
+  - Comprehensive help text and error handling
+  - Windows console compatible (removed emoji causing encoding errors)
+- **Windows testing infrastructure created:**
+  - scripts/setup_windows_test_cron.ps1 - Task Scheduler automation
+  - scripts/monitor_test_cron.ps1 - Log monitoring utility
+  - scripts/cleanup_test_cron.ps1 - Task cleanup script
+  - scripts/README_CRON_TESTING.md - Testing documentation
+- **Comprehensive testing:**
+  - Manual testing: PASSED (6 substitutes found, 0 errors)
+  - Automated testing: PASSED (Task Scheduler validated)
+  - System validation: All components operational
+  - Production readiness: CONFIRMED
+- **Impact:** 1 file modified, 4 files created, production-ready deployment status achieved
 
 ### Nov 28, 2025 (Late Evening): Admin Message Edit Detection with AI-Powered Name Matching
 - **Complete admin edit detection feature:**

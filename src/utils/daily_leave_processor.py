@@ -274,10 +274,10 @@ def process_leaves(target_date: str, test_mode: bool = False, send_line: bool = 
     timetable, teacher_subjects, teacher_levels, class_levels, teacher_full_names, teacher_name_map = load_data_files()
     all_teacher_ids = list(set(entry['teacher_id'] for entry in timetable))
 
-    # ✨ Load historical substitute logs from Google Sheets
+    # Load historical substitute logs from Google Sheets
     print("\n" + "="*60)
     historical_substitute_logs = load_substitute_logs_from_sheet(limit_date=target_date)
-    print(f"✅ Loaded {len(historical_substitute_logs)} historical substitute assignments")
+    print(f"OK Loaded {len(historical_substitute_logs)} historical substitute assignments")
     print("="*60 + "\n")
 
     # Get and enrich leaves from 'Leave_Requests' sheet
@@ -346,8 +346,66 @@ def process_leaves(target_date: str, test_mode: bool = False, send_line: bool = 
 
 def main():
     """Command-line interface"""
-    # ... (main function remains the same)
-    # (code omitted for brevity)
+    import argparse
+    from datetime import date
+
+    parser = argparse.ArgumentParser(
+        description='Process daily leave requests and find substitute teachers',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Process today's leaves (test mode)
+  python -m src.utils.daily_leave_processor --test
+
+  # Process specific date and send to LINE
+  python -m src.utils.daily_leave_processor 2025-11-28 --send-line
+
+  # Full production run for today
+  python -m src.utils.daily_leave_processor --send-line
+        """
+    )
+
+    parser.add_argument(
+        'date',
+        nargs='?',
+        default=None,
+        help='Date to process (YYYY-MM-DD). Defaults to today.'
+    )
+
+    parser.add_argument(
+        '--test',
+        action='store_true',
+        help='Test mode - no database writes, no LINE messages'
+    )
+
+    parser.add_argument(
+        '--send-line',
+        action='store_true',
+        help='Send report to LINE admin group'
+    )
+
+    args = parser.parse_args()
+
+    # Determine target date
+    if args.date:
+        target_date = args.date
+    else:
+        target_date = date.today().strftime('%Y-%m-%d')
+
+    # Run processing
+    try:
+        process_leaves(
+            target_date=target_date,
+            test_mode=args.test,
+            send_line=args.send_line
+        )
+    except KeyboardInterrupt:
+        print("\n\nProcessing interrupted by user.")
+    except Exception as e:
+        print(f"\n\nFATAL ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        exit(1)
 
 if __name__ == "__main__":
     main()

@@ -24,6 +24,10 @@ credentials.json
 # Environment variables
 .env
 
+# Logs
+logs/
+*.log
+
 # IDE
 .vscode/
 .idea/
