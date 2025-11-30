@@ -73,8 +73,7 @@ function getTeacherHoursTracking() {
     }
 
     // Parse data into objects
-    // Schema: Date | Teacher_ID | Teacher_Name | Day_of_Week | Regular_Periods_Today |
-    //         Cumulative_Substitute | Cumulative_Absence | Net_Total_Burden | Updated_At
+    // Schema: Date | Teacher_ID | Teacher_Name | Regular_Periods_Today | Daily_Workload | Updated_At
     const headers = values[0];
     const data = [];
 
@@ -88,12 +87,9 @@ function getTeacherHoursTracking() {
         date: row[0] instanceof Date ? Utilities.formatDate(row[0], Session.getScriptTimeZone(), 'yyyy-MM-dd') : row[0],
         teacher_id: row[1],
         teacher_name: row[2],
-        day_of_week: row[3],
-        regular_periods_today: parseFloat(row[4]) || 0,
-        cumulative_substitute: parseFloat(row[5]) || 0,
-        cumulative_absence: parseFloat(row[6]) || 0,
-        net_total_burden: parseFloat(row[7]) || 0,
-        updated_at: row[8] instanceof Date ? row[8] : new Date(row[8])
+        regular_periods_today: parseFloat(row[3]) || 0,
+        daily_workload: parseFloat(row[4]) || 0,
+        updated_at: row[5] instanceof Date ? row[5] : new Date(row[5])
       };
 
       data.push(record);
@@ -116,6 +112,66 @@ function getTeacherHoursTracking() {
     Logger.log('Error reading teacher hours tracking: ' + error.message);
     throw error;
   }
+}
+
+/**
+ * Calculate regular periods for a teacher on a specific date
+ * Uses the hardcoded REAL_TIMETABLE data
+ *
+ * @param {string} teacherId - Teacher identifier (e.g., "T001")
+ * @param {string} date - Date in YYYY-MM-DD format
+ * @return {number} Number of regular periods scheduled
+ */
+function calculateRegularPeriods(teacherId, date) {
+  const dayOfWeek = new Date(date).toLocaleDateString('en-US', {weekday: 'short'});
+  const dayMap = {'Mon': 'Mon', 'Tue': 'Tue', 'Wed': 'Wed', 'Thu': 'Thu', 'Fri': 'Fri'};
+  const dayId = dayMap[dayOfWeek];
+
+  if (!dayId) return 0;
+
+  const periods = REAL_TIMETABLE.filter(entry =>
+    entry.teacher_id === teacherId && entry.day_id === dayId
+  );
+
+  return periods.length;
+}
+
+/**
+ * Calculate daily workload for a teacher
+ * Formula: Regular_Period_Today - Absent_Period + Substitution_Period
+ *
+ * @param {string} teacherId - Teacher identifier
+ * @param {string} date - Date in YYYY-MM-DD format
+ * @param {number} absentPeriods - Number of absent periods
+ * @param {number} substitutionPeriods - Number of substitution periods taught
+ * @return {number} Daily workload
+ */
+function calculateDailyWorkload(teacherId, date, absentPeriods, substitutionPeriods) {
+  const regularPeriods = calculateRegularPeriods(teacherId, date);
+  return regularPeriods - (absentPeriods || 0) + (substitutionPeriods || 0);
+}
+
+/**
+ * Calculate cumulative workload for a teacher up to a specific date
+ * Sums all daily workload values from the start of the school year
+ *
+ * @param {string} teacherId - Teacher identifier
+ * @param {string} targetDate - Target date in YYYY-MM-DD format
+ * @return {number} Cumulative workload
+ */
+function calculateCumulativeWorkload(teacherId, targetDate) {
+  const allData = getTeacherHoursTracking();
+
+  // Filter data for this teacher and dates up to target date
+  const teacherData = allData.filter(record =>
+    record.teacher_id === teacherId && record.date <= targetDate
+  );
+
+  // Sort by date
+  teacherData.sort((a, b) => a.date.localeCompare(b.date));
+
+  // Sum daily workloads
+  return teacherData.reduce((sum, record) => sum + record.daily_workload, 0);
 }
 
 /**
@@ -169,22 +225,33 @@ function getTeacherMetrics(filters) {
 
     const latestRecords = Object.values(latestByTeacher);
 
-    // Calculate summary statistics
+    // Calculate summary statistics with cumulative workload for each teacher
+    const latestRecordsWithCumulative = latestRecords.map(record => ({
+      ...record,
+      cumulative_workload: calculateCumulativeWorkload(record.teacher_id, record.date)
+    }));
+
     const summary = {
       total_teachers: latestRecords.length,
-      total_substitute_periods: latestRecords.reduce((sum, r) => sum + r.cumulative_substitute, 0),
-      total_absence_periods: latestRecords.reduce((sum, r) => sum + r.cumulative_absence, 0),
-      total_net_burden: latestRecords.reduce((sum, r) => sum + r.net_total_burden, 0),
-      average_net_burden: latestRecords.length > 0
-        ? latestRecords.reduce((sum, r) => sum + r.net_total_burden, 0) / latestRecords.length
+      average_daily_workload: latestRecords.length > 0
+        ? latestRecords.reduce((sum, r) => sum + r.daily_workload, 0) / latestRecords.length
         : 0,
-      latest_date: allData.length > 0 ? allData[0].date : null,
-      highest_burden_teacher: latestRecords.length > 0
-        ? latestRecords.reduce((max, r) => r.net_total_burden > max.net_total_burden ? r : max)
+      average_cumulative_workload: latestRecordsWithCumulative.length > 0
+        ? latestRecordsWithCumulative.reduce((sum, r) => sum + r.cumulative_workload, 0) / latestRecordsWithCumulative.length
+        : 0,
+      highest_daily_workload_teacher: latestRecords.length > 0
+        ? latestRecords.reduce((max, r) => r.daily_workload > max.daily_workload ? r : max)
         : null,
-      lowest_burden_teacher: latestRecords.length > 0
-        ? latestRecords.reduce((min, r) => r.net_total_burden < min.net_total_burden ? r : min)
-        : null
+      lowest_daily_workload_teacher: latestRecords.length > 0
+        ? latestRecords.reduce((min, r) => r.daily_workload < min.daily_workload ? r : min)
+        : null,
+      highest_cumulative_workload_teacher: latestRecordsWithCumulative.length > 0
+        ? latestRecordsWithCumulative.reduce((max, r) => r.cumulative_workload > max.cumulative_workload ? r : max)
+        : null,
+      lowest_cumulative_workload_teacher: latestRecordsWithCumulative.length > 0
+        ? latestRecordsWithCumulative.reduce((min, r) => r.cumulative_workload < min.cumulative_workload ? r : min)
+        : null,
+      latest_date: allData.length > 0 ? allData[0].date : null
     };
 
     return {

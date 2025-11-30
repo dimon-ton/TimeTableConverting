@@ -225,24 +225,24 @@ function renderSummaryCards(summary) {
       suffix: 'คน'
     },
     {
-      title: 'ค่าเฉลี่ยภาระงาน',
-      value: (summary.average_net_burden || 0).toFixed(1),
+      title: 'ภาระงานเฉลี่ยภาระงาน',
+      value: (summary.average_daily_workload || 0).toFixed(1),
       icon: 'bi-bar-chart-fill',
       color: 'info',
       suffix: 'คาบ'
     },
     {
-      title: 'ทดแทนรวมทั้งหมด',
-      value: summary.total_substitute_periods || 0,
-      icon: 'bi-arrow-up-circle-fill',
-      color: 'success',
+      title: 'ภาระงานสะสม',
+      value: (summary.average_cumulative_workload || 0).toFixed(1),
+      icon: 'bi-stack',
+      color: 'warning',
       suffix: 'คาบ'
     },
     {
-      title: 'ลารวมทั้งหมด',
-      value: summary.total_absence_periods || 0,
-      icon: 'bi-arrow-down-circle-fill',
-      color: 'danger',
+      title: 'ภาระงานสูงสุดในวันนี้',
+      value: summary.highest_daily_workload_teacher ? summary.highest_daily_workload_teacher.daily_workload : 0,
+      icon: 'bi-graph-up-arrow',
+      color: 'success',
       suffix: 'คาบ'
     }
   ];
@@ -333,8 +333,8 @@ function renderDesktopTable(data) {
 
   tbody.innerHTML = data.map((teacher, index) => {
     const rank = index + 1;
-    const badgeClass = getWorkloadBadge(teacher.net_total_burden);
-    const categoryText = getWorkloadCategoryText(teacher.net_total_burden);
+    const badgeClass = getWorkloadBadge(teacher.daily_workload);
+    const categoryText = getWorkloadCategoryText(teacher.daily_workload);
 
     return `
       <tr>
@@ -343,14 +343,12 @@ function renderDesktopTable(data) {
           <div class="fw-bold">${teacher.teacher_name}</div>
           <small class="text-muted">${teacher.teacher_id}</small>
         </td>
-        <td class="text-center">
-          <span class="badge bg-light text-dark">${teacher.day_of_week}</span>
-        </td>
         <td class="text-end">${teacher.regular_periods_today}</td>
-        <td class="text-end text-success fw-bold">${teacher.cumulative_substitute}</td>
-        <td class="text-end text-danger fw-bold">${teacher.cumulative_absence}</td>
         <td class="text-end">
-          <span class="badge bg-primary fs-6">${teacher.net_total_burden}</span>
+          <span class="badge bg-success fs-6">${teacher.daily_workload}</span>
+        </td>
+        <td class="text-end">
+          <span class="badge bg-primary fs-6">${teacher.cumulative_workload || 0}</span>
         </td>
         <td class="text-center">
           <span class="${badgeClass}">${categoryText}</span>
@@ -378,15 +376,13 @@ function renderMobileCards(data) {
     card.querySelector('.rank-badge').textContent = `อันดับ ${rank}`;
     card.querySelector('.teacher-name').textContent = teacher.teacher_name;
     card.querySelector('.teacher-id').textContent = teacher.teacher_id;
-    card.querySelector('.day-of-week').textContent = teacher.day_of_week;
     card.querySelector('.regular-periods').textContent = teacher.regular_periods_today;
-    card.querySelector('.substitute-periods').textContent = teacher.cumulative_substitute;
-    card.querySelector('.absence-periods').textContent = teacher.cumulative_absence;
-    card.querySelector('.net-total-burden').textContent = teacher.net_total_burden;
+    card.querySelector('.daily-workload').textContent = teacher.daily_workload;
+    card.querySelector('.cumulative-workload').textContent = teacher.cumulative_workload || 0;
 
     // Set workload badge
-    const badgeClass = getWorkloadBadge(teacher.net_total_burden);
-    const categoryText = getWorkloadCategoryText(teacher.net_total_burden);
+    const badgeClass = getWorkloadBadge(teacher.daily_workload);
+    const categoryText = getWorkloadCategoryText(teacher.daily_workload);
     const workloadBadge = card.querySelector('.workload-badge');
     workloadBadge.className = badgeClass;
     workloadBadge.textContent = categoryText;
@@ -464,7 +460,7 @@ function getWorkloadBadge(burden) {
     return 'badge bg-secondary';
   }
 
-  const avg = metricsData.summary.average_net_burden;
+  const avg = metricsData.summary.average_daily_workload;
   const deviation = burden - avg;
 
   // Calculate simple standard deviation threshold (10% of average)
@@ -491,7 +487,7 @@ function getWorkloadCategoryText(burden) {
     return 'ปกติ';
   }
 
-  const avg = metricsData.summary.average_net_burden;
+  const avg = metricsData.summary.average_daily_workload;
   const deviation = burden - avg;
   const threshold = avg * 0.15;
 
