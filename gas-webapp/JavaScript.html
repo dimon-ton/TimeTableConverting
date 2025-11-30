@@ -48,14 +48,17 @@ function setupEventListeners() {
 /**
  * Load teacher hours data from backend
  */
-function loadData() {
-  console.log('Loading teacher hours data...');
+function loadData(retryCount) {
+  retryCount = retryCount || 0;
+  console.log('Loading teacher hours data... (Attempt ' + (retryCount + 1) + ')');
   showLoading(true);
   hideError();
 
   // Call backend function to get metrics
   google.script.run
-    .withSuccessHandler(handleDataSuccess)
+    .withSuccessHandler(function(result) {
+      handleDataSuccess(result, retryCount);
+    })
     .withFailureHandler(handleDataError)
     .getTeacherMetrics(currentFilters);
 }
@@ -63,11 +66,19 @@ function loadData() {
 /**
  * Handle successful data load
  */
-function handleDataSuccess(result) {
+function handleDataSuccess(result, retryCount) {
   console.log('Data loaded successfully:', result);
 
   if (!result) {
-    handleDataError('ไม่ได้รับข้อมูลจากเซิร์ฟเวอร์ (Null Response - กรุณารีเฟรชหน้าจอ)');
+    if (retryCount < 3) {
+      console.warn('Null response received. Retrying in 2 seconds...');
+      setTimeout(function() {
+        loadData(retryCount + 1);
+      }, 2000);
+      return;
+    }
+
+    handleDataError('ไม่ได้รับข้อมูลจากเซิร์ฟเวอร์ (Null Response) - ลองใหม่หลายครั้งแล้วไม่สำเร็จ');
     return;
   }
 
