@@ -66,6 +66,11 @@ function loadData() {
 function handleDataSuccess(result) {
   console.log('Data loaded successfully:', result);
 
+  if (!result) {
+    handleDataError('ไม่ได้รับข้อมูลจากเซิร์ฟเวอร์ (Null Response - กรุณารีเฟรชหน้าจอ)');
+    return;
+  }
+
   if (!result.success) {
     handleDataError(result.message || 'ไม่สามารถโหลดข้อมูลได้');
     return;
