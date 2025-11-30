@@ -5,6 +5,10 @@
  * This file contains the timetable data and teacher mappings
  */
 
+// Spreadsheet configuration
+const SPREADSHEET_ID = '1KpQZlrJk03ZS_Q0bTWvxHjG9UFiD1xPZGyIsQfRkRWo';
+const SHEET_NAME = 'Teacher_Hours_Tracking';
+
 // Teacher names mapping (16 teachers)
 const TEACHER_NAMES = {
   "T001": "ครูสุกฤษฎิ์",

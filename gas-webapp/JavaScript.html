@@ -343,7 +343,7 @@ function renderDesktopTable(data) {
           <div class="fw-bold">${teacher.teacher_name}</div>
           <small class="text-muted">${teacher.teacher_id}</small>
         </td>
-        <td class="text-end">${teacher.regular_periods_today}</td>
+        <td class="text-center">${teacher.regular_periods_today}</td>
         <td class="text-end">
           <span class="badge bg-success fs-6">${teacher.daily_workload}</span>
         </td>
@@ -373,12 +373,13 @@ function renderMobileCards(data) {
 
     // Set data
     card.querySelector('.teacher-card').dataset.teacherId = teacher.teacher_id;
-    card.querySelector('.rank-badge').textContent = `อันดับ ${rank}`;
     card.querySelector('.teacher-name').textContent = teacher.teacher_name;
     card.querySelector('.teacher-id').textContent = teacher.teacher_id;
+    card.querySelector('.rank-badge').textContent = `อันดับ ${rank}`;
     card.querySelector('.regular-periods').textContent = teacher.regular_periods_today;
     card.querySelector('.daily-workload').textContent = teacher.daily_workload;
     card.querySelector('.cumulative-workload').textContent = teacher.cumulative_workload || 0;
+    card.querySelector('.daily-workload-badge').textContent = teacher.daily_workload;
 
     // Set workload badge
     const badgeClass = getWorkloadBadge(teacher.daily_workload);
@@ -421,23 +422,23 @@ function renderEmptyState() {
  */
 function updateFooterStats(data) {
   if (!data || data.length === 0) {
-    document.getElementById('avgBurden').textContent = '-';
-    document.getElementById('maxBurden').textContent = '-';
-    document.getElementById('minBurden').textContent = '-';
-    document.getElementById('rangeBurden').textContent = '-';
+    document.getElementById('avgDailyWorkload').textContent = '-';
+    document.getElementById('maxDailyWorkload').textContent = '-';
+    document.getElementById('minDailyWorkload').textContent = '-';
+    document.getElementById('rangeDailyWorkload').textContent = '-';
     return;
   }
 
-  const burdens = data.map(t => t.net_total_burden);
-  const avg = burdens.reduce((sum, val) => sum + val, 0) / burdens.length;
-  const max = Math.max(...burdens);
-  const min = Math.min(...burdens);
+  const dailyWorkloads = data.map(t => t.daily_workload || 0);
+  const avg = dailyWorkloads.reduce((sum, val) => sum + val, 0) / dailyWorkloads.length;
+  const max = Math.max(...dailyWorkloads);
+  const min = Math.min(...dailyWorkloads);
   const range = max - min;
 
-  document.getElementById('avgBurden').textContent = avg.toFixed(1) + ' คาบ';
-  document.getElementById('maxBurden').textContent = max + ' คาบ';
-  document.getElementById('minBurden').textContent = min + ' คาบ';
-  document.getElementById('rangeBurden').textContent = range + ' คาบ';
+  document.getElementById('avgDailyWorkload').textContent = avg.toFixed(1) + ' คาบ';
+  document.getElementById('maxDailyWorkload').textContent = max + ' คาบ';
+  document.getElementById('minDailyWorkload').textContent = min + ' คาบ';
+  document.getElementById('rangeDailyWorkload').textContent = range + ' คาบ';
 }
 
 /**

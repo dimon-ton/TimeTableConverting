@@ -20,11 +20,14 @@ A Python-based timetable management system for schools that handles Excel-to-JSO
 - ✅ **Two-group notification system (teacher/admin)**
 
 ### Google Apps Script Webapp (NEW - In Development)
-- 🚧 **Teacher Working Hours Dashboard**
-- 🚧 **Visual analytics for teaching workload**
-- 🚧 **Leaderboard and statistics**
-- 🚧 **Responsive web interface (mobile/tablet/desktop)**
-- 🚧 **Real-time data from Google Sheets**
+- ✅ **Teacher Working Hours Dashboard** (UI refined)
+- ✅ **Visual analytics for teaching workload** (column widths optimized)
+- ✅ **Leaderboard and statistics** (mobile responsive)
+- ✅ **Responsive web interface (mobile/tablet/desktop)** (min-width constraints)
+- ✅ **Real-time data from Google Sheets** (Python integration updated)
+- 🚧 **Backend data layer implementation** (in progress)
+- 🚧 **Filter system** (planned)
+- 🚧 **Final testing and polish** (planned)
 
 ## Installation
 

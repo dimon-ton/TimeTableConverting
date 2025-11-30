@@ -20,28 +20,22 @@
           <table class="table table-hover table-striped mb-0" id="leaderboardTable">
             <thead class="table-light sticky-top">
               <tr>
-                <th class="text-center" style="width: 60px;">
+                <th class="text-center" style="width: 60px; min-width: 50px;">
                   <i class="bi bi-hash"></i> อันดับ
                 </th>
-                <th>
+                <th style="width: 200px; min-width: 180px;">
                   <i class="bi bi-person-badge"></i> ชื่อครู
                 </th>
-                <th class="text-center">
-                  <i class="bi bi-calendar-week"></i> วัน
-                </th>
-                <th class="text-end">
+                <th class="text-center" style="width: 125px; min-width: 110px;">
                   <i class="bi bi-book"></i> ชั่วโมงปกติวันนี้
                 </th>
-                <th class="text-end">
-                  <i class="bi bi-arrow-up-circle"></i> ทดแทนสะสม
+                <th class="text-end" style="width: 125px; min-width: 110px;">
+                  <i class="bi bi-graph-up"></i> ภาระงานวันนี้
                 </th>
-                <th class="text-end">
-                  <i class="bi bi-arrow-down-circle"></i> ลาสะสม
+                <th class="text-end" style="width: 125px; min-width: 110px;">
+                  <i class="bi bi-stack"></i> ภาระงานสะสม
                 </th>
-                <th class="text-end">
-                  <i class="bi bi-bar-chart-fill"></i> ภาระงานรวม
-                </th>
-                <th class="text-center" style="width: 100px;">
+                <th class="text-center" style="width: 110px; min-width: 90px;">
                   สถานะ
                 </th>
               </tr>
@@ -73,7 +67,7 @@
       <div class="card-footer bg-light">
         <div class="row text-center small">
           <div class="col-md-3 col-6 mb-2 mb-md-0">
-            <div class="text-muted">ค่าเฉลี่ยภาระงาน</div>
+            <div class="text-muted">ค่าเฉลี่ยภาระงาน/วัน</div>
             <div class="fw-bold text-primary" id="avgDailyWorkload">-</div>
           </div>
           <div class="col-md-3 col-6 mb-2 mb-md-0">
@@ -86,7 +80,7 @@
           </div>
           <div class="col-md-3 col-6">
             <div class="text-muted">ช่วง</div>
-            <div class="fw-bold text-info" id="avgCumulativeWorkload">-</div>
+            <div class="fw-bold text-info" id="rangeDailyWorkload">-</div>
           </div>
         </div>
       </div>
@@ -115,7 +109,7 @@
           <div class="fw-bold regular-periods">0</div>
         </div>
         <div class="col-6">
-          <div class="text-muted">ภาระงานรวม</div>
+          <div class="text-muted">ภาระงานวันนี้</div>
           <div class="fw-bold daily-workload">0</div>
         </div>
         <div class="col-6">
@@ -127,8 +121,8 @@
       <hr class="my-2">
 
       <div class="d-flex justify-content-between align-items-center">
-        <strong>ภาระงานรวม:</strong>
-        <span class="badge bg-primary net-total-burden">0</span>
+        <strong>ภาระงานวันนี้:</strong>
+        <span class="badge bg-primary daily-workload-badge">0</span>
       </div>
     </div>
   </div>

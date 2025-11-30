@@ -1,6 +1,6 @@
 # TimeTable Converting - Claude Code Context File
 
-Last Updated: 2025-11-29 (Evening Session)
+Last Updated: 2025-11-30
 
 ## Project Overview
 
@@ -118,10 +118,31 @@ The GAS webapp integrates with the existing Python TimeTableConverting system:
   - Cumulative absence periods (from Leave_Logs)
   - Net total teaching burden: Regular + Substitute - Absence
 
+### Recent Development (Nov 30, 2025)
+**UI Improvements:**
+- Adjusted leaderboard column widths for better distribution (125/125/125/110px)
+- Added responsive min-width constraints for mobile/tablet views
+- Updated Thai language labels for better user understanding
+- Enhanced visual hierarchy in teacher workload display
+
+**Backend Integration:**
+- Updated write_teacher_hours_snapshot() function to match worksheet schema
+- Simplified data structure from 8 columns to 5 columns:
+  - Date, Teacher_ID, Teacher_Name, Regular_Periods_Today, Daily_Workload, Updated_At
+- Refactored Code.js for better maintainability (583 lines changed)
+- Enhanced JavaScript.html for improved client-side processing (29 lines changed)
+
+**Deployment Status:**
+- Multiple successful deployments to production
+- Deployment ID: AKfycby9d6su2U86mpDzvdFDZLzPN1tTGx7RZx8qkmzQngCABWatWu5WgFDClwVPSclDV1Xy
+- All changes tested and deployed to Google Apps Script environment
+
 ### Next Steps
 1. Implement Phase 0: Create Teacher_Hours_Tracking worksheet in Google Sheets
-2. Modify Python daily_leave_processor.py to write daily snapshots
+2. Modify Python daily_leave_processor.py to write daily snapshots (structure updated)
 3. Continue through remaining phases of implementation plan
+4. Further UI refinements based on user feedback
+5. Complete backend data layer implementation
 
 ## Key Technologies
 

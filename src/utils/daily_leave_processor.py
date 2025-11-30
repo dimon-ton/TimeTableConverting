@@ -263,11 +263,14 @@ def write_teacher_hours_snapshot(date_str: str):
     Calculate and write cumulative teacher hours snapshot to Teacher_Hours_Tracking worksheet.
     Called at end of daily processing.
 
+    Worksheet columns: Date, Teacher_ID, Teacher_Name, Regular_Periods_Today, Daily_Workload, Updated_At
+
     Calculation:
     - Regular_Periods_Today: Scheduled periods for this day of week
+    - Daily_Workload: Net balance of cumulative_substitute - cumulative_absence (substitutes done minus absences taken)
     - Cumulative_Substitute: Total substitutes from school year start to date_str
     - Cumulative_Absence: Total absences from school year start to date_str
-    - Net_Total_Burden: Sum of all regular periods taught + cumulative_substitute - cumulative_absence
+    - Updated_At: Timestamp of when this snapshot was recorded
     """
     print("\n" + "="*60)
     print("Writing Teacher Hours Snapshot")
@@ -362,21 +365,16 @@ def write_teacher_hours_snapshot(date_str: str):
 
     rows_added = 0
     for teacher_id, stats in teacher_stats.items():
-        # Net Total Burden = all regular periods taught + cumulative substitutes - cumulative absences
-        net_total_burden = (stats['total_regular_taught'] +
-                          stats['cumulative_substitute'] -
-                          stats['cumulative_absence'])
+        # Daily_Workload: Net balance of cumulative_substitute - cumulative_absence
+        daily_workload_balance = stats['cumulative_substitute'] - stats['cumulative_absence']
 
         row = [
-            date_str,
-            teacher_id,
-            stats['teacher_name'],
-            stats['day_of_week'],
-            stats['regular_periods_today'],
-            stats['cumulative_substitute'],
-            stats['cumulative_absence'],
-            net_total_burden,
-            timestamp
+            date_str,                                                # Date
+            teacher_id,                                              # Teacher_ID
+            stats['teacher_name'],                                   # Teacher_Name
+            stats['regular_periods_today'],                          # Regular_Periods_Today
+            daily_workload_balance,                                  # Daily_Workload
+            timestamp                                                # Updated_At
         ]
 
         tracking_ws.append_row(row, value_input_option='USER_ENTERED')
@@ -387,6 +385,7 @@ def write_teacher_hours_snapshot(date_str: str):
     print(f"  School year: {school_year_start} to {date_str}")
     print(f"  Working days: {sum(day_counts.values())} total")
     print(f"  Rows written to Teacher_Hours_Tracking: {rows_added}")
+    print(f"  Columns: Date, Teacher_ID, Teacher_Name, Regular_Periods_Today, Daily_Workload, Updated_At")
     print("="*60)
 
 

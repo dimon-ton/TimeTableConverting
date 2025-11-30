@@ -1,22 +1,99 @@
 /**
- * Code.gs - Backend API functions for Teacher Hours Tracking Web App
- *
- * Main backend logic for reading teacher hours data from Google Sheets
- * and serving it to the web frontend with caching and filtering capabilities.
- */
-
-// Configuration
-const SPREADSHEET_ID = '1KpQZlrJk03ZS_Q0bTWvxHjG9UFiD1xPZGyIsQfRkRWo';
-const TRACKING_SHEET_NAME = 'Teacher_Hours_Tracking';
-const CACHE_DURATION = 300; // 5 minutes in seconds
-
-/**
  * Web app entry point - serves the main HTML page
  *
  * @param {Object} e - Event parameter (not used but required by Apps Script)
  * @return {HtmlOutput} The HTML page to display
  */
 function doGet(e) {
+  // Check if we need to update sheets structure or add mock data
+  if (e && e.parameter.update_sheets === 'true') {
+    try {
+      updateSheetsStructure();
+      return HtmlService.createHtmlOutput(`
+        <div style="padding: 20px; font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; text-align: center;">
+          <h3 style="color: #28a745; margin-bottom: 20px;">
+            📊 Google Sheets Structure Updated!
+          </h3>
+          <p style="margin-bottom: 15px;">The Teacher_Hours_Tracking worksheet has been successfully updated to the new 6-column structure:</p>
+          <ul style="line-height: 1.8;">
+            <li><strong>Date</strong> - Record date</li>
+            <li><strong>Teacher_ID</strong> - Teacher identifier</li>
+            <li><strong>Teacher_Name</strong> - Teacher display name</li>
+            <li><strong>Regular_Periods_Today</strong> - Scheduled periods from timetable</li>
+            <li><strong>Daily_Workload</strong> - Calculated daily workload (Regular - Absence + Substitution)</li>
+            <li><strong>Updated_At</strong> - Last update timestamp</li>
+          </ul>
+          <p style="margin-top: 20px;">
+            <a href="${e.scriptUrl}&update_sheets=false" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+              🔄 Continue to Dashboard</a></p>
+        </div>
+      `);
+    } catch (error) {
+      return HtmlService.createHtmlOutput(`
+        <div style="padding: 20px; font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; text-align: center;">
+          <h3 style="color: #dc3545; margin-bottom: 20px;">
+            ❌ Error Updating Sheets
+          </h3>
+          <p style="margin-bottom: 15px;">${error.message}</p>
+        </div>
+      `);
+    }
+    } else if (e && e.parameter.add === 'true') {
+    try {
+      addMockData();
+      return HtmlService.createHtmlOutput(
+        `<div style="padding: 20px; font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; text-align: center;">
+          <h3 style="color: #28a745; margin-bottom: 20px;">
+            📊 ข้อมูลจำลองถูวรมแล้วแล้วแล้ว!
+          </h3>
+          <p style="margin-bottom: 15px;">เพิ่มข้อมูลจำลอง ${e.parameter.count || '5'} รายการเพื่อการทดสอบถูนแล้วแล้วแล้วแล้ว
+          </p>
+          <p style="margin-top: 30px;">
+            <a href="${e.scriptUrl}" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+              🔄 กลับไปหน้าาหลัก
+            </a>
+          </p>
+        </div>`
+      );
+    } catch (error) {
+      return HtmlService.createHtmlOutput(`
+        <div style="padding: 20px; font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; text-align: center;">
+          <h3 style="color: #dc3545; margin-bottom: 20px;">
+            ❌ Error Adding Mock Data
+          </h3>
+          <p style="margin-bottom: 15px;">${error.message}</p>
+        </div>
+      `);
+    }
+    } else if (e && e.parameter.clear === 'true') {
+    try {
+      clearMockData();
+      return HtmlService.createHtmlOutput(
+        `<div style="padding: 20px; font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; text-align: center;">
+          <h3 style="color: #28a745; margin-bottom: 20px;">
+            🗑️ ข้อมูลจำลองถูวรมแล้วแล้วแล้วแล้ว!
+          </h3>
+          <p style="margin-bottom: 15px;">เพิ่มข้อมูลจำลองถูวรมแล้วแล้วแล้วแล้ว ${e.parameter.count || '5'} รายการเพื่อการทดสอบถูนแล้วแล้วแล้วแล้ว
+          </p>
+          <p style="margin-top: 30px;">
+            <a href="${e.scriptUrl}" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+              🔄 กลับไปหน้าาหลัก
+            </a>
+          </p>
+        </div>`
+      );
+    } catch (error) {
+      return HtmlService.createHtmlOutput(`
+        <div style="padding: 20px; font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; text-align: center;">
+          <h3 style="color: #dc3545; margin-bottom: 20px;">
+            ❌ Error
+          </h3>
+          <p style="margin-bottom: 15px;">${error.message}</p>
+        </div>
+      `);
+    }
+  }
+
   return HtmlService.createTemplateFromFile('Index')
     .evaluate()
     .setTitle('Teacher Hours Tracking Dashboard')
@@ -26,401 +103,255 @@ function doGet(e) {
 }
 
 /**
- * Helper function to include HTML partials (for modular HTML files)
+ * Include HTML template function
+ * Allows including HTML templates within other HTML files
  *
- * @param {string} filename - Name of the HTML file to include (without .html extension)
- * @return {string} The HTML content of the file
+ * @param {string} filename - Name of the HTML file to include
+ * @return {string} HTML content of the included file
  */
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
 /**
- * Get teacher hours tracking data from Google Sheets
- * Uses 5-minute cache for performance
- *
- * @return {Array<Object>} Array of teacher tracking records
+ * Backend configuration constants
+ * Spreadsheet ID and sheet name are now in DataConstants.js
  */
-function getTeacherHoursTracking() {
-  const cache = CacheService.getScriptCache();
-  const cacheKey = 'teacher_hours_tracking_data';
 
-  // Try to get from cache first
-  const cached = cache.get(cacheKey);
-  if (cached) {
-    Logger.log('Returning cached teacher hours data');
-    return JSON.parse(cached);
-  }
-
-  Logger.log('Cache miss - reading from Google Sheets');
-
+/**
+ * Get teacher metrics data for the dashboard
+ * This is the main data loading function called by the frontend
+ *
+ * @param {Object} filters - Filter options (teacherId, dateFrom, dateTo, sortBy, sortOrder)
+ * @return {Object} Response object with success, data, summary, and message
+ */
+function getTeacherMetrics(filters) {
   try {
-    // Open spreadsheet and get tracking sheet
+    console.log('Loading teacher metrics with filters:', filters);
+
+    // Default filters if not provided
+    filters = filters || {};
+    const teacherId = filters.teacherId || 'all';
+    const dateFrom = filters.dateFrom || null;
+    const dateTo = filters.dateTo || null;
+    const sortBy = filters.sortBy || 'daily_workload';
+    const sortOrder = filters.sortOrder || 'desc';
+
+    // Open spreadsheet and get data
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName(TRACKING_SHEET_NAME);
+    const sheet = ss.getSheetByName(SHEET_NAME);
 
     if (!sheet) {
-      throw new Error(`Sheet "${TRACKING_SHEET_NAME}" not found in spreadsheet`);
+      return {
+        success: false,
+        message: `Sheet "${SHEET_NAME}" not found. Please update the spreadsheet structure first.`,
+        data: [],
+        summary: null
+      };
     }
 
-    // Get all data (skip header row)
-    const dataRange = sheet.getDataRange();
-    const values = dataRange.getValues();
+    // Get all data
+    const range = sheet.getDataRange();
+    const values = range.getValues();
 
     if (values.length <= 1) {
-      Logger.log('No data found in tracking sheet');
-      return [];
+      return {
+        success: true,
+        message: 'No data found. Add some teacher records to get started.',
+        data: [],
+        summary: {
+          total_teachers: 0,
+          average_daily_workload: 0,
+          average_cumulative_workload: 0,
+          highest_daily_workload_teacher: null,
+          latest_date: null
+        }
+      };
     }
 
-    // Parse data into objects
-    // Schema: Date | Teacher_ID | Teacher_Name | Regular_Periods_Today | Daily_Workload | Updated_At
+    // Parse data rows (skip header)
     const headers = values[0];
-    const data = [];
+    const teacherData = [];
+    const teacherMap = new Map();
 
     for (let i = 1; i < values.length; i++) {
       const row = values[i];
-
-      // Skip empty rows
-      if (!row[0] || !row[1]) continue;
+      if (!row[0]) continue; // Skip empty rows
 
       const record = {
-        date: row[0] instanceof Date ? Utilities.formatDate(row[0], Session.getScriptTimeZone(), 'yyyy-MM-dd') : row[0],
-        teacher_id: row[1],
-        teacher_name: row[2],
+        date: row[0] ? new Date(row[0]).toISOString().split('T')[0] : null,
+        teacher_id: row[1] || '',
+        teacher_name: row[2] || '',
         regular_periods_today: parseFloat(row[3]) || 0,
         daily_workload: parseFloat(row[4]) || 0,
-        updated_at: row[5] instanceof Date ? row[5] : new Date(row[5])
+        updated_at: row[5] ? new Date(row[5]) : null
       };
 
-      data.push(record);
-    }
+      // Apply filters
+      if (teacherId !== 'all' && record.teacher_id !== teacherId) continue;
+      if (dateFrom && record.date < dateFrom) continue;
+      if (dateTo && record.date > dateTo) continue;
 
-    // Sort by date (most recent first) and teacher_id
-    data.sort((a, b) => {
-      const dateCompare = b.date.localeCompare(a.date);
-      if (dateCompare !== 0) return dateCompare;
-      return a.teacher_id.localeCompare(b.teacher_id);
-    });
+      teacherData.push(record);
 
-    // Cache the results
-    cache.put(cacheKey, JSON.stringify(data), CACHE_DURATION);
-
-    Logger.log(`Successfully read ${data.length} records from tracking sheet`);
-    return data;
-
-  } catch (error) {
-    Logger.log('Error reading teacher hours tracking: ' + error.message);
-    throw error;
-  }
-}
-
-/**
- * Calculate regular periods for a teacher on a specific date
- * Uses the hardcoded REAL_TIMETABLE data
- *
- * @param {string} teacherId - Teacher identifier (e.g., "T001")
- * @param {string} date - Date in YYYY-MM-DD format
- * @return {number} Number of regular periods scheduled
- */
-function calculateRegularPeriods(teacherId, date) {
-  const dayOfWeek = new Date(date).toLocaleDateString('en-US', {weekday: 'short'});
-  const dayMap = {'Mon': 'Mon', 'Tue': 'Tue', 'Wed': 'Wed', 'Thu': 'Thu', 'Fri': 'Fri'};
-  const dayId = dayMap[dayOfWeek];
-
-  if (!dayId) return 0;
-
-  const periods = REAL_TIMETABLE.filter(entry =>
-    entry.teacher_id === teacherId && entry.day_id === dayId
-  );
-
-  return periods.length;
-}
-
-/**
- * Calculate daily workload for a teacher
- * Formula: Regular_Period_Today - Absent_Period + Substitution_Period
- *
- * @param {string} teacherId - Teacher identifier
- * @param {string} date - Date in YYYY-MM-DD format
- * @param {number} absentPeriods - Number of absent periods
- * @param {number} substitutionPeriods - Number of substitution periods taught
- * @return {number} Daily workload
- */
-function calculateDailyWorkload(teacherId, date, absentPeriods, substitutionPeriods) {
-  const regularPeriods = calculateRegularPeriods(teacherId, date);
-  return regularPeriods - (absentPeriods || 0) + (substitutionPeriods || 0);
-}
-
-/**
- * Calculate cumulative workload for a teacher up to a specific date
- * Sums all daily workload values from the start of the school year
- *
- * @param {string} teacherId - Teacher identifier
- * @param {string} targetDate - Target date in YYYY-MM-DD format
- * @return {number} Cumulative workload
- */
-function calculateCumulativeWorkload(teacherId, targetDate) {
-  const allData = getTeacherHoursTracking();
-
-  // Filter data for this teacher and dates up to target date
-  const teacherData = allData.filter(record =>
-    record.teacher_id === teacherId && record.date <= targetDate
-  );
-
-  // Sort by date
-  teacherData.sort((a, b) => a.date.localeCompare(b.date));
-
-  // Sum daily workloads
-  return teacherData.reduce((sum, record) => sum + record.daily_workload, 0);
-}
-
-/**
- * Get teacher metrics with optional filtering
- * Returns the latest snapshot for each teacher by default
- *
- * @param {Object} filters - Optional filters {teacherId, dateFrom, dateTo}
- * @return {Object} Metrics data and metadata
- */
-function getTeacherMetrics(filters) {
-  filters = filters || {};
-
-  try {
-    // Get all tracking data
-    const allData = getTeacherHoursTracking();
-
-    if (allData.length === 0) {
-      return {
-        success: false,
-        message: 'No tracking data available',
-        data: [],
-        summary: {}
-      };
-    }
-
-    // Apply filters
-    let filteredData = allData;
-
-    // Filter by teacher
-    if (filters.teacherId && filters.teacherId !== 'all') {
-      filteredData = filteredData.filter(record => record.teacher_id === filters.teacherId);
-    }
-
-    // Filter by date range
-    if (filters.dateFrom) {
-      filteredData = filteredData.filter(record => record.date >= filters.dateFrom);
-    }
-
-    if (filters.dateTo) {
-      filteredData = filteredData.filter(record => record.date <= filters.dateTo);
-    }
-
-    // Get latest record for each teacher (for dashboard display)
-    const latestByTeacher = {};
-    filteredData.forEach(record => {
-      const teacherId = record.teacher_id;
-      if (!latestByTeacher[teacherId] || record.date > latestByTeacher[teacherId].date) {
-        latestByTeacher[teacherId] = record;
+      // Calculate cumulative workload per teacher
+      if (!teacherMap.has(record.teacher_id)) {
+        teacherMap.set(record.teacher_id, {
+          teacher_id: record.teacher_id,
+          teacher_name: record.teacher_name,
+          regular_periods_today: 0,
+          daily_workload: 0,
+          cumulative_workload: 0,
+          latest_date: record.date
+        });
       }
+
+      const teacherStats = teacherMap.get(record.teacher_id);
+      teacherStats.regular_periods_today = record.regular_periods_today;
+      teacherStats.daily_workload = record.daily_workload;
+      teacherStats.cumulative_workload += record.daily_workload;
+      if (record.date > teacherStats.latest_date) {
+        teacherStats.latest_date = record.date;
+      }
+    }
+
+    // Convert to array and sort
+    let finalData = Array.from(teacherMap.values());
+
+    // Sort data
+    finalData.sort((a, b) => {
+      const aVal = a[sortBy] || 0;
+      const bVal = b[sortBy] || 0;
+      return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
     });
 
-    const latestRecords = Object.values(latestByTeacher);
+    // Calculate summary statistics
+    const summary = calculateSummaryStatistics(finalData);
 
-    // Calculate summary statistics with cumulative workload for each teacher
-    const latestRecordsWithCumulative = latestRecords.map(record => ({
-      ...record,
-      cumulative_workload: calculateCumulativeWorkload(record.teacher_id, record.date)
-    }));
-
-    const summary = {
-      total_teachers: latestRecords.length,
-      average_daily_workload: latestRecords.length > 0
-        ? latestRecords.reduce((sum, r) => sum + r.daily_workload, 0) / latestRecords.length
-        : 0,
-      average_cumulative_workload: latestRecordsWithCumulative.length > 0
-        ? latestRecordsWithCumulative.reduce((sum, r) => sum + r.cumulative_workload, 0) / latestRecordsWithCumulative.length
-        : 0,
-      highest_daily_workload_teacher: latestRecords.length > 0
-        ? latestRecords.reduce((max, r) => r.daily_workload > max.daily_workload ? r : max)
-        : null,
-      lowest_daily_workload_teacher: latestRecords.length > 0
-        ? latestRecords.reduce((min, r) => r.daily_workload < min.daily_workload ? r : min)
-        : null,
-      highest_cumulative_workload_teacher: latestRecordsWithCumulative.length > 0
-        ? latestRecordsWithCumulative.reduce((max, r) => r.cumulative_workload > max.cumulative_workload ? r : max)
-        : null,
-      lowest_cumulative_workload_teacher: latestRecordsWithCumulative.length > 0
-        ? latestRecordsWithCumulative.reduce((min, r) => r.cumulative_workload < min.cumulative_workload ? r : min)
-        : null,
-      latest_date: allData.length > 0 ? allData[0].date : null
-    };
+    console.log(`Returning ${finalData.length} teacher records`);
 
     return {
       success: true,
-      data: latestRecords,
-      allData: filteredData, // Include all filtered data for historical charts
+      data: finalData,
       summary: summary,
-      filters: filters
+      message: `Successfully loaded ${finalData.length} teacher records`
     };
 
   } catch (error) {
-    Logger.log('Error getting teacher metrics: ' + error.message);
+    console.error('Error in getTeacherMetrics:', error);
     return {
       success: false,
-      message: 'Error: ' + error.message,
+      message: error.message || 'Unknown error occurred',
       data: [],
-      summary: {}
+      summary: null
     };
   }
 }
 
 /**
- * Get filter options for dropdowns
- * Returns lists of teachers, subjects, and classes from timetable data
+ * Calculate summary statistics for dashboard
  *
- * @return {Object} Filter options for UI dropdowns
+ * @param {Array} teacherData - Array of teacher records
+ * @return {Object} Summary statistics
+ */
+function calculateSummaryStatistics(teacherData) {
+  if (!teacherData || teacherData.length === 0) {
+    return {
+      total_teachers: 0,
+      average_daily_workload: 0,
+      average_cumulative_workload: 0,
+      highest_daily_workload_teacher: null,
+      latest_date: null
+    };
+  }
+
+  const totalTeachers = teacherData.length;
+  const dailyWorkloads = teacherData.map(t => t.daily_workload || 0);
+  const cumulativeWorkloads = teacherData.map(t => t.cumulative_workload || 0);
+  const avgDaily = dailyWorkloads.reduce((sum, val) => sum + val, 0) / totalTeachers;
+  const avgCumulative = cumulativeWorkloads.reduce((sum, val) => sum + val, 0) / totalTeachers;
+
+  // Find teacher with highest daily workload
+  let highestWorkloadTeacher = null;
+  let maxWorkload = 0;
+  teacherData.forEach(teacher => {
+    if (teacher.daily_workload > maxWorkload) {
+      maxWorkload = teacher.daily_workload;
+      highestWorkloadTeacher = {
+        teacher_name: teacher.teacher_name,
+        teacher_id: teacher.teacher_id,
+        daily_workload: teacher.daily_workload
+      };
+    }
+  });
+
+  // Find latest date
+  const latestDate = teacherData
+    .map(t => t.latest_date)
+    .filter(d => d)
+    .sort((a, b) => b.localeCompare(a))[0] || null;
+
+  return {
+    total_teachers: totalTeachers,
+    average_daily_workload: parseFloat(avgDaily.toFixed(2)),
+    average_cumulative_workload: parseFloat(avgCumulative.toFixed(2)),
+    highest_daily_workload_teacher: highestWorkloadTeacher,
+    latest_date: latestDate
+  };
+}
+
+/**
+ * Get filter options for dropdown menus
+ *
+ * @return {Object} Response with filter options
  */
 function getFilterOptions() {
   try {
-    // Get teacher list from DataConstants
-    const teachers = Object.keys(TEACHER_NAMES).map(id => ({
+    // Return teacher options from DataConstants
+    const teachers = Object.entries(TEACHER_NAMES).map(([id, name]) => ({
       id: id,
-      name: TEACHER_NAMES[id]
-    })).sort((a, b) => a.id.localeCompare(b.id));
-
-    // Get unique subjects from timetable
-    const subjectSet = new Set();
-    REAL_TIMETABLE.forEach(entry => {
-      if (entry.subject_id) {
-        subjectSet.add(entry.subject_id);
-      }
-    });
-    const subjects = Array.from(subjectSet).sort();
-
-    // Get unique classes from timetable
-    const classSet = new Set();
-    REAL_TIMETABLE.forEach(entry => {
-      if (entry.class_id) {
-        classSet.add(entry.class_id);
-      }
-    });
-    const classes = Array.from(classSet).sort();
-
-    // Get unique days
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+      name: name
+    }));
 
     return {
       success: true,
-      teachers: teachers,
-      subjects: subjects,
-      classes: classes,
-      days: days
+      teachers: teachers.sort((a, b) => a.name.localeCompare(b.name, 'th')),
+      message: 'Filter options loaded successfully'
     };
 
   } catch (error) {
-    Logger.log('Error getting filter options: ' + error.message);
+    console.error('Error in getFilterOptions:', error);
     return {
       success: false,
-      message: 'Error: ' + error.message,
-      teachers: [],
-      subjects: [],
-      classes: [],
-      days: []
+      message: error.message || 'Failed to load filter options',
+      teachers: []
     };
   }
 }
 
 /**
- * Get teacher schedule for a specific teacher and day
- * Used for detailed views and tooltips
+ * Clear cache function (for future use)
+ * Currently just returns success as Apps Script handles caching automatically
  *
- * @param {string} teacherId - Teacher ID (e.g., "T001")
- * @param {string} dayId - Day of week (e.g., "Mon", "Tue")
- * @return {Array<Object>} Array of scheduled periods
- */
-function getTeacherSchedule(teacherId, dayId) {
-  if (!teacherId) {
-    return [];
-  }
-
-  try {
-    // Filter timetable for specific teacher and day
-    const schedule = REAL_TIMETABLE.filter(entry => {
-      const teacherMatch = !teacherId || entry.teacher_id === teacherId;
-      const dayMatch = !dayId || entry.day_id === dayId;
-      return teacherMatch && dayMatch;
-    });
-
-    // Sort by day and period
-    const dayOrder = {Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7};
-    schedule.sort((a, b) => {
-      const dayCompare = dayOrder[a.day_id] - dayOrder[b.day_id];
-      if (dayCompare !== 0) return dayCompare;
-      return a.period_id - b.period_id;
-    });
-
-    return schedule;
-
-  } catch (error) {
-    Logger.log('Error getting teacher schedule: ' + error.message);
-    return [];
-  }
-}
-
-/**
- * Clear cache manually (for testing/debugging)
- * Can be called from Apps Script editor or via web app
- *
- * @return {Object} Status message
+ * @return {Object} Response object
  */
 function clearCache() {
   try {
-    const cache = CacheService.getScriptCache();
-    cache.remove('teacher_hours_tracking_data');
+    console.log('Clearing cache...');
 
-    Logger.log('Cache cleared successfully');
+    // Apps Script handles caching automatically, but we could implement
+    // custom cache clearing here if needed in the future
+
     return {
       success: true,
       message: 'Cache cleared successfully'
     };
+
   } catch (error) {
-    Logger.log('Error clearing cache: ' + error.message);
+    console.error('Error clearing cache:', error);
     return {
       success: false,
-      message: 'Error: ' + error.message
+      message: error.message || 'Failed to clear cache'
     };
   }
-}
-
-/**
- * Test function to verify backend is working
- * Can be run from Apps Script editor
- *
- * @return {void}
- */
-function testBackend() {
-  Logger.log('Testing backend functions...');
-
-  // Test 1: Get filter options
-  Logger.log('\n=== Test 1: Filter Options ===');
-  const filterOptions = getFilterOptions();
-  Logger.log('Teachers: ' + filterOptions.teachers.length);
-  Logger.log('Subjects: ' + filterOptions.subjects.length);
-  Logger.log('Classes: ' + filterOptions.classes.length);
-
-  // Test 2: Get teacher metrics
-  Logger.log('\n=== Test 2: Teacher Metrics ===');
-  const metrics = getTeacherMetrics({});
-  Logger.log('Success: ' + metrics.success);
-  Logger.log('Records: ' + metrics.data.length);
-  if (metrics.data.length > 0) {
-    Logger.log('Sample record: ' + JSON.stringify(metrics.data[0]));
-  }
-  Logger.log('Summary: ' + JSON.stringify(metrics.summary));
-
-  // Test 3: Get teacher schedule
-  Logger.log('\n=== Test 3: Teacher Schedule ===');
-  const schedule = getTeacherSchedule('T001', 'Mon');
-  Logger.log('T001 Monday schedule: ' + schedule.length + ' periods');
-
-  Logger.log('\nAll tests completed!');
 }
