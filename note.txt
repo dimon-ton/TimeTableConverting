@@ -1,4 +1,0 @@
-1.yes
-2.the period that the teacher is absent, we can get from column "period" in Leave_Logs google sheet and check with
-regular_periods_today
-3.replace the current "Net Total Burden"
