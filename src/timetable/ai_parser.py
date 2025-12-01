@@ -204,8 +204,13 @@ def parse_leave_request(message: str) -> Optional[Dict]:
         elif '```' in content:
             content = content.split('```')[1].split('```')[0].strip()
 
-        # Parse JSON
-        result = json.loads(content)
+        # Parse JSON with better error handling
+        try:
+            result = json.loads(content)
+        except json.JSONDecodeError as e:
+            print(f"ERROR: Invalid JSON from AI: {e}")
+            print(f"Raw content: {content}")
+            return None
 
         # Validate required fields
         required_fields = ['teacher_name', 'date', 'periods']
@@ -224,7 +229,7 @@ def parse_leave_request(message: str) -> Optional[Dict]:
         if 'reason' not in result or not result['reason']:
             result['reason'] = 'ลากิจ'
 
-        # Set default leave_type if not provided
+        # Set default leave_type if not provided or empty
         if 'leave_type' not in result or not result['leave_type']:
             result['leave_type'] = 'leave'
 
@@ -332,9 +337,27 @@ def parse_leave_request_fallback(message: str) -> Optional[Dict]:
             else:
                 result['periods'] = [int(period_text.strip())]
 
-        # Handle full day patterns
-        if any(pattern in message_clean for pattern in ['ทั้งวัน', 'เต็มวัน', '1 วัน', 'หนึ่งวัน']):
+        # Handle full day patterns and business leave without explicit periods
+        full_day_patterns = ['ทั้งวัน', 'เต็มวัน', '1 วัน', 'หนึ่งวัน']
+
+        # Also detect business/official leave without periods (e.g., going to hospital, training, etc.)
+        business_leave_indicators = [
+            'เฝ้า', 'โรงพยาบาล', 'ที่', 'ไป', 'อบรม', 'ประชุม'
+        ]
+
+        has_business_destination = any(indicator in message_clean for indicator in business_leave_indicators)
+
+        # Default to full day if:
+        # 1. Explicit full day patterns found, OR
+        # 2. Teacher name + reason + business destination but no periods specified
+        if any(pattern in message_clean for pattern in full_day_patterns) or (
+            result.get('teacher_name') and
+            result.get('reason') and
+            not result.get('periods') and
+            has_business_destination
+        ):
             result['periods'] = list(range(1, 9))
+            print(f"Defaulting to full day leave (periods 1-8) for: {result.get('teacher_name')}")
 
         # Extract reason for regular leave
         if 'ป่วย' in message_clean:

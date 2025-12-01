@@ -39,7 +39,8 @@ from src.utils.sheet_utils import (
     log_request_to_sheet,
     finalize_pending_assignment,
     load_pending_assignments,
-    update_pending_assignments
+    update_pending_assignments,
+    write_teacher_hours_snapshot
 )
 from src.utils.report_parser import (
     parse_edited_assignments,
@@ -285,13 +286,22 @@ def process_substitution_report(text: str, group_id: str, user_id: str):
         finalized_count = finalize_pending_assignment(target_date, verified_by=user_id)
 
         if finalized_count > 0:
+            # Write teacher hours snapshot after finalization completes
+            try:
+                write_teacher_hours_snapshot(target_date)
+                print(f"Successfully updated teacher hours snapshot for {target_date}")
+                snapshot_status = "และบันทึกข้อมูลชั่วโมงสอนเรียบร้อยแล้ว"
+            except Exception as e:
+                print(f"ERROR writing teacher hours snapshot: {e}")
+                snapshot_status = "แต่เกิดข้อผิดพลาดในการบันทึกข้อมูลชั่วโมงสอน"
+
             # Send confirmation to admin group (updated to include edit summary)
             send_to_admin(
                 f"✅ ยืนยันการสอนแทนสำเร็จ\n\n"
                 f"วันที่: {target_date}\n"
                 f"จำนวน: {finalized_count} คาบ"
                 f"{update_summary}\n"
-                f"ข้อมูลถูกบันทึกลงใน Leave_Logs เรียบร้อยแล้ว"
+                f"ข้อมูลถูกบันทึกลงใน Leave_Logs {snapshot_status}"
             )
             print(f"Successfully finalized {finalized_count} assignments for {target_date}")
         else:

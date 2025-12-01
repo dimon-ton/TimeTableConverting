@@ -19,6 +19,10 @@ from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
 import json
 
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.timetable.ai_parser import (
     parse_leave_request,
     parse_leave_request_fallback

@@ -7,7 +7,7 @@ Google Sheet, including getting the client, logging requests, and reading data.
 
 import gspread
 from google.oauth2.service_account import Credentials
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, Dict, List, Tuple
 import json
 
@@ -672,3 +672,133 @@ def update_pending_assignments(target_date: str, changes: List[Dict]) -> Tuple[i
         import traceback
         traceback.print_exc()
         return (0, [error_msg])
+
+
+# ==================== Teacher Hours Tracking Functions ====================
+
+def write_teacher_hours_snapshot(date_str: str):
+    """
+    Calculate and write cumulative teacher hours snapshot to Teacher_Hours_Tracking worksheet.
+    Called at end of daily processing or after admin finalization.
+
+    Worksheet columns: Date, Teacher_ID, Teacher_Name, Regular_Periods_Today, Daily_Workload, Updated_At
+
+    Calculation:
+    - Regular_Periods_Today: Scheduled periods for this day of week
+    - Daily_Workload: Net balance of cumulative_substitute - cumulative_absence (substitutes done minus absences taken)
+    - Cumulative_Substitute: Total substitutes from school year start to date_str
+    - Cumulative_Absence: Total absences from school year start to date_str
+    - Updated_At: Timestamp of when this snapshot was recorded
+    """
+    print("\n" + "="*60)
+    print("Writing Teacher Hours Snapshot")
+    print("="*60)
+
+    # Load timetable for regular periods
+    with open(config.TIMETABLE_FILE, 'r', encoding='utf-8') as f:
+        timetable = json.load(f)
+
+    # Load teacher names
+    with open(config.TEACHER_FULL_NAMES_FILE, 'r', encoding='utf-8') as f:
+        teacher_names = json.load(f)
+
+    # Determine day of week for date_str
+    date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+    day_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    day_of_week = day_names[date_obj.weekday()]
+
+    # Calculate regular periods for TODAY (this day of week) per teacher
+    teacher_stats = {}
+    for teacher_id in teacher_names.keys():
+        # Count periods scheduled for this specific day of week
+        regular_today = sum(1 for entry in timetable
+                          if entry['teacher_id'] == teacher_id
+                          and entry['day_id'] == day_of_week)
+
+        teacher_stats[teacher_id] = {
+            'teacher_id': teacher_id,
+            'teacher_name': teacher_names[teacher_id],
+            'day_of_week': day_of_week,
+            'regular_periods_today': regular_today,
+            'cumulative_substitute': 0,
+            'cumulative_absence': 0,
+            'total_regular_taught': 0  # Will calculate below
+        }
+
+    # Load all Leave_Logs to calculate cumulative totals
+    client = get_sheets_client()
+    spreadsheet = client.open_by_key(config.SPREADSHEET_ID)
+    leave_logs_ws = spreadsheet.worksheet(config.LEAVE_LOGS_WORKSHEET)
+    all_logs = leave_logs_ws.get_all_records()
+
+    # Determine school year start date (adjust as needed for your school)
+    # Example: School year starts September 1st
+    year = date_obj.year if date_obj.month >= 9 else date_obj.year - 1
+    school_year_start = f"{year}-09-01"
+
+    # Count cumulative substitutions and absences from school year start to current date
+    for log in all_logs:
+        log_date = log.get('Date', '')
+        if school_year_start <= log_date <= date_str:  # Within school year up to current date
+            # Count absences
+            absent_teacher = log.get('Absent_Teacher', '')
+            if absent_teacher in teacher_stats:
+                teacher_stats[absent_teacher]['cumulative_absence'] += 1
+
+            # Count substitutions
+            substitute_teacher = log.get('Substitute_Teacher', '')
+            if substitute_teacher and substitute_teacher != "Not Found" and substitute_teacher in teacher_stats:
+                teacher_stats[substitute_teacher]['cumulative_substitute'] += 1
+
+    # Calculate total regular periods taught (number of working days * periods per day)
+    # Count working days from school year start to current date
+    start_date = datetime.strptime(school_year_start, '%Y-%m-%d')
+    current_date = datetime.strptime(date_str, '%Y-%m-%d')
+
+    # Count days by day of week
+    day_counts = {day: 0 for day in day_names[:5]}  # Mon-Fri only
+    temp_date = start_date
+    while temp_date <= current_date:
+        if temp_date.weekday() < 5:  # Monday=0 to Friday=4
+            day_counts[day_names[temp_date.weekday()]] += 1
+        temp_date += timedelta(days=1)
+
+    # Calculate total regular periods taught for each teacher
+    for teacher_id, stats in teacher_stats.items():
+        total_regular = 0
+        for day in day_names[:5]:  # Mon-Fri
+            periods_on_day = sum(1 for entry in timetable
+                               if entry['teacher_id'] == teacher_id
+                               and entry['day_id'] == day)
+            total_regular += periods_on_day * day_counts[day]
+
+        stats['total_regular_taught'] = total_regular
+
+    # Write snapshot to Teacher_Hours_Tracking
+    tracking_ws = spreadsheet.worksheet('Teacher_Hours_Tracking')
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    rows_added = 0
+    for teacher_id, stats in teacher_stats.items():
+        # Daily_Workload: Net balance of cumulative_substitute - cumulative_absence
+        daily_workload_balance = stats['cumulative_substitute'] - stats['cumulative_absence']
+
+        row = [
+            date_str,                                                # Date
+            teacher_id,                                              # Teacher_ID
+            stats['teacher_name'],                                   # Teacher_Name
+            stats['regular_periods_today'],                          # Regular_Periods_Today
+            daily_workload_balance,                                  # Daily_Workload
+            timestamp                                                # Updated_At
+        ]
+
+        tracking_ws.append_row(row, value_input_option='USER_ENTERED')
+        rows_added += 1
+
+    print(f"OK - Written teacher hours snapshot for {date_str} ({day_of_week})")
+    print(f"  Teachers tracked: {len(teacher_stats)}")
+    print(f"  School year: {school_year_start} to {date_str}")
+    print(f"  Working days: {sum(day_counts.values())} total")
+    print(f"  Rows written to Teacher_Hours_Tracking: {rows_added}")
+    print(f"  Columns: Date, Teacher_ID, Teacher_Name, Regular_Periods_Today, Daily_Workload, Updated_At")
+    print("="*60)
