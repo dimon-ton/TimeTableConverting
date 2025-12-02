@@ -161,6 +161,7 @@ function getTeacherMetrics(filters) {
         data: [],
         summary: {
           total_teachers: 0,
+          total_daily_workload: 0,
           average_daily_workload: 0,
           average_cumulative_workload: 0,
           highest_daily_workload_teacher: null,
@@ -268,7 +269,8 @@ function calculateSummaryStatistics(teacherData) {
   const totalTeachers = teacherData.length;
   const dailyWorkloads = teacherData.map(t => t.daily_workload || 0);
   const cumulativeWorkloads = teacherData.map(t => t.cumulative_workload || 0);
-  const avgDaily = dailyWorkloads.reduce((sum, val) => sum + val, 0) / totalTeachers;
+  const totalDailyWorkload = dailyWorkloads.reduce((sum, val) => sum + val, 0);
+  const avgDaily = totalDailyWorkload / totalTeachers;
   const avgCumulative = cumulativeWorkloads.reduce((sum, val) => sum + val, 0) / totalTeachers;
 
   // Find teacher with highest daily workload
@@ -293,6 +295,7 @@ function calculateSummaryStatistics(teacherData) {
 
   return {
     total_teachers: totalTeachers,
+    total_daily_workload: parseFloat(totalDailyWorkload.toFixed(2)),
     average_daily_workload: parseFloat(avgDaily.toFixed(2)),
     average_cumulative_workload: parseFloat(avgCumulative.toFixed(2)),
     highest_daily_workload_teacher: highestWorkloadTeacher,

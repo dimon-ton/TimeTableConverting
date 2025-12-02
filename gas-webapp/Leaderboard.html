@@ -23,16 +23,16 @@
                 <th class="text-center" style="width: 60px; min-width: 50px;">
                   <i class="bi bi-hash"></i> อันดับ
                 </th>
-                <th style="width: 200px; min-width: 180px;">
+                <th class="text-center" style="width: 200px; min-width: 180px;">
                   <i class="bi bi-person-badge"></i> ชื่อครู
                 </th>
                 <th class="text-center" style="width: 125px; min-width: 110px;">
                   <i class="bi bi-book"></i> ชั่วโมงปกติวันนี้
                 </th>
-                <th class="text-end" style="width: 125px; min-width: 110px;">
+                <th class="text-center" style="width: 125px; min-width: 110px;">
                   <i class="bi bi-graph-up"></i> ภาระงานวันนี้
                 </th>
-                <th class="text-end" style="width: 125px; min-width: 110px;">
+                <th class="text-center" style="width: 125px; min-width: 110px;">
                   <i class="bi bi-stack"></i> ภาระงานสะสม
                 </th>
                 <th class="text-center" style="width: 110px; min-width: 90px;">
@@ -112,17 +112,15 @@
           <div class="text-muted">ภาระงานวันนี้</div>
           <div class="fw-bold daily-workload">0</div>
         </div>
-        <div class="col-6">
-          <div class="text-muted">ภาระงานสะสม</div>
-          <div class="fw-bold cumulative-workload">0</div>
-        </div>
       </div>
 
-      <hr class="my-2">
+      <!-- Divider Line -->
+      <hr class="my-3">
 
+      <!-- Cumulative Workload Spotlight Badge at Bottom -->
       <div class="d-flex justify-content-between align-items-center">
-        <strong>ภาระงานวันนี้:</strong>
-        <span class="badge bg-primary daily-workload-badge">0</span>
+        <span class="text-muted small fw-bold">ภาระงานสะสมทั้งหมด</span>
+        <span class="badge bg-primary cumulative-workload" style="padding: 6px 12px; font-size: 1rem; font-weight: bold;">0 คาบ</span>
       </div>
     </div>
   </div>

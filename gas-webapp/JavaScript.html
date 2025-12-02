@@ -225,10 +225,10 @@ function renderSummaryCards(summary) {
       suffix: 'คน'
     },
     {
-      title: 'ภาระงานเฉลี่ยภาระงาน',
-      value: (summary.average_daily_workload || 0).toFixed(1),
-      icon: 'bi-bar-chart-fill',
-      color: 'info',
+      title: 'ภาระงานวันนี้ทั้งหมด',
+      value: (summary.total_daily_workload || 0).toFixed(1),
+      icon: 'bi-calendar-check-fill',
+      color: 'success',
       suffix: 'คาบ'
     },
     {
@@ -344,10 +344,10 @@ function renderDesktopTable(data) {
           <small class="text-muted">${teacher.teacher_id}</small>
         </td>
         <td class="text-center">${teacher.regular_periods_today}</td>
-        <td class="text-end">
+        <td class="text-center">
           <span class="badge bg-success fs-6">${teacher.daily_workload}</span>
         </td>
-        <td class="text-end">
+        <td class="text-center">
           <span class="badge bg-primary fs-6">${teacher.cumulative_workload || 0}</span>
         </td>
         <td class="text-center">
@@ -378,8 +378,7 @@ function renderMobileCards(data) {
     card.querySelector('.rank-badge').textContent = `อันดับ ${rank}`;
     card.querySelector('.regular-periods').textContent = teacher.regular_periods_today;
     card.querySelector('.daily-workload').textContent = teacher.daily_workload;
-    card.querySelector('.cumulative-workload').textContent = teacher.cumulative_workload || 0;
-    card.querySelector('.daily-workload-badge').textContent = teacher.daily_workload;
+    card.querySelector('.cumulative-workload').textContent = (teacher.cumulative_workload || 0) + ' คาบ';
 
     // Set workload badge
     const badgeClass = getWorkloadBadge(teacher.daily_workload);
