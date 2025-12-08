@@ -71,6 +71,26 @@ else:
     print("WARNING: LINE_CHANNEL_SECRET not set")
 
 
+def is_valid_teacher(teacher_name: str) -> bool:
+    """
+    Check if the teacher name exists in the system.
+
+    Args:
+        teacher_name: Teacher name with 'ครู' prefix (e.g., 'ครูจรรยาภรณ์')
+
+    Returns:
+        True if teacher exists in the system, False otherwise
+    """
+    try:
+        import json
+        with open(config.TEACHER_NAME_MAP_FILE, 'r', encoding='utf-8') as f:
+            teacher_map = json.load(f)
+        return teacher_name in teacher_map
+    except Exception as e:
+        print(f"Error checking teacher validity: {e}")
+        return False
+
+
 def verify_signature(body: bytes, signature: str) -> bool:
     """
     Verify that the request came from LINE.
@@ -464,8 +484,26 @@ def process_leave_request_message(text: str, group_id: str, reply_token: str):
             leave_data = parse_leave_request_fallback(text)
             status = "Success (Fallback)"
 
-        # 2. Log the parsing attempt to "Leave_Requests" sheet
+        # 2. Validate teacher exists in system
         if leave_data:
+            teacher_name = leave_data.get('teacher_name', '')
+            if not is_valid_teacher(teacher_name):
+                print(f"Teacher '{teacher_name}' not found in system")
+                # Log failed validation (not parsing failure)
+                log_request_to_sheet(
+                    raw_message=text,
+                    leave_data=None,
+                    status=f"Failed - Teacher not found: {teacher_name}"
+                )
+                send_to_admin(
+                    f"❌ ไม่พบชื่อครูในระบบ\n\n"
+                    f"ครู: {teacher_name}\n"
+                    f"ข้อความ: {text}\n\n"
+                    f"กรุณาตรวจสอบชื่อครูและลองใหม่อีกครั้ง"
+                )
+                return
+
+            # Teacher is valid, log the request
             log_request_to_sheet(raw_message=text, leave_data=leave_data, status=status)
         else:
             log_request_to_sheet(raw_message=text, leave_data=None, status="Failed")

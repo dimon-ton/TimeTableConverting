@@ -15,9 +15,10 @@ A Python-based timetable management system for schools that handles Excel-to-JSO
 ### Cloud Integration
 - ✅ **Google Sheets integration for cloud-based leave log management**
 - ✅ **LINE Bot integration for automated leave requests and notifications**
-- ✅ **AI-powered message parsing (OpenRouter/Gemini)**
+- ✅ **AI-powered message parsing with enhanced teacher name recognition (OpenRouter/Gemini)**
 - ✅ **Admin verification workflow with edit detection**
 - ✅ **Two-group notification system (teacher/admin)**
+- ✅ **Real-time teacher validation system with immediate error feedback**
 
 ### Google Apps Script Webapp (PRODUCTION-READY! ✅)
 - ✅ **Teacher Working Hours Dashboard** (production-ready with zero mock data)
@@ -45,6 +46,13 @@ A Python-based timetable management system for schools that handles Excel-to-JSO
 - ✅ **Improved Data Presentation:** Total daily workload instead of average in summary cards
 - ✅ **Visual Hierarchy:** Clear distinction between daily and cumulative teaching hours
 - ✅ **Responsive Excellence:** Superior mobile UX with proper content organization
+
+**🤖 DECEMBER 8, 2025 - AI PARSER ENHANCEMENT COMPLETED 🤖**
+- ✅ **Enhanced Teacher Name Recognition:** AI parser now loads teacher names from JSON mapping
+- ✅ **Improved AI Context:** System prompts include actual teacher list for better accuracy
+- ✅ **Teacher Validation System:** Real-time validation prevents processing unknown teachers
+- ✅ **Better Error Handling:** Clear error messages for invalid teacher names
+- ✅ **Code Repository Cleanup:** Removed redundant test scripts for cleaner structure
 
 ## Installation
 

@@ -30,8 +30,32 @@ from typing import Dict, List, Optional
 from src.config import config
 
 
-# System prompt for the AI model
-SYSTEM_PROMPT = """คุณเป็นผู้ช่วยวิเคราะห์ข้อความคำขอลาของครู ให้แปลงข้อความเป็น JSON ตามรูปแบบนี้:
+def load_teacher_names():
+    """Load teacher full names for better identification."""
+    try:
+        with open(config.TEACHER_FULL_NAMES_FILE, 'r', encoding='utf-8') as f:
+            teacher_data = json.load(f)
+        # Create a mapping of names without 'ครู' prefix to full names
+        name_mapping = {}
+        for teacher_id, full_name in teacher_data.items():
+            # Remove 'ครู' prefix for easier matching
+            if full_name.startswith('ครู'):
+                short_name = full_name[3:]  # Remove 'ครู'
+                name_mapping[short_name] = full_name
+        return name_mapping
+    except Exception as e:
+        print(f"Warning: Could not load teacher names: {e}")
+        return {}
+
+
+# Load teacher names for the prompt
+TEACHER_NAMES = load_teacher_names()
+
+# Create teacher list for the prompt
+TEACHER_LIST = "\n".join([f"  - {full_name}" for full_name in TEACHER_NAMES.values()])
+
+# System prompt template for the AI model
+SYSTEM_PROMPT_TEMPLATE = """คุณเป็นผู้ช่วยวิเคราะห์ข้อความคำขอลาของครู ให้แปลงข้อความเป็น JSON ตามรูปแบบนี้:
 
 {{
   "teacher_name": "ชื่อครู (ต้องมีคำว่า 'ครู' นำหน้า)",
@@ -46,6 +70,11 @@ SYSTEM_PROMPT = """คุณเป็นผู้ช่วยวิเครา�
    - ให้คงคำว่า "ครู" นำหน้าชื่อไว้เสมอ (เช่น "ครูสุกฤษฎิ์" -> "ครูสุกฤษฎิ์")
    - ข้อความอาจไม่มีช่องว่างระหว่างวันที่กับชื่อครู (เช่น "วันนี้ครูวิยะดา" -> "ครูวิยะดา")
    - ให้ละเลยคำทักทาย "เรียนท่าน ผอ." หรือคำอื่นๆ ที่ไม่เกี่ยวข้อง
+   - **สำคัญ**: เทียบชื่อครูที่มีอยู่ในระบบเพื่อความถูกต้อง:
+{teacher_list}
+   - ถ้าพบชื่อจริง (เช่น "จรรยาภรณ์ ภูกลาง", "นางสาวจรรยาภรณ์") ให้จับคู่กับชื่อครูที่มี "ครู" นำหน้า
+     * ตัวอย่าง: "จรรยาภรณ์" หรือ "นางสาวจรรยาภรณ์ ภูกลาง" -> "ครูจรรยาภรณ์"
+     * ตัวอย่าง: "วิยะดา" หรือ "นางวิยะดา" -> "ครูวิยะดา"
 
 2. วันที่:
    - "พรุ่งนี้" = วันถัดจากวันนี้
@@ -163,8 +192,11 @@ def parse_leave_request(message: str) -> Optional[Dict]:
     today = datetime.now()
     today_str = today.strftime('%Y-%m-%d (%A)')
 
-    # Prepare system prompt with current date
-    system_prompt = SYSTEM_PROMPT.format(today=today_str)
+    # Prepare system prompt with current date and teacher list
+    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
+        teacher_list=TEACHER_LIST,
+        today=today_str
+    )
 
     # Prepare API request
     headers = {
@@ -179,7 +211,7 @@ def parse_leave_request(message: str) -> Optional[Dict]:
             {"role": "user", "content": message}
         ],
         "temperature": 0.2,  # Low temperature for consistent parsing
-        "max_tokens": 500
+        "max_tokens": 1000
     }
 
     try:

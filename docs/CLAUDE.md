@@ -1,6 +1,6 @@
 # TimeTable Converting - Claude Code Context File
 
-Last Updated: 2025-11-30
+Last Updated: 2025-12-08
 
 ## Project Overview
 
@@ -18,7 +18,8 @@ The TimeTable Converting project consists of two integrated components:
 - Historical data integration for fair workload distribution
 - Google Sheets integration for cloud-based leave log management
 - LINE Bot integration for automated leave request processing
-- AI-powered Thai language message parsing (OpenRouter/Gemini)
+- **Enhanced AI-powered Thai language message parsing with teacher name recognition (OpenRouter/Gemini)**
+- **Real-time teacher validation system with immediate error feedback**
 - Real-time notifications and daily automated processing
 - Admin edit detection with 4-tier name matching system
 - Cron job automation with Windows testing infrastructure
@@ -322,14 +323,21 @@ System Detects [REPORT] → Parses Edits → Updates DB → Leave_Logs → Notif
    - Flask server receives LINE webhook
    - HMAC-SHA256 signature verification
    - Leave keyword detection (ลา, ขอลา, หยุด, ไม่มา)
+   - **Real-time teacher validation with `is_valid_teacher()` function**
+   - **Enhanced error handling for unknown teacher names**
+   - **Informative admin notifications for validation failures**
    - Routes to AI parser
 
 2. **AI Message Parsing** (src/timetable/ai_parser.py)
    - OpenRouter/Gemini API integration
+   - **Enhanced teacher name recognition with JSON mapping system**
+   - **Dynamic teacher name loading from configuration files**
+   - **AI prompts include actual teacher list for better accuracy**
    - Thai language natural language processing
    - Extracts: teacher name, date, periods, reason
    - Fallback regex parser if AI fails
    - Handles formal greetings, informal typing, full-day expressions
+   - **Enhanced token processing capacity (1000 tokens vs 500 previously)**
 
 3. **Daily Processing** (src/utils/daily_leave_processor.py)
    - Runs at 8:55 AM Monday-Friday (cron job)
@@ -477,6 +485,16 @@ python tools/substitute_simulator.py
 Math, Science, Thai, English, Social, Health, PE, Music, Art, Computer, Homeroom, Buddhism, Reading, Drama, Applied Math, STEM, Visual Arts, Anti-Corruption, Music-Drama, etc.
 
 ## Recent Changes & Session History
+
+### December 8, 2025 - AI Parser Enhancement & Teacher Validation
+- Enhanced AI parser with dynamic teacher name mapping system
+- Added `load_teacher_names()` function to read teacher full names from JSON
+- Improved AI system prompts to include actual teacher list for better accuracy
+- Increased token processing capacity from 500 to 1000 tokens
+- Implemented real-time teacher validation with `is_valid_teacher()` function
+- Added enhanced error handling for unknown teacher names
+- Repository cleanup: removed redundant `test_daily_leave.py` script
+- Production-ready with improved accuracy and better error messages
 
 ### November 28, 2025 - Admin Edit Detection Feature
 - Implemented admin message editing for substitute assignments
@@ -692,6 +710,6 @@ Math, Science, Thai, English, Social, Health, PE, Music, Art, Computer, Homeroom
 
 ---
 
-**Last Synchronized:** 2025-12-02 (MOBILE UI ENHANCEMENTS COMPLETED)
-**Document Version:** 1.2
-**Project Status:** Production-Ready with Enhanced Mobile UX (A++ - Optimized)
+**Last Synchronized:** 2025-12-08 (AI PARSER ENHANCEMENT COMPLETED)
+**Document Version:** 1.3
+**Project Status:** Production-Ready with Enhanced AI Capabilities (A+ - IMPROVED)
