@@ -283,126 +283,20 @@ def parse_leave_request(message: str) -> Optional[Dict]:
 
 def parse_leave_request_fallback(message: str) -> Optional[Dict]:
     """
-    Fallback parser using simple pattern matching (no AI).
+    Disabled regex fallback parser.
 
-    Used when AI API is unavailable or for testing without API key.
+    This project now requires LLM parsing via OPENROUTER_API_KEY.
+    Regex-based parsing is intentionally disabled.
 
     Args:
         message: Leave request message
 
     Returns:
-        Parsed data or None
+        None. Use parse_leave_request instead.
     """
-    import re
-
-    # Strip formal greetings
-    message_clean = re.sub(r'เรียน\s*ท่าน\s*ผอ\.?', '', message)
-    message_clean = re.sub(r'เรียน\s*ผอ\.?', '', message_clean)
-
-    result = {
-        'teacher_name': None,
-        'date': None,
-        'periods': [],
-        'reason': 'ลากิจ',
-        'leave_type': 'leave'
-    }
-
-    # Extract teacher name (ครูXXX)
-    teacher_match = re.search(r'ครู([ก-๙a-zA-Z]+)', message_clean)
-    if teacher_match:
-        result['teacher_name'] = f"ครู{teacher_match.group(1)}"
-
-    # Extract date
-    today = datetime.now()
-    if 'พรุ่งนี้' in message_clean or 'พรุ่ง' in message_clean:
-        result['date'] = (today + timedelta(days=1)).strftime('%Y-%m-%d')
-    elif 'วันนี้' in message_clean:
-        result['date'] = today.strftime('%Y-%m-%d')
-    else:
-        # Check for day names
-        day_names = {
-            'จันทร์': 0, 'อังคาร': 1, 'พุธ': 2,
-            'พฤหัส': 3, 'ศุกร์': 4, 'เสาร์': 5, 'อาทิตย์': 6
-        }
-        for thai_day, weekday in day_names.items():
-            if thai_day in message_clean:
-                days_ahead = weekday - today.weekday()
-                if days_ahead <= 0:
-                    days_ahead += 7
-                result['date'] = (today + timedelta(days=days_ahead)).strftime('%Y-%m-%d')
-                break
-        else:
-            # Default to tomorrow if no date found
-            result['date'] = (today + timedelta(days=1)).strftime('%Y-%m-%d')
-
-    # Check for late arrival
-    if 'เข้าสาย' in message_clean or 'มาสาย' in message_clean:
-        result['leave_type'] = 'late'
-        result['periods'] = [1, 2, 3]  # Absent for first half of the day (morning)
-        # Extract specific reason for being late
-        reason_patterns = [
-            r'ไป([ก-๙\s]+)',  # "ไปฟังผลตรวจ..."
-            r'เพราะ([ก-๙\s]+)',  # "เพราะ..."
-        ]
-        for pattern in reason_patterns:
-            reason_match = re.search(pattern, message_clean)
-            if reason_match:
-                result['reason'] = reason_match.group(1).strip()
-                break
-        if result['reason'] == 'ลากิจ':
-            result['reason'] = 'เข้าสาย'
-    else:
-        # Extract periods for regular leave
-        # Pattern: คาบ 1-3 or คาบ 1, 2, 3 or คาบ 1
-        period_match = re.search(r'คาบ\s*([0-9\-,\s]+)', message_clean)
-        if period_match:
-            period_text = period_match.group(1)
-
-            # Handle range (1-3)
-            if '-' in period_text:
-                start, end = period_text.split('-')
-                result['periods'] = list(range(int(start), int(end) + 1))
-            # Handle list (1, 2, 3)
-            elif ',' in period_text:
-                result['periods'] = [int(p.strip()) for p in period_text.split(',')]
-            # Single period
-            else:
-                result['periods'] = [int(period_text.strip())]
-
-        # Handle full day patterns and business leave without explicit periods
-        full_day_patterns = ['ทั้งวัน', 'เต็มวัน', '1 วัน', 'หนึ่งวัน']
-
-        # Also detect business/official leave without periods (e.g., going to hospital, training, etc.)
-        business_leave_indicators = [
-            'เฝ้า', 'โรงพยาบาล', 'ที่', 'ไป', 'อบรม', 'ประชุม'
-        ]
-
-        has_business_destination = any(indicator in message_clean for indicator in business_leave_indicators)
-
-        # Default to full day if:
-        # 1. Explicit full day patterns found, OR
-        # 2. Teacher name + reason + business destination but no periods specified
-        if any(pattern in message_clean for pattern in full_day_patterns) or (
-            result.get('teacher_name') and
-            result.get('reason') and
-            not result.get('periods') and
-            has_business_destination
-        ):
-            result['periods'] = list(range(1, 9))
-            print(f"Defaulting to full day leave (periods 1-8) for: {result.get('teacher_name')}")
-
-        # Extract reason for regular leave
-        if 'ป่วย' in message_clean:
-            result['reason'] = 'ลาป่วย'
-        elif 'ธุระ' in message_clean or 'กิจ' in message_clean:
-            result['reason'] = 'ลากิจ'
-
-    # Validate
-    if not all([result['teacher_name'], result['date'], result['periods']]):
-        print(f"Fallback parser failed to extract all required fields: {result}")
-        return None
-
-    return result
+    del message
+    print("Fallback parser disabled; use parse_leave_request with OPENROUTER_API_KEY.")
+    return None
 
 
 def test_parser():
@@ -431,10 +325,6 @@ def test_parser():
             print(f"Output: {json.dumps(result, ensure_ascii=False, indent=2)}")
         else:
             print("Output: Failed to parse")
-            print("\nTrying fallback parser...")
-            result = parse_leave_request_fallback(msg)
-            if result:
-                print(f"Fallback Output: {json.dumps(result, ensure_ascii=False, indent=2)}")
 
     print("\n" + "="*60)
 
